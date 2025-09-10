@@ -1,0 +1,26 @@
+{
+  "enabled": true,
+  "name": "Documentation Sync",
+  "description": "Monitors TypeScript source files, configuration files, and other relevant project files for changes and triggers documentation updates in README.md or docs folder when modifications are detected.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "**/*.tsx",
+      "**/*.ts",
+      "**/*.js",
+      "**/*.jsx",
+      "app.json",
+      "package.json",
+      "tsconfig.json",
+      "babel.config.js",
+      "metro.config.js",
+      "vite.config.ts",
+      "src/**/*.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Source files have been modified in this React Native/TypeScript classroom management application. Please review the changes and update the documentation accordingly. Focus on:\n\n1. Update README.md with any new features, components, or architectural changes\n2. If there's a /docs folder, update relevant documentation files there\n3. Ensure installation instructions, usage examples, and API documentation reflect current code\n4. Update any component documentation, prop interfaces, or hook usage examples\n5. Maintain consistency with the project structure and technology stack (React Native, Expo, TypeScript)\n\nPlease analyze the changed files and provide comprehensive documentation updates that help users understand the current state of the application."
+  }
+}
