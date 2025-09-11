@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react'
-import { mockData, Class, Student, Schedule, ScheduleException, Meeting, AttendanceRecord, ClassNote, Test, TestResult, HomeworkAssignment, HomeworkSubmission } from '../data/mockData'
+import { mockData, Class, Student, Schedule, ScheduleException, Meeting, AttendanceRecord, ClassNote, Test, TestResult, HomeworkAssignment, HomeworkSubmission } from '@/data/mockData'
 
 interface AppData {
   classes: Class[]

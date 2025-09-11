@@ -1,6 +1,6 @@
 import { motion } from "motion/react"
-import { Button } from "../../components/ui/button"
-import { Card, CardContent } from "../../components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { BookOpen, Users, Calendar, BarChart3, CheckCircle } from "lucide-react"
 
 interface LaunchScreenProps {

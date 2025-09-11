@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Button } from '../ui/button'
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '../ui/sheet'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu'
-import { Avatar, AvatarFallback } from '../ui/avatar'
-import { VisuallyHidden } from '../ui/visually-hidden'
-import { useAuth } from '../../context/AuthContext'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { VisuallyHidden } from '@/components/ui/visually-hidden'
+import { useAuth } from '@/context/AuthContext'
 import { 
   Menu, 
   Home, 
