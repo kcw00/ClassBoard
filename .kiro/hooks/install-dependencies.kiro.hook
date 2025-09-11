@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Auto Install Dependencies",
+  "description": "Automatically installs required libraries when package.json is modified to ensure all dependencies are available",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "package.json"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The package.json file has been modified. Please check if any new dependencies have been added and run 'npm install' to install any missing libraries. If there are any dependency conflicts or installation errors, please resolve them and ensure all required packages are properly installed."
+  }
+}
