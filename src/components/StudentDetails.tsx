@@ -33,7 +33,7 @@ import {
   Plus
 } from "lucide-react"
 import { useAppData } from "../src/context/AppDataContext"
-import FilePreviewModal from "./FilePreviewModal"
+import { FilePreviewModal } from "./common"
 
 interface StudentNote {
   id: string

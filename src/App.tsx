@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import Layout from './src/components/Layout'
+import { Layout } from './components/layout'
 import { AppDataProvider } from './src/context/AppDataContext'
 import { AuthProvider, useAuth } from './src/context/AuthContext'
 import { Toaster } from './components/ui/sonner'

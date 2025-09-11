@@ -6,20 +6,20 @@
   - Set up absolute import paths (@/components, @/screens, etc.)
   - _Requirements: 1.1, 1.3, 3.3_
 
-- [ ] 2. Reorganize UI and common components
-- [ ] 2.1 Keep existing UI components structure intact
+- [x] 2. Reorganize UI and common components
+- [x] 2.1 Keep existing UI components structure intact
   - Verify src/components/ui/ structure is properly maintained
   - Ensure all shadcn/ui components remain in current location
   - _Requirements: 1.1, 3.1_
 
-- [ ] 2.2 Create common components directory and move business components
+- [x] 2.2 Create common components directory and move business components
   - Create src/components/common/ directory
   - Move FilePreviewModal to src/components/common/
   - Move any other reusable business logic components to common/
   - Update imports for moved components
   - _Requirements: 1.1, 3.1, 4.1, 5.1, 5.2_
 
-- [ ] 2.3 Create layout components directory
+- [x] 2.3 Create layout components directory
   - Create src/components/layout/ directory
   - Move Layout component from src/src/components/ to src/components/layout/
   - Move any other layout-specific components

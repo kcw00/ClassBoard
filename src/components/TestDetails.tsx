@@ -35,7 +35,7 @@ import {
   FileUp
 } from "lucide-react"
 import { useAppData } from "../src/context/AppDataContext"
-import FilePreviewModal from "./FilePreviewModal"
+import { FilePreviewModal } from "./common"
 
 export default function TestDetails() {
   const { id: testId } = useParams()
