@@ -13,12 +13,12 @@ The current application has well-structured TypeScript interfaces and a comprehe
 ```mermaid
 graph TB
     subgraph "Frontend Layer"
-        A[React Web App]
+        A[React Web App - Vite/TSX]
         B[Future React Native App]
     end
     
-    subgraph "API Gateway"
-        C[Next.js API Routes]
+    subgraph "Backend API"
+        C[Node.js/Express API Server]
     end
     
     subgraph "Backend Services"
@@ -56,7 +56,7 @@ graph TB
 
 ### Migration Strategy
 
-1. **Phase 1**: Set up Next.js API routes alongside existing React components
+1. **Phase 1**: Set up separate Node.js/Express backend API alongside existing React frontend
 2. **Phase 2**: Implement AWS infrastructure (RDS, S3, Cognito)
 3. **Phase 3**: Create backend services and API endpoints
 4. **Phase 4**: Gradually migrate frontend to use API endpoints
@@ -202,6 +202,22 @@ Based on the existing TypeScript interfaces, the PostgreSQL database will have t
 - `POST /api/files/upload` - Upload file to S3
 - `GET /api/files/:id` - Get file metadata
 - `DELETE /api/files/:id` - Delete file
+
+### Frontend Integration
+
+The existing React/Vite frontend will remain unchanged in terms of build system and component structure. Only the data layer will be updated:
+
+#### Current Architecture
+```
+React Components → AppDataContext (mock data) → localStorage
+```
+
+#### New Architecture
+```
+React Components → AppDataService → Express API → Database/AWS
+```
+
+The `AppDataContext` will be gradually replaced with `AppDataService` that makes HTTP requests to the Express backend.
 
 ### Service Layer Architecture
 

@@ -1,10 +1,11 @@
 # Implementation Plan
 
-- [ ] 1. Set up Next.js API infrastructure and core configuration
-  - Convert the existing Vite React app to Next.js with API routes capability
-  - Configure TypeScript for both frontend and backend code
-  - Set up environment variables for development and production
-  - Install necessary dependencies for API development (database ORM, AWS SDK, etc.)
+- [x] 1. Set up separate Node.js/Express backend API infrastructure
+  - Create new backend directory structure with Express.js server
+  - Configure TypeScript for backend API development
+  - Set up environment variables and configuration management
+  - Install necessary dependencies (Express, database ORM, AWS SDK, etc.)
+  - Configure CORS to allow requests from React frontend
   - _Requirements: 2.1, 2.2_
 
 - [ ] 2. Implement database schema and ORM setup
