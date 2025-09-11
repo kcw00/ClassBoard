@@ -1,16 +1,16 @@
 import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
-import { Button } from "./ui/button"
-import { Badge } from "./ui/badge"
-import { Input } from "./ui/input"
-import { Label } from "./ui/label"
-import { Textarea } from "./ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "./ui/dialog"
-import { VisuallyHidden } from "./ui/visually-hidden"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
-import { Progress } from "./ui/progress"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Button } from "../../components/ui/button"
+import { Badge } from "../../components/ui/badge"
+import { Input } from "../../components/ui/input"
+import { Label } from "../../components/ui/label"
+import { Textarea } from "../../components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "../../components/ui/dialog"
+import { VisuallyHidden } from "../../components/ui/visually-hidden"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
+import { Progress } from "../../components/ui/progress"
 import { toast } from "sonner@2.0.3"
 import { 
   ArrowLeft, 
@@ -32,8 +32,8 @@ import {
   X,
   Plus
 } from "lucide-react"
-import { useAppData } from "../src/context/AppDataContext"
-import { FilePreviewModal } from "./common"
+import { useAppData } from "../../src/context/AppDataContext"
+import { FilePreviewModal } from "../../components/common"
 
 interface StudentNote {
   id: string

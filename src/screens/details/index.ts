@@ -1,2 +1,4 @@
 // Detail screens exports
-// This file will be populated when components are moved here
+export { default as ClassDetails } from './ClassDetails'
+export { default as StudentDetails } from './StudentDetails'
+export { default as TestDetails } from './TestDetails'

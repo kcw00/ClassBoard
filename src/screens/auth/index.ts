@@ -1,2 +1,3 @@
 // Authentication screens exports
-// This file will be populated when components are moved here
+export { default as LoginPage } from './LoginPage'
+export { default as LaunchScreen } from './LaunchScreen'

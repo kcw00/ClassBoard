@@ -1,9 +1,9 @@
 import { useState } from "react"
 import { motion } from "motion/react"
-import { Button } from "./ui/button"
-import { Input } from "./ui/input"
-import { Label } from "./ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
+import { Button } from "../../components/ui/button"
+import { Input } from "../../components/ui/input"
+import { Label } from "../../components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { BookOpen, Eye, EyeOff, ArrowLeft } from "lucide-react"
 import { toast } from "sonner@2.0.3"
 

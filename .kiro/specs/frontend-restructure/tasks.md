@@ -27,36 +27,36 @@
   - _Requirements: 1.1, 3.1, 4.1, 5.1, 5.2_
 
 - [ ] 3. Consolidate and organize screen components
-- [ ] 3.1 Create screens directory structure
+- [x] 3.1 Create screens directory structure
   - Create src/screens/ with subdirectories: auth/, dashboard/, management/, details/
   - Create index files for each subdirectory for clean exports
   - _Requirements: 1.2, 3.1, 4.1_
 
-- [ ] 3.2 Move authentication screens
+- [x] 3.2 Move authentication screens
   - Move LoginPage and LaunchScreen to src/screens/auth/
   - Update imports and exports for auth screens
   - Create src/screens/auth/index.ts for clean exports
   - _Requirements: 1.2, 4.1, 5.1, 5.2_
 
-- [ ] 3.3 Move dashboard screens
+- [x] 3.3 Move dashboard screens
   - Move Dashboard and Overview components to src/screens/dashboard/
   - Update imports and exports for dashboard screens
   - Create src/screens/dashboard/index.ts for clean exports
   - _Requirements: 1.2, 4.1, 5.1, 5.2_
 
-- [ ] 3.4 Move management screens
+- [x] 3.4 Move management screens
   - Move ClassManagement, StudentManagement, TestManagement, MeetingManagement, AttendanceManagement to src/screens/management/
   - Update imports and exports for management screens
   - Create src/screens/management/index.ts for clean exports
   - _Requirements: 1.2, 4.1, 5.1, 5.2_
 
-- [ ] 3.5 Move detail screens
+- [x] 3.5 Move detail screens
   - Move ClassDetails, StudentDetails, TestDetails to src/screens/details/
   - Update imports and exports for detail screens
   - Create src/screens/details/index.ts for clean exports
   - _Requirements: 1.2, 4.1, 5.1, 5.2_
 
-- [ ] 3.6 Move calendar screen
+- [x] 3.6 Move calendar screen
   - Move CalendarView to src/screens/ (as standalone screen)
   - Update imports and exports for calendar screen
   - _Requirements: 1.2, 4.1, 5.1, 5.2_
