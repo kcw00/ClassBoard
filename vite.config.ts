@@ -8,6 +8,7 @@
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {
+        // Package version aliases
         'vaul@1.1.2': 'vaul',
         'sonner@2.0.3': 'sonner',
         'recharts@2.15.2': 'recharts',
@@ -46,7 +47,18 @@
         '@radix-ui/react-aspect-ratio@1.1.2': '@radix-ui/react-aspect-ratio',
         '@radix-ui/react-alert-dialog@1.1.6': '@radix-ui/react-alert-dialog',
         '@radix-ui/react-accordion@1.2.3': '@radix-ui/react-accordion',
+        
+        // Path aliases for cleaner imports
         '@': path.resolve(__dirname, './src'),
+        '@/components': path.resolve(__dirname, './src/components'),
+        '@/screens': path.resolve(__dirname, './src/screens'),
+        '@/context': path.resolve(__dirname, './src/context'),
+        '@/data': path.resolve(__dirname, './src/data'),
+        '@/types': path.resolve(__dirname, './src/types'),
+        '@/utils': path.resolve(__dirname, './src/utils'),
+        '@/styles': path.resolve(__dirname, './src/styles'),
+        '@/config': path.resolve(__dirname, './src/config'),
+        '@/assets': path.resolve(__dirname, './assets'),
       },
     },
     build: {
