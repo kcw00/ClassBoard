@@ -1,0 +1,83 @@
+{
+  "development": {
+    "dbInstanceIdentifier": "classboard-dev-db",
+    "dbInstanceClass": "db.t3.micro",
+    "engine": "postgres",
+    "engineVersion": "15.4",
+    "allocatedStorage": 20,
+    "storageType": "gp2",
+    "storageEncrypted": true,
+    "multiAZ": false,
+    "publiclyAccessible": false,
+    "vpcSecurityGroupIds": ["${VPC_SECURITY_GROUP_ID}"],
+    "dbSubnetGroupName": "${DB_SUBNET_GROUP_NAME}",
+    "backupRetentionPeriod": 7,
+    "backupWindow": "03:00-04:00",
+    "maintenanceWindow": "sun:04:00-sun:05:00",
+    "autoMinorVersionUpgrade": true,
+    "deletionProtection": false,
+    "performanceInsightsEnabled": true,
+    "performanceInsightsRetentionPeriod": 7,
+    "monitoringInterval": 60,
+    "enableCloudwatchLogsExports": ["postgresql"],
+    "tags": {
+      "Environment": "development",
+      "Project": "ClassBoard",
+      "ManagedBy": "terraform"
+    }
+  },
+  "staging": {
+    "dbInstanceIdentifier": "classboard-staging-db",
+    "dbInstanceClass": "db.t3.small",
+    "engine": "postgres",
+    "engineVersion": "15.4",
+    "allocatedStorage": 50,
+    "storageType": "gp2",
+    "storageEncrypted": true,
+    "multiAZ": false,
+    "publiclyAccessible": false,
+    "vpcSecurityGroupIds": ["${VPC_SECURITY_GROUP_ID}"],
+    "dbSubnetGroupName": "${DB_SUBNET_GROUP_NAME}",
+    "backupRetentionPeriod": 14,
+    "backupWindow": "03:00-04:00",
+    "maintenanceWindow": "sun:04:00-sun:05:00",
+    "autoMinorVersionUpgrade": true,
+    "deletionProtection": true,
+    "performanceInsightsEnabled": true,
+    "performanceInsightsRetentionPeriod": 7,
+    "monitoringInterval": 60,
+    "enableCloudwatchLogsExports": ["postgresql"],
+    "tags": {
+      "Environment": "staging",
+      "Project": "ClassBoard",
+      "ManagedBy": "terraform"
+    }
+  },
+  "production": {
+    "dbInstanceIdentifier": "classboard-prod-db",
+    "dbInstanceClass": "db.r5.large",
+    "engine": "postgres",
+    "engineVersion": "15.4",
+    "allocatedStorage": 100,
+    "storageType": "gp2",
+    "storageEncrypted": true,
+    "multiAZ": true,
+    "publiclyAccessible": false,
+    "vpcSecurityGroupIds": ["${VPC_SECURITY_GROUP_ID}"],
+    "dbSubnetGroupName": "${DB_SUBNET_GROUP_NAME}",
+    "backupRetentionPeriod": 30,
+    "backupWindow": "03:00-04:00",
+    "maintenanceWindow": "sun:04:00-sun:05:00",
+    "autoMinorVersionUpgrade": false,
+    "deletionProtection": true,
+    "performanceInsightsEnabled": true,
+    "performanceInsightsRetentionPeriod": 31,
+    "monitoringInterval": 60,
+    "enableCloudwatchLogsExports": ["postgresql"],
+    "tags": {
+      "Environment": "production",
+      "Project": "ClassBoard",
+      "ManagedBy": "terraform"
+    }
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "development": {
+    "bucketName": "classboard-dev-files",
+    "region": "us-east-1",
+    "versioning": {
+      "status": "Enabled"
+    },
+    "publicAccessBlock": {
+      "blockPublicAcls": true,
+      "blockPublicPolicy": true,
+      "ignorePublicAcls": true,
+      "restrictPublicBuckets": true
+    },
+    "encryption": {
+      "rules": [
+        {
+          "applyServerSideEncryptionByDefault": {
+            "sseAlgorithm": "AES256"
+          },
+          "bucketKeyEnabled": true
+        }
+      ]
+    },
+    "lifecycleConfiguration": {
+      "rules": [
+        {
+          "id": "DeleteIncompleteMultipartUploads",
+          "status": "Enabled",
+          "abortIncompleteMultipartUpload": {
+            "daysAfterInitiation": 7
+          }
+        },
+        {
+          "id": "TransitionToIA",
+          "status": "Enabled",
+          "transitions": [
+            {
+              "days": 30,
+              "storageClass": "STANDARD_IA"
+            }
+          ]
+        }
+      ]
+    },
+    "corsConfiguration": {
+      "corsRules": [
+        {
+          "allowedHeaders": ["*"],
+          "allowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+          "allowedOrigins": ["http://localhost:5173", "http://localhost:3000"],
+          "exposeHeaders": ["ETag"],
+          "maxAgeSeconds": 3000
+        }
+      ]
+    },
+    "tags": {
+      "Environment": "development",
+      "Project": "ClassBoard",
+      "Purpose": "FileStorage"
+    }
+  },
+  "staging": {
+    "bucketName": "classboard-staging-files",
+    "region": "us-east-1",
+    "versioning": {
+      "status": "Enabled"
+    },
+    "publicAccessBlock": {
+      "blockPublicAcls": true,
+      "blockPublicPolicy": true,
+      "ignorePublicAcls": true,
+      "restrictPublicBuckets": true
+    },
+    "encryption": {
+      "rules": [
+        {
+          "applyServerSideEncryptionByDefault": {
+            "sseAlgorithm": "AES256"
+          },
+          "bucketKeyEnabled": true
+        }
+      ]
+    },
+    "lifecycleConfiguration": {
+      "rules": [
+        {
+          "id": "DeleteIncompleteMultipartUploads",
+          "status": "Enabled",
+          "abortIncompleteMultipartUpload": {
+            "daysAfterInitiation": 7
+          }
+        },
+        {
+          "id": "TransitionToIA",
+          "status": "Enabled",
+          "transitions": [
+            {
+              "days": 30,
+              "storageClass": "STANDARD_IA"
+            }
+          ]
+        }
+      ]
+    },
+    "corsConfiguration": {
+      "corsRules": [
+        {
+          "allowedHeaders": ["*"],
+          "allowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+          "allowedOrigins": ["https://staging.classboard.app"],
+          "exposeHeaders": ["ETag"],
+          "maxAgeSeconds": 3000
+        }
+      ]
+    },
+    "tags": {
+      "Environment": "staging",
+      "Project": "ClassBoard",
+      "Purpose": "FileStorage"
+    }
+  },
+  "production": {
+    "bucketName": "classboard-prod-files",
+    "region": "us-east-1",
+    "versioning": {
+      "status": "Enabled"
+    },
+    "publicAccessBlock": {
+      "blockPublicAcls": true,
+      "blockPublicPolicy": true,
+      "ignorePublicAcls": true,
+      "restrictPublicBuckets": true
+    },
+    "encryption": {
+      "rules": [
+        {
+          "applyServerSideEncryptionByDefault": {
+            "sseAlgorithm": "AES256"
+          },
+          "bucketKeyEnabled": true
+        }
+      ]
+    },
+    "lifecycleConfiguration": {
+      "rules": [
+        {
+          "id": "DeleteIncompleteMultipartUploads",
+          "status": "Enabled",
+          "abortIncompleteMultipartUpload": {
+            "daysAfterInitiation": 7
+          }
+        },
+        {
+          "id": "TransitionToIA",
+          "status": "Enabled",
+          "transitions": [
+            {
+              "days": 30,
+              "storageClass": "STANDARD_IA"
+            },
+            {
+              "days": 90,
+              "storageClass": "GLACIER"
+            }
+          ]
+        }
+      ]
+    },
+    "corsConfiguration": {
+      "corsRules": [
+        {
+          "allowedHeaders": ["*"],
+          "allowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+          "allowedOrigins": ["https://classboard.app"],
+          "exposeHeaders": ["ETag"],
+          "maxAgeSeconds": 3000
+        }
+      ]
+    },
+    "tags": {
+      "Environment": "production",
+      "Project": "ClassBoard",
+      "Purpose": "FileStorage"
+    }
+  }
+}

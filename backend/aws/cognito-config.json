@@ -1,0 +1,279 @@
+{
+  "development": {
+    "userPool": {
+      "poolName": "ClassBoard-Dev-UserPool",
+      "policies": {
+        "passwordPolicy": {
+          "minimumLength": 8,
+          "requireUppercase": true,
+          "requireLowercase": true,
+          "requireNumbers": true,
+          "requireSymbols": false,
+          "temporaryPasswordValidityDays": 7
+        }
+      },
+      "autoVerifiedAttributes": ["email"],
+      "usernameAttributes": ["email"],
+      "aliasAttributes": ["email"],
+      "emailConfiguration": {
+        "emailSendingAccount": "COGNITO_DEFAULT"
+      },
+      "verificationMessageTemplate": {
+        "defaultEmailOption": "CONFIRM_WITH_CODE",
+        "emailSubject": "ClassBoard - Verify your email",
+        "emailMessage": "Your verification code is {####}"
+      },
+      "mfaConfiguration": "OPTIONAL",
+      "enabledMfas": ["SOFTWARE_TOKEN_MFA"],
+      "accountRecoverySetting": {
+        "recoveryMechanisms": [
+          {
+            "name": "verified_email",
+            "priority": 1
+          }
+        ]
+      },
+      "userPoolAddOns": {
+        "advancedSecurityMode": "AUDIT"
+      },
+      "schema": [
+        {
+          "name": "email",
+          "attributeDataType": "String",
+          "required": true,
+          "mutable": true
+        },
+        {
+          "name": "name",
+          "attributeDataType": "String",
+          "required": true,
+          "mutable": true
+        },
+        {
+          "name": "role",
+          "attributeDataType": "String",
+          "required": false,
+          "mutable": true,
+          "stringAttributeConstraints": {
+            "minLength": "1",
+            "maxLength": "20"
+          }
+        }
+      ],
+      "tags": {
+        "Environment": "development",
+        "Project": "ClassBoard"
+      }
+    },
+    "userPoolClient": {
+      "clientName": "ClassBoard-Dev-WebClient",
+      "generateSecret": false,
+      "refreshTokenValidity": 30,
+      "accessTokenValidity": 60,
+      "idTokenValidity": 60,
+      "tokenValidityUnits": {
+        "refreshToken": "days",
+        "accessToken": "minutes",
+        "idToken": "minutes"
+      },
+      "readAttributes": ["email", "name", "custom:role"],
+      "writeAttributes": ["name", "custom:role"],
+      "explicitAuthFlows": [
+        "ALLOW_USER_SRP_AUTH",
+        "ALLOW_REFRESH_TOKEN_AUTH"
+      ],
+      "preventUserExistenceErrors": "ENABLED",
+      "supportedIdentityProviders": ["COGNITO"],
+      "callbackURLs": ["http://localhost:5173/auth/callback"],
+      "logoutURLs": ["http://localhost:5173/auth/logout"],
+      "allowedOAuthFlows": ["code"],
+      "allowedOAuthScopes": ["email", "openid", "profile"],
+      "allowedOAuthFlowsUserPoolClient": true
+    }
+  },
+  "staging": {
+    "userPool": {
+      "poolName": "ClassBoard-Staging-UserPool",
+      "policies": {
+        "passwordPolicy": {
+          "minimumLength": 8,
+          "requireUppercase": true,
+          "requireLowercase": true,
+          "requireNumbers": true,
+          "requireSymbols": true,
+          "temporaryPasswordValidityDays": 7
+        }
+      },
+      "autoVerifiedAttributes": ["email"],
+      "usernameAttributes": ["email"],
+      "aliasAttributes": ["email"],
+      "emailConfiguration": {
+        "emailSendingAccount": "COGNITO_DEFAULT"
+      },
+      "verificationMessageTemplate": {
+        "defaultEmailOption": "CONFIRM_WITH_CODE",
+        "emailSubject": "ClassBoard - Verify your email",
+        "emailMessage": "Your verification code is {####}"
+      },
+      "mfaConfiguration": "OPTIONAL",
+      "enabledMfas": ["SOFTWARE_TOKEN_MFA"],
+      "accountRecoverySetting": {
+        "recoveryMechanisms": [
+          {
+            "name": "verified_email",
+            "priority": 1
+          }
+        ]
+      },
+      "userPoolAddOns": {
+        "advancedSecurityMode": "ENFORCED"
+      },
+      "schema": [
+        {
+          "name": "email",
+          "attributeDataType": "String",
+          "required": true,
+          "mutable": true
+        },
+        {
+          "name": "name",
+          "attributeDataType": "String",
+          "required": true,
+          "mutable": true
+        },
+        {
+          "name": "role",
+          "attributeDataType": "String",
+          "required": false,
+          "mutable": true,
+          "stringAttributeConstraints": {
+            "minLength": "1",
+            "maxLength": "20"
+          }
+        }
+      ],
+      "tags": {
+        "Environment": "staging",
+        "Project": "ClassBoard"
+      }
+    },
+    "userPoolClient": {
+      "clientName": "ClassBoard-Staging-WebClient",
+      "generateSecret": false,
+      "refreshTokenValidity": 30,
+      "accessTokenValidity": 60,
+      "idTokenValidity": 60,
+      "tokenValidityUnits": {
+        "refreshToken": "days",
+        "accessToken": "minutes",
+        "idToken": "minutes"
+      },
+      "readAttributes": ["email", "name", "custom:role"],
+      "writeAttributes": ["name", "custom:role"],
+      "explicitAuthFlows": [
+        "ALLOW_USER_SRP_AUTH",
+        "ALLOW_REFRESH_TOKEN_AUTH"
+      ],
+      "preventUserExistenceErrors": "ENABLED",
+      "supportedIdentityProviders": ["COGNITO"],
+      "callbackURLs": ["https://staging.classboard.app/auth/callback"],
+      "logoutURLs": ["https://staging.classboard.app/auth/logout"],
+      "allowedOAuthFlows": ["code"],
+      "allowedOAuthScopes": ["email", "openid", "profile"],
+      "allowedOAuthFlowsUserPoolClient": true
+    }
+  },
+  "production": {
+    "userPool": {
+      "poolName": "ClassBoard-Prod-UserPool",
+      "policies": {
+        "passwordPolicy": {
+          "minimumLength": 12,
+          "requireUppercase": true,
+          "requireLowercase": true,
+          "requireNumbers": true,
+          "requireSymbols": true,
+          "temporaryPasswordValidityDays": 1
+        }
+      },
+      "autoVerifiedAttributes": ["email"],
+      "usernameAttributes": ["email"],
+      "aliasAttributes": ["email"],
+      "emailConfiguration": {
+        "emailSendingAccount": "DEVELOPER",
+        "sourceArn": "arn:aws:ses:us-east-1:${AWS_ACCOUNT_ID}:identity/noreply@classboard.app"
+      },
+      "verificationMessageTemplate": {
+        "defaultEmailOption": "CONFIRM_WITH_CODE",
+        "emailSubject": "ClassBoard - Verify your email",
+        "emailMessage": "Your verification code is {####}"
+      },
+      "mfaConfiguration": "ON",
+      "enabledMfas": ["SOFTWARE_TOKEN_MFA"],
+      "accountRecoverySetting": {
+        "recoveryMechanisms": [
+          {
+            "name": "verified_email",
+            "priority": 1
+          }
+        ]
+      },
+      "userPoolAddOns": {
+        "advancedSecurityMode": "ENFORCED"
+      },
+      "schema": [
+        {
+          "name": "email",
+          "attributeDataType": "String",
+          "required": true,
+          "mutable": true
+        },
+        {
+          "name": "name",
+          "attributeDataType": "String",
+          "required": true,
+          "mutable": true
+        },
+        {
+          "name": "role",
+          "attributeDataType": "String",
+          "required": false,
+          "mutable": true,
+          "stringAttributeConstraints": {
+            "minLength": "1",
+            "maxLength": "20"
+          }
+        }
+      ],
+      "tags": {
+        "Environment": "production",
+        "Project": "ClassBoard"
+      }
+    },
+    "userPoolClient": {
+      "clientName": "ClassBoard-Prod-WebClient",
+      "generateSecret": false,
+      "refreshTokenValidity": 30,
+      "accessTokenValidity": 15,
+      "idTokenValidity": 15,
+      "tokenValidityUnits": {
+        "refreshToken": "days",
+        "accessToken": "minutes",
+        "idToken": "minutes"
+      },
+      "readAttributes": ["email", "name", "custom:role"],
+      "writeAttributes": ["name", "custom:role"],
+      "explicitAuthFlows": [
+        "ALLOW_USER_SRP_AUTH",
+        "ALLOW_REFRESH_TOKEN_AUTH"
+      ],
+      "preventUserExistenceErrors": "ENABLED",
+      "supportedIdentityProviders": ["COGNITO"],
+      "callbackURLs": ["https://classboard.app/auth/callback"],
+      "logoutURLs": ["https://classboard.app/auth/logout"],
+      "allowedOAuthFlows": ["code"],
+      "allowedOAuthScopes": ["email", "openid", "profile"],
+      "allowedOAuthFlowsUserPoolClient": true
+    }
+  }
+}

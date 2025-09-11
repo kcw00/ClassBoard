@@ -1,0 +1,210 @@
+{
+  "development": {
+    "distributionConfig": {
+      "callerReference": "classboard-dev-${timestamp}",
+      "comment": "ClassBoard Development CDN Distribution",
+      "enabled": true,
+      "priceClass": "PriceClass_100",
+      "origins": [
+        {
+          "id": "S3-classboard-dev-files",
+          "domainName": "classboard-dev-files.s3.amazonaws.com",
+          "s3OriginConfig": {
+            "originAccessIdentity": ""
+          }
+        }
+      ],
+      "defaultCacheBehavior": {
+        "targetOriginId": "S3-classboard-dev-files",
+        "viewerProtocolPolicy": "redirect-to-https",
+        "allowedMethods": ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"],
+        "cachedMethods": ["GET", "HEAD"],
+        "compress": true,
+        "cachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+        "originRequestPolicyId": "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf"
+      },
+      "cacheBehaviors": [
+        {
+          "pathPattern": "/profile-pictures/*",
+          "targetOriginId": "S3-classboard-dev-files",
+          "viewerProtocolPolicy": "redirect-to-https",
+          "allowedMethods": ["GET", "HEAD"],
+          "cachedMethods": ["GET", "HEAD"],
+          "compress": true,
+          "cachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+          "ttl": {
+            "defaultTTL": 86400,
+            "maxTTL": 31536000
+          }
+        },
+        {
+          "pathPattern": "/documents/*",
+          "targetOriginId": "S3-classboard-dev-files",
+          "viewerProtocolPolicy": "redirect-to-https",
+          "allowedMethods": ["GET", "HEAD"],
+          "cachedMethods": ["GET", "HEAD"],
+          "compress": true,
+          "cachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+        }
+      ],
+      "customErrorResponses": [
+        {
+          "errorCode": 403,
+          "responseCode": 404,
+          "responsePagePath": "/404.html",
+          "errorCachingMinTTL": 300
+        }
+      ],
+      "logging": {
+        "enabled": false
+      },
+      "webACLId": "",
+      "httpVersion": "http2"
+    },
+    "tags": {
+      "Environment": "development",
+      "Project": "ClassBoard",
+      "Purpose": "CDN"
+    }
+  },
+  "staging": {
+    "distributionConfig": {
+      "callerReference": "classboard-staging-${timestamp}",
+      "comment": "ClassBoard Staging CDN Distribution",
+      "enabled": true,
+      "priceClass": "PriceClass_100",
+      "origins": [
+        {
+          "id": "S3-classboard-staging-files",
+          "domainName": "classboard-staging-files.s3.amazonaws.com",
+          "s3OriginConfig": {
+            "originAccessIdentity": ""
+          }
+        }
+      ],
+      "defaultCacheBehavior": {
+        "targetOriginId": "S3-classboard-staging-files",
+        "viewerProtocolPolicy": "redirect-to-https",
+        "allowedMethods": ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"],
+        "cachedMethods": ["GET", "HEAD"],
+        "compress": true,
+        "cachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+        "originRequestPolicyId": "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf"
+      },
+      "cacheBehaviors": [
+        {
+          "pathPattern": "/profile-pictures/*",
+          "targetOriginId": "S3-classboard-staging-files",
+          "viewerProtocolPolicy": "redirect-to-https",
+          "allowedMethods": ["GET", "HEAD"],
+          "cachedMethods": ["GET", "HEAD"],
+          "compress": true,
+          "cachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+          "ttl": {
+            "defaultTTL": 86400,
+            "maxTTL": 31536000
+          }
+        },
+        {
+          "pathPattern": "/documents/*",
+          "targetOriginId": "S3-classboard-staging-files",
+          "viewerProtocolPolicy": "redirect-to-https",
+          "allowedMethods": ["GET", "HEAD"],
+          "cachedMethods": ["GET", "HEAD"],
+          "compress": true,
+          "cachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+        }
+      ],
+      "customErrorResponses": [
+        {
+          "errorCode": 403,
+          "responseCode": 404,
+          "responsePagePath": "/404.html",
+          "errorCachingMinTTL": 300
+        }
+      ],
+      "logging": {
+        "enabled": true,
+        "bucket": "classboard-staging-logs.s3.amazonaws.com",
+        "prefix": "cloudfront-logs/"
+      },
+      "webACLId": "",
+      "httpVersion": "http2"
+    },
+    "tags": {
+      "Environment": "staging",
+      "Project": "ClassBoard",
+      "Purpose": "CDN"
+    }
+  },
+  "production": {
+    "distributionConfig": {
+      "callerReference": "classboard-prod-${timestamp}",
+      "comment": "ClassBoard Production CDN Distribution",
+      "enabled": true,
+      "priceClass": "PriceClass_All",
+      "origins": [
+        {
+          "id": "S3-classboard-prod-files",
+          "domainName": "classboard-prod-files.s3.amazonaws.com",
+          "s3OriginConfig": {
+            "originAccessIdentity": ""
+          }
+        }
+      ],
+      "defaultCacheBehavior": {
+        "targetOriginId": "S3-classboard-prod-files",
+        "viewerProtocolPolicy": "redirect-to-https",
+        "allowedMethods": ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"],
+        "cachedMethods": ["GET", "HEAD"],
+        "compress": true,
+        "cachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+        "originRequestPolicyId": "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf"
+      },
+      "cacheBehaviors": [
+        {
+          "pathPattern": "/profile-pictures/*",
+          "targetOriginId": "S3-classboard-prod-files",
+          "viewerProtocolPolicy": "redirect-to-https",
+          "allowedMethods": ["GET", "HEAD"],
+          "cachedMethods": ["GET", "HEAD"],
+          "compress": true,
+          "cachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+          "ttl": {
+            "defaultTTL": 86400,
+            "maxTTL": 31536000
+          }
+        },
+        {
+          "pathPattern": "/documents/*",
+          "targetOriginId": "S3-classboard-prod-files",
+          "viewerProtocolPolicy": "redirect-to-https",
+          "allowedMethods": ["GET", "HEAD"],
+          "cachedMethods": ["GET", "HEAD"],
+          "compress": true,
+          "cachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+        }
+      ],
+      "customErrorResponses": [
+        {
+          "errorCode": 403,
+          "responseCode": 404,
+          "responsePagePath": "/404.html",
+          "errorCachingMinTTL": 300
+        }
+      ],
+      "logging": {
+        "enabled": true,
+        "bucket": "classboard-prod-logs.s3.amazonaws.com",
+        "prefix": "cloudfront-logs/"
+      },
+      "webACLId": "",
+      "httpVersion": "http2"
+    },
+    "tags": {
+      "Environment": "production",
+      "Project": "ClassBoard",
+      "Purpose": "CDN"
+    }
+  }
+}
