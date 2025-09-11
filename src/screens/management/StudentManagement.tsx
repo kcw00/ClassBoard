@@ -10,7 +10,7 @@ import { Label } from "../../components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table"
 import { Plus, Mail, Phone, User, Users, ChevronUp, ChevronDown, Search } from "lucide-react"
-import { useAppData } from "../../src/context/AppDataContext"
+import { useAppData } from "../../context/AppDataContext"
 
 export default function StudentManagement() {
   const navigate = useNavigate()

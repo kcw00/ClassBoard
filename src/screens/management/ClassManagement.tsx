@@ -13,8 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table"
 import { Checkbox } from "../../components/ui/checkbox"
 import { Plus, Users, MapPin, Clock, Settings, UserPlus, CalendarPlus, Trash2, Edit } from "lucide-react"
-import { classColors } from "../../components/mockData"
-import { useAppData } from "../../src/context/AppDataContext"
+import { classColors } from "../../data/mockData"
+import { useAppData } from "../../context/AppDataContext"
 
 export default function ClassManagement() {
   const navigate = useNavigate()

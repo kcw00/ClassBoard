@@ -10,8 +10,8 @@ import { Label } from "../../components/ui/label"
 import { Textarea } from "../../components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Users, GraduationCap, Calendar, Clock, MapPin, CalendarCheck, UserCheck } from "lucide-react"
-import { classColors } from "../../components/mockData"
-import { useAppData } from "../../src/context/AppDataContext"
+import { classColors } from "../../data/mockData"
+import { useAppData } from "../../context/AppDataContext"
 
 export default function Dashboard() {
   const navigate = useNavigate()

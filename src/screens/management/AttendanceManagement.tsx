@@ -28,7 +28,7 @@ import {
   Eye,
   BarChart3
 } from "lucide-react"
-import { useAppData } from "../../src/context/AppDataContext"
+import { useAppData } from "../../context/AppDataContext"
 
 export default function AttendanceManagement() {
   const { data, actions } = useAppData()

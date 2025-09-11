@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Badge } from "../../components/ui/badge"
 import { Users, GraduationCap, Calendar, CalendarCheck, Clock, MapPin } from "lucide-react"
-import { Class, Student, Schedule, Meeting, AttendanceRecord, ClassNote } from "../../components/mockData"
+import { Class, Student, Schedule, Meeting, AttendanceRecord, ClassNote } from "../../data/mockData"
 
 interface OverviewProps {
   data: {

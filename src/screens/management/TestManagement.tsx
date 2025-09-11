@@ -30,7 +30,7 @@ import {
   XCircle,
   Trash2
 } from "lucide-react"
-import { useAppData } from "../../src/context/AppDataContext"
+import { useAppData } from "../../context/AppDataContext"
 
 export default function TestManagement() {
   const { data, actions } = useAppData()

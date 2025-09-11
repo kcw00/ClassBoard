@@ -32,7 +32,7 @@ import {
   X,
   Plus
 } from "lucide-react"
-import { useAppData } from "../../src/context/AppDataContext"
+import { useAppData } from "../../context/AppDataContext"
 import { FilePreviewModal } from "../../components/common"
 
 interface StudentNote {

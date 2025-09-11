@@ -13,7 +13,7 @@ import { Input } from "../../components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { ArrowLeft, Users, MapPin, Clock, Calendar, FileText, Plus, Edit2, Trash2, UserPlus, UserMinus, BarChart3, TrendingUp } from "lucide-react"
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
-import { useAppData } from "../../src/context/AppDataContext"
+import { useAppData } from "../../context/AppDataContext"
 
 export default function ClassDetails() {
   const { id: classId } = useParams()

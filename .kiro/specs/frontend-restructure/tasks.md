@@ -61,15 +61,15 @@
   - Update imports and exports for calendar screen
   - _Requirements: 1.2, 4.1, 5.1, 5.2_
 
-- [ ] 4. Consolidate context providers and data
-- [ ] 4.1 Move context providers
+- [x] 4. Consolidate context providers and data
+- [x] 4.1 Move context providers
   - Create src/context/ directory
   - Move AppDataContext and AuthContext from src/src/context/ to src/context/
   - Update imports for context providers
   - Create src/context/index.ts for clean exports
   - _Requirements: 1.4, 4.2, 5.1, 5.2_
 
-- [ ] 4.2 Consolidate mock data
+- [x] 4.2 Consolidate mock data
   - Create src/data/ directory
   - Move and merge mockData.ts from both src/components/ and src/src/data/
   - Resolve any conflicts between the two mock data files

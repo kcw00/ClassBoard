@@ -34,7 +34,7 @@ import {
   Eye,
   FileUp
 } from "lucide-react"
-import { useAppData } from "../../src/context/AppDataContext"
+import { useAppData } from "../../context/AppDataContext"
 import { FilePreviewModal } from "../../components/common"
 
 export default function TestDetails() {

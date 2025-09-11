@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '../ui/avatar'
 import { VisuallyHidden } from '../ui/visually-hidden'
-import { useAuth } from '../../src/context/AuthContext'
+import { useAuth } from '../../context/AuthContext'
 import { 
   Menu, 
   Home, 
