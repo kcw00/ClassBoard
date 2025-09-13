@@ -2,6 +2,7 @@ import { Router } from 'express';
 import authRoutes from './auth';
 import classRoutes from './classes';
 import studentRoutes from './students';
+import scheduleRoutes from './schedules';
 
 const router = Router();
 
@@ -19,6 +20,7 @@ router.get('/health', (req, res) => {
 router.use('/auth', authRoutes);
 router.use('/classes', classRoutes);
 router.use('/students', studentRoutes);
+router.use('/', scheduleRoutes); // Schedule routes are mounted at root level for flexibility
 
 // API info endpoint
 router.get('/', (req, res) => {
@@ -31,6 +33,7 @@ router.get('/', (req, res) => {
       auth: '/api/auth',
       classes: '/api/classes',
       students: '/api/students',
+      schedules: '/api/schedules',
       tests: '/api/tests',
       files: '/api/files',
     },
