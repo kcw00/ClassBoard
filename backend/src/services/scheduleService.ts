@@ -43,6 +43,25 @@ export interface ScheduleWithExceptions extends Schedule {
   exceptions: ScheduleException[];
 }
 
+export interface GetSchedulesQuery {
+  page?: number;
+  limit?: number;
+  dayOfWeek?: number;
+  search?: string;
+}
+
+export interface PaginatedSchedulesResponse {
+  data: ScheduleWithExceptions[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+}
+
 export interface ScheduleConflict {
   conflictType: 'schedule' | 'exception';
   conflictingId: string;
@@ -59,7 +78,7 @@ export class ScheduleService {
   }
 
   /**
-   * Get all schedules for a class
+   * Get all schedules for a class (deprecated - use getClassSchedulesPaginated)
    */
   async getClassSchedules(classId: string): Promise<ScheduleWithExceptions[]> {
     try {
@@ -88,6 +107,99 @@ export class ScheduleService {
       });
 
       return schedules;
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      throw new DatabaseError('Failed to fetch class schedules', error);
+    }
+  }
+
+  /**
+   * Get all schedules for a class with pagination and filtering
+   */
+  async getClassSchedulesPaginated(classId: string, query: GetSchedulesQuery = {}): Promise<PaginatedSchedulesResponse> {
+    try {
+      // First check if class exists
+      const classData = await this.prisma.class.findUnique({
+        where: { id: classId },
+      });
+
+      if (!classData) {
+        throw new NotFoundError('Class not found');
+      }
+
+      const {
+        page = 1,
+        limit = 10,
+        dayOfWeek,
+        search,
+      } = query;
+
+      // Ensure page is at least 1
+      const currentPage = Math.max(1, page);
+      const pageSize = Math.min(Math.max(1, limit), 50); // Max 50 items per page
+      const skip = (currentPage - 1) * pageSize;
+
+      // Build where condition for filtering
+      const whereCondition: any = { classId };
+
+      if (dayOfWeek !== undefined) {
+        whereCondition.dayOfWeek = dayOfWeek;
+      }
+
+      if (search) {
+        // Search isn't very meaningful for schedules, but we can search in time ranges
+        whereCondition.OR = [
+          {
+            startTime: {
+              contains: search,
+            },
+          },
+          {
+            endTime: {
+              contains: search,
+            },
+          },
+        ];
+      }
+
+      // Get total count for pagination
+      const total = await this.prisma.schedule.count({
+        where: whereCondition,
+      });
+
+      // Get paginated data
+      const schedules = await this.prisma.schedule.findMany({
+        where: whereCondition,
+        include: {
+          exceptions: {
+            orderBy: {
+              date: 'asc',
+            },
+          },
+        },
+        orderBy: [
+          { dayOfWeek: 'asc' },
+          { startTime: 'asc' },
+        ],
+        skip,
+        take: pageSize,
+      });
+
+      const totalPages = Math.ceil(total / pageSize);
+
+      return {
+        data: schedules,
+        pagination: {
+          page: currentPage,
+          limit: pageSize,
+          total,
+          totalPages,
+          hasNextPage: currentPage < totalPages,
+          hasPreviousPage: currentPage > 1,
+        },
+      };
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw error;
@@ -433,6 +545,147 @@ export class ScheduleService {
     const end2TotalMinutes = end2Hours * 60 + end2Mins;
 
     return start1TotalMinutes < end2TotalMinutes && start2TotalMinutes < end1TotalMinutes;
+  }
+
+  /**
+   * Create multiple schedules in bulk with conflict detection
+   */
+  async createSchedulesBulk(schedules: CreateScheduleData[]): Promise<Schedule[]> {
+    try {
+      const createdSchedules: Schedule[] = [];
+      const conflicts: string[] = [];
+
+      // Process each schedule
+      for (let i = 0; i < schedules.length; i++) {
+        const scheduleData = schedules[i];
+        
+        try {
+          // Check conflicts with existing schedules and other schedules in this bulk operation
+          const existingConflicts = await this.detectScheduleConflicts(scheduleData);
+          const bulkConflicts = this.detectBulkConflicts(scheduleData, schedules.slice(0, i));
+          
+          if (existingConflicts.length > 0 || bulkConflicts.length > 0) {
+            conflicts.push(`Schedule ${i + 1}: ${existingConflicts[0]?.message || bulkConflicts[0]}`);
+            continue;
+          }
+
+          const schedule = await this.prisma.schedule.create({
+            data: scheduleData,
+          });
+          
+          createdSchedules.push(schedule);
+        } catch (error) {
+          conflicts.push(`Schedule ${i + 1}: Failed to create - ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      if (conflicts.length > 0 && createdSchedules.length === 0) {
+        throw new ConflictError(`All schedules have conflicts: ${conflicts.join('; ')}`);
+      }
+
+      return createdSchedules;
+    } catch (error) {
+      if (error instanceof ConflictError) {
+        throw error;
+      }
+      throw new DatabaseError('Failed to create schedules in bulk', error);
+    }
+  }
+
+  /**
+   * Get weekly schedule overview for a class
+   */
+  async getWeeklyScheduleOverview(classId: string): Promise<{ [day: string]: ScheduleWithExceptions[] }> {
+    try {
+      const schedules = await this.getClassSchedules(classId);
+      
+      const weeklyOverview: { [day: string]: ScheduleWithExceptions[] } = {
+        Sunday: [],
+        Monday: [],
+        Tuesday: [],
+        Wednesday: [],
+        Thursday: [],
+        Friday: [],
+        Saturday: [],
+      };
+
+      schedules.forEach(schedule => {
+        const dayName = this.getDayName(schedule.dayOfWeek);
+        weeklyOverview[dayName].push(schedule);
+      });
+
+      // Sort schedules within each day by start time
+      Object.keys(weeklyOverview).forEach(day => {
+        weeklyOverview[day].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      });
+
+      return weeklyOverview;
+    } catch (error) {
+      throw new DatabaseError('Failed to get weekly schedule overview', error);
+    }
+  }
+
+  /**
+   * Get schedule statistics for a class
+   */
+  async getScheduleStats(classId: string): Promise<{
+    totalSchedules: number;
+    schedulesByDay: { [day: string]: number };
+    totalExceptions: number;
+    upcomingExceptions: number;
+  }> {
+    try {
+      const schedules = await this.getClassSchedules(classId);
+      const today = new Date().toISOString().split('T')[0];
+      
+      const stats = {
+        totalSchedules: schedules.length,
+        schedulesByDay: {
+          Sunday: 0, Monday: 0, Tuesday: 0, Wednesday: 0,
+          Thursday: 0, Friday: 0, Saturday: 0
+        },
+        totalExceptions: 0,
+        upcomingExceptions: 0,
+      };
+
+      schedules.forEach(schedule => {
+        const dayName = this.getDayName(schedule.dayOfWeek);
+        if (dayName in stats.schedulesByDay) {
+          stats.schedulesByDay[dayName as keyof typeof stats.schedulesByDay]++;
+        }
+        
+        stats.totalExceptions += schedule.exceptions.length;
+        stats.upcomingExceptions += schedule.exceptions.filter(exc => exc.date >= today).length;
+      });
+
+      return stats;
+    } catch (error) {
+      throw new DatabaseError('Failed to get schedule statistics', error);
+    }
+  }
+
+  /**
+   * Detect conflicts within bulk schedule creation
+   */
+  private detectBulkConflicts(currentSchedule: CreateScheduleData, previousSchedules: CreateScheduleData[]): string[] {
+    const conflicts: string[] = [];
+
+    for (let i = 0; i < previousSchedules.length; i++) {
+      const existingSchedule = previousSchedules[i];
+      
+      if (currentSchedule.classId === existingSchedule.classId && 
+          currentSchedule.dayOfWeek === existingSchedule.dayOfWeek &&
+          this.isTimeOverlapping(
+            currentSchedule.startTime,
+            currentSchedule.endTime,
+            existingSchedule.startTime,
+            existingSchedule.endTime
+          )) {
+        conflicts.push(`Conflicts with schedule ${i + 1} in this bulk operation`);
+      }
+    }
+
+    return conflicts;
   }
 
   /**

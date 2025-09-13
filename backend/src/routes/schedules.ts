@@ -9,6 +9,8 @@ import {
   validateScheduleIdParam,
   validateClassIdParam,
   validateExceptionIdParam,
+  validateGetSchedulesQuery,
+  validateCreateSchedulesBulkRequest,
 } from '../validators/scheduleValidators';
 
 const router = Router();
@@ -18,16 +20,19 @@ router.use(authenticateToken);
 
 /**
  * GET /api/classes/:classId/schedules
- * Get all schedules for a specific class
+ * Get all schedules for a specific class (paginated)
+ * Query params: page, limit, dayOfWeek, search
  */
-router.get('/classes/:classId/schedules', validateClassIdParam, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/classes/:classId/schedules', validateClassIdParam, validateGetSchedulesQuery, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { classId } = req.params;
-    const schedules = await scheduleService.getClassSchedules(classId);
+    const query = req.query as any;
+    const result = await scheduleService.getClassSchedulesPaginated(classId, query);
 
     res.json({
       success: true,
-      data: schedules,
+      data: result.data,
+      pagination: result.pagination,
     });
   } catch (error) {
     next(error);

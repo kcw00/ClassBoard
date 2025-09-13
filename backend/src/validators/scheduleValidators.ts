@@ -252,6 +252,59 @@ const exceptionIdParamSchema = Joi.object({
     }),
 });
 
+const getSchedulesQuerySchema = Joi.object({
+  page: Joi.number()
+    .integer()
+    .min(1)
+    .optional()
+    .messages({
+      'number.base': 'Page must be a number',
+      'number.integer': 'Page must be a whole number',
+      'number.min': 'Page must be at least 1',
+    }),
+  limit: Joi.number()
+    .integer()
+    .min(1)
+    .max(50)
+    .optional()
+    .messages({
+      'number.base': 'Limit must be a number',
+      'number.integer': 'Limit must be a whole number',
+      'number.min': 'Limit must be at least 1',
+      'number.max': 'Limit cannot exceed 50',
+    }),
+  dayOfWeek: Joi.number()
+    .integer()
+    .min(0)
+    .max(6)
+    .optional()
+    .messages({
+      'number.base': 'Day of week must be a number',
+      'number.integer': 'Day of week must be a whole number',
+      'number.min': 'Day of week must be between 0 (Sunday) and 6 (Saturday)',
+      'number.max': 'Day of week must be between 0 (Sunday) and 6 (Saturday)',
+    }),
+  search: Joi.string()
+    .min(1)
+    .max(50)
+    .optional()
+    .messages({
+      'string.min': 'Search term must be at least 1 character long',
+      'string.max': 'Search term cannot exceed 50 characters',
+    }),
+});
+
+const createSchedulesBulkSchema = Joi.array()
+  .items(createScheduleSchema.fork('classId', (schema) => schema.optional()))
+  .min(1)
+  .max(20)
+  .required()
+  .messages({
+    'array.min': 'At least one schedule is required',
+    'array.max': 'Cannot create more than 20 schedules at once',
+    'any.required': 'Schedules array is required',
+  });
+
 // Validation middleware factory
 const createValidator = (schema: Joi.ObjectSchema, target: 'body' | 'params' | 'query' = 'body') => {
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -316,6 +369,8 @@ export const validateUpdateScheduleExceptionRequest = createValidator(updateSche
 export const validateScheduleIdParam = createValidator(scheduleIdParamSchema, 'params');
 export const validateClassIdParam = createValidator(classIdParamSchema, 'params');
 export const validateExceptionIdParam = createValidator(exceptionIdParamSchema, 'params');
+export const validateGetSchedulesQuery = createValidator(getSchedulesQuerySchema, 'query');
+export const validateCreateSchedulesBulkRequest = createValidator(createSchedulesBulkSchema);
 
 // Export schemas for testing
 export {
@@ -326,4 +381,6 @@ export {
   scheduleIdParamSchema,
   classIdParamSchema,
   exceptionIdParamSchema,
+  getSchedulesQuerySchema,
+  createSchedulesBulkSchema,
 };
