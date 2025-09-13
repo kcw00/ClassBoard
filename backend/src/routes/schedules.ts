@@ -195,4 +195,66 @@ router.delete('/exceptions/:exceptionId', validateExceptionIdParam, async (req: 
   }
 });
 
+/**
+ * POST /api/classes/:classId/schedules/bulk
+ * Create multiple schedules for a class in bulk
+ */
+router.post('/classes/:classId/schedules/bulk', validateClassIdParam, validateCreateSchedulesBulkRequest, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { classId } = req.params;
+    const schedules = req.body.map((schedule: any) => ({
+      ...schedule,
+      classId,
+    }));
+    
+    const createdSchedules = await scheduleService.createSchedulesBulk(schedules);
+
+    res.status(201).json({
+      success: true,
+      data: createdSchedules,
+      message: `${createdSchedules.length} schedules created successfully`,
+      totalRequested: req.body.length,
+      totalCreated: createdSchedules.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/classes/:classId/schedules/weekly-overview
+ * Get weekly schedule overview for a class
+ */
+router.get('/classes/:classId/schedules/weekly-overview', validateClassIdParam, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { classId } = req.params;
+    const weeklyOverview = await scheduleService.getWeeklyScheduleOverview(classId);
+
+    res.json({
+      success: true,
+      data: weeklyOverview,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/classes/:classId/schedules/stats
+ * Get schedule statistics for a class
+ */
+router.get('/classes/:classId/schedules/stats', validateClassIdParam, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { classId } = req.params;
+    const stats = await scheduleService.getScheduleStats(classId);
+
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
