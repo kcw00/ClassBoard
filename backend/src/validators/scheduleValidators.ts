@@ -306,7 +306,7 @@ const createSchedulesBulkSchema = Joi.array()
   });
 
 // Validation middleware factory
-const createValidator = (schema: Joi.ObjectSchema, target: 'body' | 'params' | 'query' = 'body') => {
+const createValidator = (schema: Joi.ObjectSchema | Joi.ArraySchema, target: 'body' | 'params' | 'query' = 'body') => {
   return (req: Request, res: Response, next: NextFunction): void => {
     let dataToValidate;
     switch (target) {
