@@ -5,6 +5,8 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -20,21 +22,20 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* Path mapping for cleaner imports */
+    /* Path mapping */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/screens/*": ["./src/screens/*"],
-      "@/context/*": ["./src/context/*"],
-      "@/data/*": ["./src/data/*"],
-      "@/types/*": ["./src/types/*"],
-      "@/utils/*": ["./src/utils/*"],
-      "@/styles/*": ["./src/styles/*"],
-      "@/config/*": ["./src/config/*"],
-      "@/assets/*": ["./assets/*"]
-    }
+      "@/*": ["./src/*"]
+    },
+
+    /* Testing */
+    "types": ["jest", "@testing-library/jest-dom"]
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "src/types/test.d.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
