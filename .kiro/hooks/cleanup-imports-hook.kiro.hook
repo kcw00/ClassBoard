@@ -4,7 +4,7 @@
   "description": "Automatically removes unused lines and duplicate imports from TypeScript and JavaScript files when they are modified",
   "version": "1",
   "when": {
-    "type": "fileEdited",
+    "type": "userTriggered",
     "patterns": [
       "**/*.ts",
       "**/*.tsx",
