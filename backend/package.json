@@ -13,7 +13,11 @@
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset --force",
-    "db:migrate-data": "tsx scripts/migrate-data.ts"
+    "db:migrate-data": "tsx scripts/migrate-data.ts",
+    "db:test-migration": "tsx -e \"import('./scripts/migrate-data.ts').then(m => m.runTests())\"",
+    "db:rollback": "tsx -e \"console.log('Usage: npm run db:rollback -- <backup-id>')\"",
+    "migration:test": "jest --testPathPattern=dataMigrationValidation.test.ts",
+    "migration:demo": "tsx scripts/demo-migration.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
