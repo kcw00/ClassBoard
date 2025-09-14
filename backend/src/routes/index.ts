@@ -5,6 +5,8 @@ import studentRoutes from './students';
 import scheduleRoutes from './schedules';
 import assessmentRoutes from './assessments';
 import fileRoutes from './files';
+import attendanceRoutes from './attendance';
+import meetingRoutes from './meetings';
 
 const router = Router();
 
@@ -33,6 +35,8 @@ router.get('/', (req, res) => {
       tests: '/api/tests',
       homework: '/api/homework',
       files: '/api/files',
+      attendance: '/api/attendance',
+      meetings: '/api/meetings',
     },
   });
 });
@@ -44,5 +48,7 @@ router.use('/students', studentRoutes);
 router.use('/', scheduleRoutes); // Schedule routes are mounted at root level for flexibility
 router.use('/', assessmentRoutes); // Assessment routes are mounted at root level for flexibility
 router.use('/files', fileRoutes);
+router.use('/attendance', attendanceRoutes);
+router.use('/meetings', meetingRoutes);
 
 export default router;
