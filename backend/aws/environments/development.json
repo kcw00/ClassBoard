@@ -15,18 +15,31 @@
       "idleTimeoutMillis": 600000
     },
     "s3": {
-      "bucketName": "classboard-dev-files",
+      "bucketName": "${S3_BUCKET_NAME}",
       "region": "us-east-1",
       "signedUrlExpiration": 3600,
-      "maxFileSize": "10MB",
+      "maxFileSize": "50MB",
       "allowedFileTypes": [
         "image/jpeg",
+        "image/jpg",
         "image/png",
         "image/gif",
+        "image/webp",
         "application/pdf",
         "application/msword",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "text/plain"
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "text/plain",
+        "text/csv",
+        "video/mp4",
+        "video/mpeg",
+        "video/quicktime",
+        "audio/mpeg",
+        "audio/wav",
+        "audio/mp3"
       ]
     },
     "cloudfront": {
@@ -40,8 +53,8 @@
     },
     "lambda": {
       "region": "us-east-1",
-      "timeout": 30,
-      "memorySize": 256
+      "timeout": 300,
+      "memorySize": 512
     }
   },
   "api": {
@@ -52,7 +65,7 @@
     },
     "rateLimit": {
       "windowMs": 900000,
-      "max": 1000
+      "max": 100
     },
     "jwt": {
       "expiresIn": "1h",
@@ -61,7 +74,7 @@
   },
   "logging": {
     "level": "debug",
-    "format": "combined"
+    "format": "dev"
   },
   "monitoring": {
     "enabled": false
