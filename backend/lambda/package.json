@@ -1,0 +1,40 @@
+{
+  "name": "classboard-lambda-functions",
+  "version": "1.0.0",
+  "description": "Lambda functions for ClassBoard background processing",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "build": "npm run build:grade-calculator && npm run build:report-generator && npm run build:email-notifications && npm run build:data-cleanup",
+    "build:grade-calculator": "cd grade-calculator && npm run build",
+    "build:report-generator": "cd report-generator && npm run build",
+    "build:email-notifications": "cd email-notifications && npm run build",
+    "build:data-cleanup": "cd data-cleanup && npm run build",
+    "package": "npm run package:grade-calculator && npm run package:report-generator && npm run package:email-notifications && npm run package:data-cleanup",
+    "package:grade-calculator": "cd grade-calculator && npm run package",
+    "package:report-generator": "cd report-generator && npm run package",
+    "package:email-notifications": "cd email-notifications && npm run package",
+    "package:data-cleanup": "cd data-cleanup && npm run package",
+    "deploy": "./deploy.sh",
+    "lint": "eslint **/*.ts",
+    "lint:fix": "eslint **/*.ts --fix"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.119",
+    "@types/jest": "^29.0.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.0.0",
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@aws-sdk/client-ses": "^3.0.0",
+    "aws-lambda": "^1.0.7"
+  }
+}
