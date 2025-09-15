@@ -113,6 +113,8 @@ export function DeleteConfirmationDialog({
             operation="deleting"
             itemType={itemType}
             itemName={itemName}
+            networkStatus={networkStatus}
+            estimatedTime={itemType === 'class' ? 3 : 2} // Estimated deletion time
           />
         )}
 
@@ -124,6 +126,8 @@ export function DeleteConfirmationDialog({
             itemType={itemType}
             itemName={itemName}
             showProgress={false}
+            networkStatus={networkStatus}
+            estimatedTime={1} // Impact calculation is usually faster
           />
         )}
 

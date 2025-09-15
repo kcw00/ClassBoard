@@ -12,6 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Plus, Users, MapPin, Clock, Settings, UserPlus, CalendarPlus, Trash2, Edit, RefreshCw, AlertCircle, CheckCircle } from "lucide-react"
+import { LoadingSpinner } from "@/components/common/LoadingSpinner"
+import { DeleteSuccessAnimation } from "@/components/common/DeleteSuccessToast"
+import { DeleteItemOverlay, useDeleteItemState } from "@/components/common/DeleteItemOverlay"
 import { toast } from "sonner"
 import { classColors } from "@/types"
 import type { Class } from "@/types"
@@ -42,6 +45,7 @@ export default function ClassManagement() {
   const [deletionImpact, setDeletionImpact] = useState<DeletionImpact | null>(null)
   const [isCalculatingImpact, setIsCalculatingImpact] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
@@ -222,18 +226,21 @@ export default function ClassManagement() {
       // Success feedback
       handleDeleteSuccess('class', classToDelete.name)
       
+      // Show success animation
+      setShowSuccessAnimation(true)
+      
       // Close dialog and reset state
       setDeleteDialogOpen(false)
       const deletedClassName = classToDelete.name
       setClassToDelete(null)
       setDeletionImpact(null)
       
-      // Also show status message for consistency with existing UI
+      // Enhanced status message with more details
       setStatusMessage({ 
         type: 'success', 
-        message: `Class "${deletedClassName}" deleted successfully!` 
+        message: `Class "${deletedClassName}" and all associated data have been permanently deleted.` 
       })
-      setTimeout(() => setStatusMessage(null), 3000)
+      setTimeout(() => setStatusMessage(null), 5000) // Longer duration for success messages
       
     } catch (error) {
       // Enhanced error handling with retry option
@@ -730,12 +737,19 @@ export default function ClassManagement() {
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {data.classes.map((classItem) => {
           const schedules = getScheduleForClass(classItem.id)
+          const deleteState = useDeleteItemState(classItem.id, classToDelete?.id || null)
+          
           return (
             <Card
               key={classItem.id}
               className="relative cursor-pointer hover:shadow-md transition-shadow flex flex-col h-full"
-              onClick={() => navigate(`/classes/${classItem.id}`)}
+              onClick={() => !deleteState.shouldDisableActions && navigate(`/classes/${classItem.id}`)}
             >
+              {/* Delete overlay */}
+              <DeleteItemOverlay
+                isDeleting={isDeleting && deleteState.isCurrentItem}
+                isCalculatingImpact={isCalculatingImpact && deleteState.isCurrentItem}
+              />
               <div
                 className="absolute top-0 left-0 w-1 h-full rounded-l-lg"
                 style={{ backgroundColor: classItem.color }}
@@ -806,10 +820,23 @@ export default function ClassManagement() {
                     variant="outline"
                     size="sm"
                     onClick={(e) => handleDeleteClick(classItem, e)}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20 hover:border-destructive/30"
-                    title="Delete class"
+                    disabled={isDeleting || isCalculatingImpact || (classToDelete?.id === classItem.id)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20 hover:border-destructive/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={
+                      isDeleting && classToDelete?.id === classItem.id 
+                        ? "Deleting class..." 
+                        : isCalculatingImpact && classToDelete?.id === classItem.id
+                        ? "Calculating impact..."
+                        : "Delete class"
+                    }
                   >
-                    <Trash2 className="h-3 w-3" />
+                    {isDeleting && classToDelete?.id === classItem.id ? (
+                      <LoadingSpinner size="sm" className="text-destructive" />
+                    ) : isCalculatingImpact && classToDelete?.id === classItem.id ? (
+                      <LoadingSpinner size="sm" className="text-muted-foreground" />
+                    ) : (
+                      <Trash2 className="h-3 w-3" />
+                    )}
                   </Button>
                 </div>
               </CardContent>
@@ -817,6 +844,12 @@ export default function ClassManagement() {
           )
         })}
       </div>
+
+      {/* Success Animation */}
+      <DeleteSuccessAnimation
+        isVisible={showSuccessAnimation}
+        onComplete={() => setShowSuccessAnimation(false)}
+      />
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog

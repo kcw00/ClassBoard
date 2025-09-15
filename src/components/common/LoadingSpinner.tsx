@@ -16,6 +16,8 @@ export function LoadingSpinner({ size = 'md', className = '' }: LoadingSpinnerPr
   return (
     <RefreshCw 
       className={`animate-spin text-muted-foreground ${sizeClasses[size]} ${className}`} 
+      role="status"
+      aria-label="Loading"
     />
   )
 }
