@@ -1,20 +1,41 @@
 # ClassBoard API Documentation
 
-## Overview
+## 🌐 Overview
 
-The ClassBoard API provides a comprehensive backend service for managing educational data including students, classes, schedules, tests, homework, attendance, and meetings.
+The ClassBoard API provides a comprehensive, production-ready backend service for managing educational data including students, classes, schedules, assessments, homework, attendance, meetings, and file management. Built with Node.js, Express, TypeScript, and PostgreSQL, deployed on AWS infrastructure.
 
-**Base URL:** `http://localhost:3001/api` (development)
-**Version:** 1.0.0
-**Environment:** Development
+**Base URLs:**
+- **Development:** `http://localhost:3001/api`
+- **Staging:** `https://api-staging.classboard.app/api`
+- **Production:** `https://api.classboard.app/api`
 
-## Authentication
+**Version:** 2.0.0
+**Last Updated:** December 15, 2024
 
-All API endpoints require authentication via JWT tokens. Include the token in the Authorization header:
+## 🔐 Authentication
 
+ClassBoard uses JWT (JSON Web Tokens) for authentication with AWS Cognito integration for secure user management.
+
+### Authentication Flow
+
+1. **Login**: POST `/auth/login` with email/password
+2. **Receive Tokens**: Get access token and refresh token
+3. **Use Access Token**: Include in Authorization header for API requests
+4. **Refresh Token**: Use refresh token to get new access token when expired
+
+### Headers
+
+All authenticated requests must include:
+```http
+Authorization: Bearer <access_token>
+Content-Type: application/json
 ```
-Authorization: Bearer <your-jwt-token>
-```
+
+### Token Management
+- **Access Token Expiry**: 1 hour
+- **Refresh Token Expiry**: 30 days
+- **Automatic Refresh**: Supported by client SDKs
+- **Token Rotation**: Refresh tokens are rotated on use
 
 ## Response Format
 
