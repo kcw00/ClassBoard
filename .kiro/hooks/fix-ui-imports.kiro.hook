@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Fix UI Component Imports",
+  "description": "Automatically detects and fixes incorrect imports in all files within the src/components/ui directory when any file is modified",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "src/components/ui/**/*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review and fix any incorrect imports in all files within the src/components/ui directory. Look for common import issues such as: missing file extensions, incorrect relative paths, unused imports, circular dependencies, and imports from non-existent files. Update all import statements to use the correct paths and ensure they follow the project's import conventions."
+  }
+}
