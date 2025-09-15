@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -50,7 +50,9 @@ export default function ClassDetails() {
     parentContact: ""
   })
 
-  const classData = (data.classes || []).find(c => c.id === classId)
+  const classData = useMemo(() => {
+    return (data.classes || []).find(c => c.id === classId)
+  }, [data.classes, classId])
 
   if (!classData) {
     return (
@@ -67,21 +69,29 @@ export default function ClassDetails() {
     )
   }
 
-  const enrolledStudents = (data.students || []).filter(student =>
-    (classData?.enrolledStudents || []).includes(student.id)
-  )
+  const enrolledStudents = useMemo(() => {
+    return (data.students || []).filter(student =>
+      (classData?.enrolledStudents || []).includes(student.id)
+    )
+  }, [data.students, classData?.enrolledStudents])
 
-  const classSchedules = (data.schedules || []).filter(schedule =>
-    schedule.classId === classId
-  )
+  const classSchedules = useMemo(() => {
+    return (data.schedules || []).filter(schedule =>
+      schedule.classId === classId
+    )
+  }, [data.schedules, classId])
 
-  const classNotes = (data.classNotes || []).filter(note =>
-    note.classId === classId
-  ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const classNotes = useMemo(() => {
+    return (data.classNotes || []).filter(note =>
+      note.classId === classId
+    ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }, [data.classNotes, classId])
 
-  const attendanceRecords = (data.attendanceRecords || []).filter(record =>
-    record.classId === classId
-  ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const attendanceRecords = useMemo(() => {
+    return (data.attendanceRecords || []).filter(record =>
+      record.classId === classId
+    ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }, [data.attendanceRecords, classId])
 
   const getDayName = (dayOfWeek: number) => {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -163,11 +173,11 @@ export default function ClassDetails() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase()
   }
 
-  const getAvailableStudents = () => {
+  const availableStudents = useMemo(() => {
     return (data.students || []).filter(student =>
       !(classData?.enrolledStudents || []).includes(student.id)
     )
-  }
+  }, [data.students, classData?.enrolledStudents])
 
   const handleEnrollStudent = async (studentId: string, enrolled: boolean) => {
     if (!classId) return

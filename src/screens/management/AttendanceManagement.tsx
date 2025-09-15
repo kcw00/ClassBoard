@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,11 +10,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 // Toast functionality removed - using console logging instead
-import { 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  Users, 
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  Users,
   TrendingUp,
   Plus,
   Edit,
@@ -30,7 +30,7 @@ export default function AttendanceManagement() {
   const [selectedClass, setSelectedClass] = useState<string>("")
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
   const [isAttendanceDialogOpen, setIsAttendanceDialogOpen] = useState(false)
-  const [attendanceData, setAttendanceData] = useState<{[studentId: string]: {status: string, notes: string}}>({})
+  const [attendanceData, setAttendanceData] = useState<{ [studentId: string]: { status: string, notes: string } }>({})
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [selectedRecord, setSelectedRecord] = useState<any>(null)
@@ -39,16 +39,16 @@ export default function AttendanceManagement() {
   const [isOverviewDetailOpen, setIsOverviewDetailOpen] = useState(false)
   const [isEditRecordOpen, setIsEditRecordOpen] = useState(false)
   const [editingRecord, setEditingRecord] = useState<any>(null)
-  const [editAttendanceData, setEditAttendanceData] = useState<{[studentId: string]: {status: string, notes: string}}>({})
+  const [editAttendanceData, setEditAttendanceData] = useState<{ [studentId: string]: { status: string, notes: string } }>({})
 
   // Get attendance statistics
-  const getAttendanceStats = () => {
+  const attendanceStats = useMemo(() => {
     const totalRecords = data.attendanceRecords.flatMap(record => record.attendanceData)
     const presentCount = totalRecords.filter(entry => entry.status === "present").length
     const absentCount = totalRecords.filter(entry => entry.status === "absent").length
     const lateCount = totalRecords.filter(entry => entry.status === "late").length
     const excusedCount = totalRecords.filter(entry => entry.status === "excused").length
-    
+
     const total = totalRecords.length
     const attendanceRate = total > 0 ? (presentCount / total) * 100 : 0
 
@@ -60,21 +60,21 @@ export default function AttendanceManagement() {
       excused: excusedCount,
       attendanceRate: Math.round(attendanceRate)
     }
-  }
+  }, [data.attendanceRecords])
 
   // Get recent attendance records
-  const getRecentAttendance = () => {
+  const recentAttendance = useMemo(() => {
     return data.attendanceRecords
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 10)
-  }
+  }, [data.attendanceRecords])
 
   // Get class attendance summary
-  const getClassAttendanceSummary = () => {
+  const classAttendanceSummary = useMemo(() => {
     return data.classes.map(classItem => {
       const classRecords = data.attendanceRecords.filter(record => record.classId === classItem.id)
       const allEntries = classRecords.flatMap(record => record.attendanceData)
-      
+
       const present = allEntries.filter(entry => entry.status === "present").length
       const total = allEntries.length
       const rate = total > 0 ? (present / total) * 100 : 0
@@ -86,13 +86,13 @@ export default function AttendanceManagement() {
         studentsEnrolled: classItem.enrolledStudents.length
       }
     })
-  }
+  }, [data.classes, data.attendanceRecords])
 
   // Initialize attendance data for a class
   const initializeAttendanceData = (classId: string) => {
     const classItem = data.classes.find(c => c.id === classId)
     if (classItem) {
-      const initialData: {[studentId: string]: {status: string, notes: string}} = {}
+      const initialData: { [studentId: string]: { status: string, notes: string } } = {}
       classItem.enrolledStudents.forEach(studentId => {
         initialData[studentId] = { status: "present", notes: "" }
       })
@@ -111,7 +111,7 @@ export default function AttendanceManagement() {
   // Save attendance record
   const handleSaveAttendance = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!selectedClass || !selectedDate) {
       console.error("❌ Please select class and date")
       return
@@ -160,12 +160,12 @@ export default function AttendanceManagement() {
 
   // Get students for a specific status from all records
   const getStudentsByStatus = (status: string) => {
-    const allEntries = data.attendanceRecords.flatMap(record => 
+    const allEntries = data.attendanceRecords.flatMap(record =>
       record.attendanceData.filter(entry => entry.status === status)
     )
     return allEntries.map(entry => {
       const student = data.students.find(s => s.id === entry.studentId)
-      const record = data.attendanceRecords.find(r => 
+      const record = data.attendanceRecords.find(r =>
         r.attendanceData.some(a => a.studentId === entry.studentId)
       )
       const classItem = data.classes.find(c => c.id === record?.classId)
@@ -177,7 +177,7 @@ export default function AttendanceManagement() {
   const handleEditRecord = (record: any) => {
     setEditingRecord(record)
     // Initialize edit data with existing attendance data
-    const initialEditData: {[studentId: string]: {status: string, notes: string}} = {}
+    const initialEditData: { [studentId: string]: { status: string, notes: string } } = {}
     record.attendanceData.forEach((entry: any) => {
       initialEditData[entry.studentId] = {
         status: entry.status,
@@ -191,7 +191,7 @@ export default function AttendanceManagement() {
   // Save edited attendance record
   const handleSaveEditedRecord = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!editingRecord) return
 
     const updatedAttendanceData = Object.entries(editAttendanceData).map(([studentId, data]) => ({
@@ -212,18 +212,16 @@ export default function AttendanceManagement() {
     console.log("✅ Attendance record updated successfully")
   }
 
-  const stats = getAttendanceStats()
-  const recentAttendance = getRecentAttendance()
-  const classAttendanceSummary = getClassAttendanceSummary()
+  const stats = attendanceStats
 
   // Filter recent attendance based on search and filter
   const filteredRecentAttendance = recentAttendance.filter(record => {
     const classItem = data.classes.find(c => c.id === record.classId)
-    const matchesSearch = classItem?.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         record.date.includes(searchTerm)
-    
+    const matchesSearch = classItem?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.date.includes(searchTerm)
+
     if (filterStatus === "all") return matchesSearch
-    
+
     const hasStatus = record.attendanceData.some(entry => entry.status === filterStatus)
     return matchesSearch && hasStatus
   })
@@ -296,7 +294,7 @@ export default function AttendanceManagement() {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <h4 className="font-medium">Student Attendance</h4>
                   {selectedClass && (
@@ -304,7 +302,7 @@ export default function AttendanceManagement() {
                       {data.classes.find(c => c.id === selectedClass)?.enrolledStudents.map(studentId => {
                         const student = data.students.find(s => s.id === studentId)
                         if (!student) return null
-                        
+
                         return (
                           <div key={studentId} className="flex flex-col md:grid md:grid-cols-12 gap-4 p-4 border rounded-lg bg-card">
                             <div className="md:col-span-5">
@@ -355,7 +353,7 @@ export default function AttendanceManagement() {
                     </div>
                   )}
                 </div>
-                
+
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setIsAttendanceDialogOpen(false)} aria-label="Cancel">
                     <span className="sm:inline">Cancel</span>
@@ -372,7 +370,7 @@ export default function AttendanceManagement() {
 
       {/* Overview Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => handleOverviewCardClick('overall')}
         >
@@ -387,8 +385,8 @@ export default function AttendanceManagement() {
             <Progress value={stats.attendanceRate} className="mt-2" />
           </CardContent>
         </Card>
-        
-        <Card 
+
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => handleOverviewCardClick('present')}
         >
@@ -403,7 +401,7 @@ export default function AttendanceManagement() {
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => handleOverviewCardClick('absent')}
         >
@@ -418,7 +416,7 @@ export default function AttendanceManagement() {
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => handleOverviewCardClick('late')}
         >
@@ -474,24 +472,24 @@ export default function AttendanceManagement() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-3">
                 {filteredRecentAttendance.map(record => {
                   const classItem = data.classes.find(c => c.id === record.classId)
                   const presentCount = record.attendanceData.filter(entry => entry.status === "present").length
                   const totalCount = record.attendanceData.length
                   const attendanceRate = totalCount > 0 ? (presentCount / totalCount) * 100 : 0
-                  
+
                   return (
-                    <div 
-                      key={record.id} 
+                    <div
+                      key={record.id}
                       className="p-4 border rounded-lg hover:shadow-md transition-shadow"
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                         <div className="flex-1">
                           <h4 className="font-medium">{classItem?.name}</h4>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(record.date).toLocaleDateString()}
+                            {record.date}
                           </p>
                         </div>
                         <div className="flex items-center gap-3">
@@ -556,8 +554,8 @@ export default function AttendanceManagement() {
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
                 {classAttendanceSummary.map(classData => (
-                  <div 
-                    key={classData.id} 
+                  <div
+                    key={classData.id}
                     className="p-4 border rounded-lg cursor-pointer hover:shadow-md transition-shadow hover:bg-accent/50"
                     onClick={() => handleClassCardClick(classData.id)}
                   >
@@ -638,7 +636,7 @@ export default function AttendanceManagement() {
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleOverviewCardClick('stats')}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -690,7 +688,7 @@ export default function AttendanceManagement() {
               Detailed breakdown of attendance data
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             {selectedOverviewStat === 'overall' && (
               <div>
@@ -753,9 +751,9 @@ export default function AttendanceManagement() {
                         <div className="text-right">
                           <Badge variant="secondary" className={
                             selectedOverviewStat === 'present' ? 'bg-green-100 text-green-800' :
-                            selectedOverviewStat === 'absent' ? 'bg-red-100 text-red-800' :
-                            selectedOverviewStat === 'late' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-blue-100 text-blue-800'
+                              selectedOverviewStat === 'absent' ? 'bg-red-100 text-red-800' :
+                                selectedOverviewStat === 'late' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-blue-100 text-blue-800'
                           }>
                             {selectedOverviewStat?.charAt(0).toUpperCase() + selectedOverviewStat?.slice(1)}
                           </Badge>
@@ -859,8 +857,8 @@ export default function AttendanceManagement() {
                       <div className="flex justify-between">
                         <span>Best Performing Class:</span>
                         <span className="font-medium">
-                          {classAttendanceSummary.length > 0 ? 
-                            classAttendanceSummary.reduce((best, current) => 
+                          {classAttendanceSummary.length > 0 ?
+                            classAttendanceSummary.reduce((best, current) =>
                               current.attendanceRate > best.attendanceRate ? current : best
                             ).name : 'N/A'
                           }
@@ -894,7 +892,7 @@ export default function AttendanceManagement() {
               )}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedRecord && (
             <div className="space-y-4">
               <div className="grid gap-4 md:grid-cols-4">
@@ -949,9 +947,9 @@ export default function AttendanceManagement() {
                           <div className="flex items-center gap-3">
                             <Badge variant="secondary" className={
                               entry.status === 'present' ? 'bg-green-100 text-green-800' :
-                              entry.status === 'absent' ? 'bg-red-100 text-red-800' :
-                              entry.status === 'late' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-blue-100 text-blue-800'
+                                entry.status === 'absent' ? 'bg-red-100 text-red-800' :
+                                  entry.status === 'late' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-blue-100 text-blue-800'
                             }>
                               {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
                             </Badge>
@@ -987,7 +985,7 @@ export default function AttendanceManagement() {
               )}
             </DialogDescription>
           </DialogHeader>
-          
+
           {editingRecord && (
             <form onSubmit={handleSaveEditedRecord} className="space-y-6">
               <div className="grid grid-cols-3 gap-6">
@@ -1009,7 +1007,7 @@ export default function AttendanceManagement() {
                 </div>
                 <div className="p-3 bg-muted rounded-lg">
                   <p className="text-sm font-medium">
-                    Present: {Object.keys(editAttendanceData).length > 0 
+                    Present: {Object.keys(editAttendanceData).length > 0
                       ? Object.values(editAttendanceData).filter(d => d.status === 'present').length
                       : editingRecord.attendanceData.filter((e: any) => e.status === 'present').length
                     }
@@ -1019,14 +1017,14 @@ export default function AttendanceManagement() {
                   </p>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <h4 className="font-medium">Edit Student Attendance</h4>
                 <div className="grid gap-3 max-h-[60vh] overflow-y-auto pr-2">
                   {editingRecord.attendanceData.map((entry: any) => {
                     const student = data.students.find(s => s.id === entry.studentId)
                     if (!student) return null
-                    
+
                     return (
                       <div key={entry.studentId} className="grid grid-cols-12 gap-4 items-center p-4 border rounded-lg bg-card">
                         <div className="col-span-5">
@@ -1075,7 +1073,7 @@ export default function AttendanceManagement() {
                   })}
                 </div>
               </div>
-              
+
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsEditRecordOpen(false)}>
                   Cancel
