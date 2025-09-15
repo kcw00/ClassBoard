@@ -12,14 +12,13 @@ import { Plus, Mail, Phone, User, Users, ChevronUp, ChevronDown, Search, CheckCi
 import { LoadingSpinner } from "@/components/common/LoadingSpinner"
 import { DeleteSuccessAnimation } from "@/components/common/DeleteSuccessToast"
 import { DeleteItemOverlay, useDeleteItemState } from "@/components/common/DeleteItemOverlay"
-import { toast } from "sonner"
 import { useAppData } from "@/context/AppDataMigrationContext"
 import { Student } from "@/data"
 import { DeleteConfirmationDialog } from "@/components/common/DeleteConfirmationDialog"
 import { calculateStudentDeletionImpact, DeletionImpact } from "@/utils/impactCalculation"
-import { 
-  handleDeleteError, 
-  handleDeleteSuccess, 
+import {
+  handleDeleteError,
+  handleDeleteSuccess,
   handleImpactCalculationError,
   retryOperation,
   DEFAULT_RETRY_CONFIG
@@ -120,12 +119,12 @@ export default function StudentManagement() {
     setStudentToDelete(student)
     setIsCalculatingImpact(true)
     setIsDeleteDialogOpen(true)
-    
+
     const calculateImpact = async () => {
       const impact = await calculateStudentDeletionImpact(student.id)
       setDeletionImpact(impact)
     }
-    
+
     try {
       await retryOperation(
         calculateImpact,
@@ -133,15 +132,12 @@ export default function StudentManagement() {
         (attempt, error) => {
           setRetryCount(attempt)
           console.log(`Impact calculation attempt ${attempt} failed:`, error)
-          toast.loading(`Calculating deletion impact... (attempt ${attempt})`, {
-            duration: 2000
-          })
         }
       )
     } catch (error) {
       handleImpactCalculationError(
-        error, 
-        'student', 
+        error,
+        'student',
         student.name,
         () => handleDeleteClick(student)
       )
@@ -157,11 +153,11 @@ export default function StudentManagement() {
     if (!studentToDelete) return
 
     setIsDeleting(true)
-    
+
     const performDelete = async () => {
       await actions.deleteStudent(studentToDelete.id)
     }
-    
+
     try {
       await retryOperation(
         performDelete,
@@ -169,47 +165,44 @@ export default function StudentManagement() {
         (attempt, error) => {
           setRetryCount(attempt)
           console.log(`Delete attempt ${attempt} failed:`, error)
-          toast.loading(`Deleting student... (attempt ${attempt})`, {
-            duration: 2000
-          })
         }
       )
-      
+
       // Success feedback
       handleDeleteSuccess('student', studentToDelete.name)
-      
+
       // Show success animation
       setShowSuccessAnimation(true)
-      
+
       // Close dialog and reset state
       setIsDeleteDialogOpen(false)
       const deletedStudentName = studentToDelete.name
       setStudentToDelete(null)
       setDeletionImpact(null)
-      
+
       // Enhanced status message with more details
-      setStatusMessage({ 
-        type: 'success', 
-        message: `Student "${deletedStudentName}" and all associated records have been permanently deleted.` 
+      setStatusMessage({
+        type: 'success',
+        message: `Student "${deletedStudentName}" and all associated records have been permanently deleted.`
       })
       setTimeout(() => setStatusMessage(null), 5000) // Longer duration for success messages
-      
+
     } catch (error) {
       // Enhanced error handling with retry option
       handleDeleteError(
-        error, 
-        'student', 
+        error,
+        'student',
         studentToDelete.name,
         () => handleDeleteConfirm()
       )
-      
+
       // Also show status message for consistency with existing UI
-      setStatusMessage({ 
-        type: 'error', 
-        message: 'Failed to delete student. Please check the error message and try again.' 
+      setStatusMessage({
+        type: 'error',
+        message: 'Failed to delete student. Please check the error message and try again.'
       })
       setTimeout(() => setStatusMessage(null), 8000) // Longer duration for error messages
-      
+
     } finally {
       setIsDeleting(false)
       setRetryCount(0)
@@ -270,11 +263,10 @@ export default function StudentManagement() {
     <div className="space-y-6 p-6">
       {/* Status Message */}
       {statusMessage && (
-        <div className={`mb-4 p-3 rounded-md ${
-          statusMessage.type === 'success' 
-            ? 'bg-green-50 text-green-800 border border-green-200' 
-            : 'bg-red-50 text-red-800 border border-red-200'
-        }`}>
+        <div className={`mb-4 p-3 rounded-md ${statusMessage.type === 'success'
+          ? 'bg-green-50 text-green-800 border border-green-200'
+          : 'bg-red-50 text-red-800 border border-red-200'
+          }`}>
           <div className="flex items-center">
             {statusMessage.type === 'success' ? (
               <CheckCircle className="h-4 w-4 mr-2" />
@@ -395,7 +387,7 @@ export default function StudentManagement() {
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {getFilteredAndSortedStudents().map((student) => {
               const deleteState = useDeleteItemState(student.id, studentToDelete?.id || null)
-              
+
               return (
                 <Card
                   key={student.id}
@@ -407,72 +399,72 @@ export default function StudentManagement() {
                     isDeleting={isDeleting && deleteState.isCurrentItem}
                     isCalculatingImpact={isCalculatingImpact && deleteState.isCurrentItem}
                   />
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{student.name}</CardTitle>
-                    <Badge variant="secondary">{student.grade}</Badge>
-                  </div>
-                  <CardDescription className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="h-4 w-4" />
-                      {student.email}
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{student.name}</CardTitle>
+                      <Badge variant="secondary">{student.grade}</Badge>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone className="h-4 w-4" />
-                      {student.phone}
+                    <CardDescription className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Mail className="h-4 w-4" />
+                        {student.email}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="h-4 w-4" />
+                        {student.phone}
+                      </div>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          {getStudentClasses(student.id).length} classes
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleEditStudent(student)
+                          }}
+                          title="Edit student"
+                        >
+                          <User className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteClick(student)
+                          }}
+                          disabled={isDeleting || isCalculatingImpact || (studentToDelete?.id === student.id)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={
+                            isDeleting && studentToDelete?.id === student.id
+                              ? "Deleting student..."
+                              : isCalculatingImpact && studentToDelete?.id === student.id
+                                ? "Calculating impact..."
+                                : "Delete student"
+                          }
+                        >
+                          {isDeleting && studentToDelete?.id === student.id ? (
+                            <LoadingSpinner size="sm" className="text-destructive" />
+                          ) : isCalculatingImpact && studentToDelete?.id === student.id ? (
+                            <LoadingSpinner size="sm" className="text-muted-foreground" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        {getStudentClasses(student.id).length} classes
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleEditStudent(student)
-                        }}
-                        title="Edit student"
-                      >
-                        <User className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDeleteClick(student)
-                        }}
-                        disabled={isDeleting || isCalculatingImpact || (studentToDelete?.id === student.id)}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={
-                          isDeleting && studentToDelete?.id === student.id 
-                            ? "Deleting student..." 
-                            : isCalculatingImpact && studentToDelete?.id === student.id
-                            ? "Calculating impact..."
-                            : "Delete student"
-                        }
-                      >
-                        {isDeleting && studentToDelete?.id === student.id ? (
-                          <LoadingSpinner size="sm" className="text-destructive" />
-                        ) : isCalculatingImpact && studentToDelete?.id === student.id ? (
-                          <LoadingSpinner size="sm" className="text-muted-foreground" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
+                  </CardContent>
+                </Card>
+              )
             })}
           </div>
         ) : (
@@ -513,65 +505,64 @@ export default function StudentManagement() {
                 <TableBody>
                   {getFilteredAndSortedStudents().map((student) => {
                     const deleteState = useDeleteItemState(student.id, studentToDelete?.id || null)
-                    
+
                     return (
                       <TableRow
                         key={student.id}
-                        className={`cursor-pointer hover:bg-muted/50 relative ${
-                          deleteState.isCurrentItem && (isDeleting || isCalculatingImpact) 
-                            ? 'opacity-60 pointer-events-none' 
-                            : ''
-                        }`}
+                        className={`cursor-pointer hover:bg-muted/50 relative ${deleteState.isCurrentItem && (isDeleting || isCalculatingImpact)
+                          ? 'opacity-60 pointer-events-none'
+                          : ''
+                          }`}
                         onClick={() => !deleteState.shouldDisableActions && navigate(`/students/${student.id}`)}
                       >
-                      <TableCell className="font-medium">{student.name}</TableCell>
-                      <TableCell>{student.email}</TableCell>
-                      <TableCell>{student.phone}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{student.grade}</Badge>
-                      </TableCell>
-                      <TableCell>{getStudentClasses(student.id).length}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleEditStudent(student)
-                            }}
-                            title="Edit student"
-                          >
-                            <User className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDeleteClick(student)
-                            }}
-                            disabled={isDeleting || isCalculatingImpact || (studentToDelete?.id === student.id)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                            title={
-                              isDeleting && studentToDelete?.id === student.id 
-                                ? "Deleting student..." 
-                                : isCalculatingImpact && studentToDelete?.id === student.id
-                                ? "Calculating impact..."
-                                : "Delete student"
-                            }
-                          >
-                            {isDeleting && studentToDelete?.id === student.id ? (
-                              <LoadingSpinner size="sm" className="text-destructive" />
-                            ) : isCalculatingImpact && studentToDelete?.id === student.id ? (
-                              <LoadingSpinner size="sm" className="text-muted-foreground" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                        <TableCell className="font-medium">{student.name}</TableCell>
+                        <TableCell>{student.email}</TableCell>
+                        <TableCell>{student.phone}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{student.grade}</Badge>
+                        </TableCell>
+                        <TableCell>{getStudentClasses(student.id).length}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleEditStudent(student)
+                              }}
+                              title="Edit student"
+                            >
+                              <User className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteClick(student)
+                              }}
+                              disabled={isDeleting || isCalculatingImpact || (studentToDelete?.id === student.id)}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title={
+                                isDeleting && studentToDelete?.id === student.id
+                                  ? "Deleting student..."
+                                  : isCalculatingImpact && studentToDelete?.id === student.id
+                                    ? "Calculating impact..."
+                                    : "Delete student"
+                              }
+                            >
+                              {isDeleting && studentToDelete?.id === student.id ? (
+                                <LoadingSpinner size="sm" className="text-destructive" />
+                              ) : isCalculatingImpact && studentToDelete?.id === student.id ? (
+                                <LoadingSpinner size="sm" className="text-muted-foreground" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     )
                   })}
                 </TableBody>
@@ -661,8 +652,8 @@ export default function StudentManagement() {
         onConfirm={handleDeleteConfirm}
         title="Delete Student"
         description={
-          isCalculatingImpact 
-            ? "Calculating impact of deletion..." 
+          isCalculatingImpact
+            ? "Calculating impact of deletion..."
             : "Are you sure you want to delete this student? This action cannot be undone."
         }
         itemName={studentToDelete?.name || ""}
