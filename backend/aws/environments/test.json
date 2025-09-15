@@ -1,0 +1,65 @@
+{
+  "environment": "test",
+  "region": "us-east-1",
+  "aws": {
+    "rds": {
+      "host": "localhost",
+      "port": 5432,
+      "database": "classboard_test",
+      "username": "test",
+      "password": "test",
+      "ssl": false,
+      "connectionLimit": 5,
+      "acquireTimeoutMillis": 30000,
+      "timeout": 30000,
+      "idleTimeoutMillis": 300000
+    },
+    "s3": {
+      "bucketName": "classboard-test-files",
+      "region": "us-east-1",
+      "signedUrlExpiration": 3600,
+      "maxFileSize": "10MB",
+      "allowedFileTypes": [
+        "image/jpeg",
+        "image/png",
+        "application/pdf"
+      ]
+    },
+    "cloudfront": {
+      "distributionDomain": "test.cloudfront.net",
+      "signedUrlExpiration": 86400
+    },
+    "cognito": {
+      "userPoolId": "us-east-1_test123",
+      "clientId": "test-client-id",
+      "region": "us-east-1"
+    },
+    "lambda": {
+      "region": "us-east-1",
+      "timeout": 30,
+      "memorySize": 256
+    }
+  },
+  "api": {
+    "port": 3001,
+    "cors": {
+      "origin": ["http://localhost:5173"],
+      "credentials": true
+    },
+    "rateLimit": {
+      "windowMs": 900000,
+      "max": 1000
+    },
+    "jwt": {
+      "expiresIn": "1h",
+      "refreshExpiresIn": "7d"
+    }
+  },
+  "logging": {
+    "level": "error",
+    "format": "combined"
+  },
+  "monitoring": {
+    "enabled": false
+  }
+}

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import authRoutes from './auth';
 
 const router = Router();
 
@@ -11,6 +12,9 @@ router.get('/health', (req, res) => {
     version: '1.0.0',
   });
 });
+
+// Mount route modules
+router.use('/auth', authRoutes);
 
 // API info endpoint
 router.get('/', (req, res) => {
