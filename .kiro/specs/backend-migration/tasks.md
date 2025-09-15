@@ -31,7 +31,7 @@
   - Write unit tests for authentication service
   - _Requirements: 2.4, 4.5, 5.3_
 
-- [ ] 5. Build core API endpoints for class management
+- [x] 5. Build core API endpoints for class management
   - Implement CRUD API endpoints for classes (GET, POST, PUT, DELETE /api/classes)
   - Create class enrollment/unenrollment endpoints
   - Add input validation and error handling for class operations

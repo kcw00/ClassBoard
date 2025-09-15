@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Import Cleanup",
+  "description": "Automatically removes unused lines and duplicate imports from TypeScript and JavaScript files when they are modified",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Please analyze the modified file and remove any unused imports and duplicate import statements. Also remove any other unused lines that don't serve a purpose. Ensure the code remains functional and properly formatted."
+  }
+}
