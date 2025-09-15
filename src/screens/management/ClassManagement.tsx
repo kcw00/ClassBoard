@@ -15,6 +15,7 @@ import { Plus, Users, MapPin, Clock, Settings, UserPlus, CalendarPlus, Trash2, E
 import { classColors } from "@/types"
 import type { Class } from "@/types"
 import { useAppData } from "@/context/AppDataMigrationContext"
+import { DeleteConfirmationDialog } from "@/components/common/DeleteConfirmationDialog"
 
 export default function ClassManagement() {
   const navigate = useNavigate()
@@ -24,6 +25,9 @@ export default function ClassManagement() {
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false)
   const [selectedClass, setSelectedClass] = useState<Class | null>(null)
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [classToDelete, setClassToDelete] = useState<Class | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
@@ -139,6 +143,41 @@ export default function ClassManagement() {
     } catch (error) {
       console.error('Failed to delete schedule:', error)
     }
+  }
+
+  const handleDeleteClick = (classItem: Class, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setClassToDelete(classItem)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!classToDelete) return
+    
+    setIsDeleting(true)
+    try {
+      await actions.deleteClass(classToDelete.id)
+      setDeleteDialogOpen(false)
+      setClassToDelete(null)
+      setStatusMessage({ 
+        type: 'success', 
+        message: `Class "${classToDelete.name}" deleted successfully!` 
+      })
+      setTimeout(() => setStatusMessage(null), 3000)
+    } catch (error) {
+      setStatusMessage({ 
+        type: 'error', 
+        message: 'Failed to delete class. Please try again.' 
+      })
+      setTimeout(() => setStatusMessage(null), 5000)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false)
+    setClassToDelete(null)
   }
 
   const getScheduleForClass = (classId: string) => {
@@ -676,8 +715,18 @@ export default function ClassManagement() {
                       e.stopPropagation()
                       handleManageClass(classItem)
                     }}
+                    title="Manage class"
                   >
                     <Settings className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => handleDeleteClick(classItem, e)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20 hover:border-destructive/30"
+                    title="Delete class"
+                  >
+                    <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
               </CardContent>
@@ -685,6 +734,17 @@ export default function ClassManagement() {
           )
         })}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Class"
+        description="Are you sure you want to delete this class? This action cannot be undone."
+        itemName={classToDelete?.name || ''}
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

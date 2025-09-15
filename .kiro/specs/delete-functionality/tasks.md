@@ -14,7 +14,7 @@
   - Add error handling for impact calculation failures
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 3. Add delete button to ClassManagement component
+- [x] 3. Add delete button to ClassManagement component
   - Add delete button to each class card with trash icon and red styling
   - Implement click handler to open confirmation dialog
   - Add state management for dialog open/close and loading states

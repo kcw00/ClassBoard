@@ -59,12 +59,13 @@ interface ErrorStates {
 
 interface AppActions {
   addClass: (classData: Omit<Class, 'id' | 'createdDate' | 'enrolledStudents'>) => Promise<Class>
+  updateClass: (classId: string, updates: Partial<Class>) => Promise<void>
+  deleteClass: (classId: string) => Promise<void>
   addStudent: (studentData: Omit<Student, 'id' | 'enrollmentDate'>) => Promise<Student>
   updateStudent: (studentId: string, updates: Partial<Student>) => Promise<void>
   deleteStudent: (studentId: string) => Promise<void>
   addSchedule: (scheduleData: Omit<Schedule, 'id'>) => Promise<Schedule>
   updateSchedule: (scheduleId: string, updates: Partial<Schedule>) => Promise<void>
-  updateClass: (classId: string, updates: Partial<Class>) => Promise<void>
   enrollStudent: (classId: string, studentId: string) => Promise<void>
   unenrollStudent: (classId: string, studentId: string) => Promise<void>
   deleteSchedule: (scheduleId: string) => Promise<void>
