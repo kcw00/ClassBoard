@@ -1,0 +1,389 @@
+name: Production Deployment Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+    inputs:
+      deploy_infrastructure:
+        description: 'Deploy infrastructure changes'
+        required: false
+        default: false
+        type: boolean
+      run_migrations:
+        description: 'Run database migrations'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
+  AWS_REGION: 'us-east-1'
+  ENVIRONMENT: 'production'
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run security audit
+        working-directory: backend
+        run: npm audit --audit-level=high
+
+      - name: Run security tests
+        working-directory: backend
+        run: npm test -- --testPathPattern=security.test.ts
+
+  infrastructure-plan:
+    name: Infrastructure Plan
+    runs-on: ubuntu-latest
+    needs: [security-scan]
+    if: github.event.inputs.deploy_infrastructure == 'true' || contains(github.event.head_commit.message, '[deploy-infra]')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ~1.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        working-directory: backend/aws/terraform
+        run: terraform init
+
+      - name: Terraform Workspace
+        working-directory: backend/aws/terraform
+        run: |
+          terraform workspace select production || terraform workspace new production
+
+      - name: Terraform Plan
+        working-directory: backend/aws/terraform
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+          TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
+          TF_VAR_cors_origin: ${{ secrets.CORS_ORIGIN }}
+        run: |
+          terraform plan -var-file="environments/production.tfvars" -out=production.tfplan
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-plan
+          path: backend/aws/terraform/production.tfplan
+          retention-days: 1
+
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: [security-scan]
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: classboard_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Setup test environment
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/classboard_test" >> .env
+          echo "TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/classboard_test" >> .env
+          echo "JWT_SECRET=test-jwt-secret-key-for-ci" >> .env
+          echo "NODE_ENV=test" >> .env
+
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npm run db:generate
+
+      - name: Run database migrations
+        working-directory: backend
+        run: npm run db:migrate
+
+      - name: Run comprehensive tests
+        working-directory: backend
+        run: npm run test:all
+
+      - name: Build application
+        working-directory: backend
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-build
+          path: backend/dist/
+          retention-days: 7
+
+  deploy-infrastructure:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    needs: [infrastructure-plan, build-and-test]
+    if: github.event.inputs.deploy_infrastructure == 'true' || contains(github.event.head_commit.message, '[deploy-infra]')
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ~1.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v3
+        with:
+          name: terraform-plan
+          path: backend/aws/terraform/
+
+      - name: Terraform Init
+        working-directory: backend/aws/terraform
+        run: terraform init
+
+      - name: Terraform Workspace
+        working-directory: backend/aws/terraform
+        run: terraform workspace select production
+
+      - name: Terraform Apply
+        working-directory: backend/aws/terraform
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+          TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
+          TF_VAR_cors_origin: ${{ secrets.CORS_ORIGIN }}
+        run: terraform apply production.tfplan
+
+      - name: Generate environment variables
+        working-directory: backend/aws
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+        run: ./set-env-vars.sh production
+
+      - name: Upload environment config
+        uses: actions/upload-artifact@v3
+        with:
+          name: production-env-config
+          path: backend/aws/.env.production
+          retention-days: 1
+
+  deploy-application:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    needs: [build-and-test]
+    if: always() && needs.build-and-test.result == 'success'
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: backend-build
+          path: backend/dist/
+
+      - name: Download environment config (if available)
+        uses: actions/download-artifact@v3
+        with:
+          name: production-env-config
+          path: backend/aws/
+        continue-on-error: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install production dependencies
+        working-directory: backend
+        run: npm ci --only=production
+
+      - name: Run database migrations
+        if: github.event.inputs.run_migrations == 'true' || github.event.inputs.run_migrations == null
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run db:migrate
+
+      - name: Deploy to production servers
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
+          COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+          CLOUDFRONT_DOMAIN: ${{ secrets.CLOUDFRONT_DOMAIN }}
+        run: |
+          echo "Deploying application to production..."
+          # Add your deployment commands here
+          # This could include:
+          # - Deploying to AWS ECS/EKS
+          # - Updating Lambda functions
+          # - Deploying to EC2 instances
+          # - Using AWS CodeDeploy
+          
+          # Example for Lambda deployment:
+          # zip -r backend.zip dist/ node_modules/ package.json
+          # aws lambda update-function-code --function-name classboard-production-api --zip-file fileb://backend.zip
+
+  post-deployment-tests:
+    name: Post-Deployment Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-application]
+    if: always() && needs.deploy-application.result == 'success'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install test dependencies
+        run: npm install -g artillery@latest
+
+      - name: Run smoke tests
+        env:
+          API_BASE_URL: ${{ secrets.PRODUCTION_API_URL }}
+        run: |
+          echo "Running smoke tests against production..."
+          # Add smoke test commands here
+          # curl -f $API_BASE_URL/health || exit 1
+          # artillery run backend/performance/production-smoke-test.yml
+
+      - name: Run performance tests
+        env:
+          API_BASE_URL: ${{ secrets.PRODUCTION_API_URL }}
+        run: |
+          echo "Running performance tests..."
+          # artillery run backend/performance/load-test.yml --target $API_BASE_URL
+
+      - name: Validate critical endpoints
+        env:
+          API_BASE_URL: ${{ secrets.PRODUCTION_API_URL }}
+        run: |
+          echo "Validating critical endpoints..."
+          # Add endpoint validation tests
+          # Test authentication, core API endpoints, file uploads, etc.
+
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-application, post-deployment-tests]
+    if: failure()
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Rollback deployment
+        run: |
+          echo "Rolling back deployment due to failure..."
+          # Add rollback commands here
+          # This could include:
+          # - Reverting to previous Lambda version
+          # - Rolling back ECS service
+          # - Reverting database migrations
+          # - Updating load balancer targets
+
+      - name: Notify team of rollback
+        run: |
+          echo "Deployment failed and was rolled back"
+          # Add notification logic (Slack, email, etc.)
+
+  notify:
+    name: Notify Team
+    runs-on: ubuntu-latest
+    needs: [deploy-application, post-deployment-tests]
+    if: always()
+    
+    steps:
+      - name: Notify on success
+        if: needs.deploy-application.result == 'success' && needs.post-deployment-tests.result == 'success'
+        run: |
+          echo "✅ Production deployment completed successfully!"
+          # Add success notification logic
+
+      - name: Notify on failure
+        if: needs.deploy-application.result == 'failure' || needs.post-deployment-tests.result == 'failure'
+        run: |
+          echo "❌ Production deployment failed!"
+          # Add failure notification logic
