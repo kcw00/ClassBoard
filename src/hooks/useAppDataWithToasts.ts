@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
 import { useAppData } from '@/context/AppDataServiceContext'
-import { toast } from 'sonner'
 import { ApiError, NetworkError } from '@/services/AppDataService'
 import type {
   Class,
@@ -22,7 +21,7 @@ export function useAppDataWithToasts() {
   // Helper function to handle errors with toast notifications
   const handleError = useCallback((operation: string, error: unknown) => {
     let message = 'An unexpected error occurred'
-    
+
     if (error instanceof ApiError) {
       message = error.message
       console.log(operation, error.message)
@@ -32,7 +31,7 @@ export function useAppDataWithToasts() {
       message = error.message
     }
 
-    toast.error(message)
+    console.log(message)
   }, [])
 
   // Enhanced actions with toast notifications
@@ -40,7 +39,7 @@ export function useAppDataWithToasts() {
     addClass: useCallback(async (classData: Omit<Class, 'id' | 'createdDate' | 'enrolledStudents'>): Promise<Class> => {
       try {
         const result = await appData.actions.addClass(classData)
-        toast.success(`Class "${classData.name}" created successfully`)
+        console.log(`Class "${classData.name}" created successfully`)
         return result
       } catch (error) {
         handleError('create class', error)
@@ -51,7 +50,7 @@ export function useAppDataWithToasts() {
     addStudent: useCallback(async (studentData: Omit<Student, 'id' | 'enrollmentDate'>): Promise<Student> => {
       try {
         const result = await appData.actions.addStudent(studentData)
-        toast.success(`Student "${studentData.name}" added successfully`)
+        console.log(`Student "${studentData.name}" added successfully`)
         return result
       } catch (error) {
         handleError('add student', error)
@@ -62,7 +61,7 @@ export function useAppDataWithToasts() {
     updateStudent: useCallback(async (studentId: string, updates: Partial<Student>): Promise<void> => {
       try {
         await appData.actions.updateStudent(studentId, updates)
-        toast.success('Student updated successfully')
+        console.log('Student updated successfully')
       } catch (error) {
         handleError('update student', error)
         throw error
@@ -72,7 +71,7 @@ export function useAppDataWithToasts() {
     deleteStudent: useCallback(async (studentId: string): Promise<void> => {
       try {
         await appData.actions.deleteStudent(studentId)
-        toast.success('Student deleted successfully')
+        console.log('Student deleted successfully')
       } catch (error) {
         handleError('delete student', error)
         throw error
@@ -82,7 +81,7 @@ export function useAppDataWithToasts() {
     updateClass: useCallback(async (classId: string, updates: Partial<Class>): Promise<void> => {
       try {
         await appData.actions.updateClass(classId, updates)
-        toast.success('Class updated successfully')
+        console.log('Class updated successfully')
       } catch (error) {
         handleError('update class', error)
         throw error
@@ -92,7 +91,7 @@ export function useAppDataWithToasts() {
     enrollStudent: useCallback(async (classId: string, studentId: string): Promise<void> => {
       try {
         await appData.actions.enrollStudent(classId, studentId)
-        toast.success('Student enrolled successfully')
+        console.log('Student enrolled successfully')
       } catch (error) {
         handleError('enroll student', error)
         throw error
@@ -102,7 +101,7 @@ export function useAppDataWithToasts() {
     unenrollStudent: useCallback(async (classId: string, studentId: string): Promise<void> => {
       try {
         await appData.actions.unenrollStudent(classId, studentId)
-        toast.success('Student unenrolled successfully')
+        console.log('Student unenrolled successfully')
       } catch (error) {
         handleError('unenroll student', error)
         throw error
@@ -112,7 +111,7 @@ export function useAppDataWithToasts() {
     addSchedule: useCallback(async (scheduleData: Omit<Schedule, 'id'>): Promise<Schedule> => {
       try {
         const result = await appData.actions.addSchedule(scheduleData)
-        toast.success('Schedule created successfully')
+        console.log('Schedule created successfully')
         return result
       } catch (error) {
         handleError('create schedule', error)
@@ -123,7 +122,7 @@ export function useAppDataWithToasts() {
     updateSchedule: useCallback(async (scheduleId: string, updates: Partial<Schedule>): Promise<void> => {
       try {
         await appData.actions.updateSchedule(scheduleId, updates)
-        toast.success('Schedule updated successfully')
+        console.log('Schedule updated successfully')
       } catch (error) {
         handleError('update schedule', error)
         throw error
@@ -133,7 +132,7 @@ export function useAppDataWithToasts() {
     deleteSchedule: useCallback(async (scheduleId: string): Promise<void> => {
       try {
         await appData.actions.deleteSchedule(scheduleId)
-        toast.success('Schedule deleted successfully')
+        console.log('Schedule deleted successfully')
       } catch (error) {
         handleError('delete schedule', error)
         throw error
@@ -143,7 +142,7 @@ export function useAppDataWithToasts() {
     addScheduleException: useCallback(async (exceptionData: Omit<ScheduleException, 'id' | 'createdDate'>): Promise<ScheduleException> => {
       try {
         const result = await appData.actions.addScheduleException(exceptionData)
-        toast.success('Schedule exception created successfully')
+        console.log('Schedule exception created successfully')
         return result
       } catch (error) {
         handleError('create schedule exception', error)
@@ -154,7 +153,7 @@ export function useAppDataWithToasts() {
     updateScheduleException: useCallback(async (exceptionId: string, updates: Partial<ScheduleException>): Promise<void> => {
       try {
         await appData.actions.updateScheduleException(exceptionId, updates)
-        toast.success('Schedule exception updated successfully')
+        console.log('Schedule exception updated successfully')
       } catch (error) {
         handleError('update schedule exception', error)
         throw error
@@ -164,7 +163,7 @@ export function useAppDataWithToasts() {
     deleteScheduleException: useCallback(async (exceptionId: string): Promise<void> => {
       try {
         await appData.actions.deleteScheduleException(exceptionId)
-        toast.success('Schedule exception deleted successfully')
+        console.log('Schedule exception deleted successfully')
       } catch (error) {
         handleError('delete schedule exception', error)
         throw error
@@ -174,7 +173,7 @@ export function useAppDataWithToasts() {
     addMeeting: useCallback(async (meetingData: Omit<Meeting, 'id' | 'createdDate'>): Promise<Meeting> => {
       try {
         const result = await appData.actions.addMeeting(meetingData)
-        toast.success(`Meeting "${meetingData.title}" scheduled successfully`)
+        console.log(`Meeting "${meetingData.title}" scheduled successfully`)
         return result
       } catch (error) {
         handleError('schedule meeting', error)
@@ -185,7 +184,7 @@ export function useAppDataWithToasts() {
     updateMeeting: useCallback(async (meetingId: string, updates: Partial<Meeting>): Promise<void> => {
       try {
         await appData.actions.updateMeeting(meetingId, updates)
-        toast.success('Meeting updated successfully')
+        console.log('Meeting updated successfully')
       } catch (error) {
         handleError('update meeting', error)
         throw error
@@ -195,7 +194,7 @@ export function useAppDataWithToasts() {
     deleteMeeting: useCallback(async (meetingId: string): Promise<void> => {
       try {
         await appData.actions.deleteMeeting(meetingId)
-        toast.success('Meeting deleted successfully')
+        console.log('Meeting deleted successfully')
       } catch (error) {
         handleError('delete meeting', error)
         throw error
@@ -205,7 +204,7 @@ export function useAppDataWithToasts() {
     addAttendanceRecord: useCallback(async (attendanceData: Omit<AttendanceRecord, 'id' | 'createdDate'>): Promise<AttendanceRecord> => {
       try {
         const result = await appData.actions.addAttendanceRecord(attendanceData)
-        toast.success('Attendance recorded successfully')
+        console.log('Attendance recorded successfully')
         return result
       } catch (error) {
         handleError('record attendance', error)
@@ -216,7 +215,7 @@ export function useAppDataWithToasts() {
     updateAttendanceRecord: useCallback(async (attendanceId: string, updates: Partial<AttendanceRecord>): Promise<void> => {
       try {
         await appData.actions.updateAttendanceRecord(attendanceId, updates)
-        toast.success('Attendance updated successfully')
+        console.log('Attendance updated successfully')
       } catch (error) {
         handleError('update attendance', error)
         throw error
@@ -226,7 +225,7 @@ export function useAppDataWithToasts() {
     addClassNote: useCallback(async (noteData: Omit<ClassNote, 'id' | 'createdDate' | 'updatedDate'>): Promise<ClassNote> => {
       try {
         const result = await appData.actions.addClassNote(noteData)
-        toast.success('Class note saved successfully')
+        console.log('Class note saved successfully')
         return result
       } catch (error) {
         handleError('save class note', error)
@@ -237,7 +236,7 @@ export function useAppDataWithToasts() {
     updateClassNote: useCallback(async (noteId: string, updates: Partial<ClassNote>): Promise<void> => {
       try {
         await appData.actions.updateClassNote(noteId, updates)
-        toast.success('Class note updated successfully')
+        console.log('Class note updated successfully')
       } catch (error) {
         handleError('update class note', error)
         throw error
@@ -247,7 +246,7 @@ export function useAppDataWithToasts() {
     deleteClassNote: useCallback(async (noteId: string): Promise<void> => {
       try {
         await appData.actions.deleteClassNote(noteId)
-        toast.success('Class note deleted successfully')
+        console.log('Class note deleted successfully')
       } catch (error) {
         handleError('delete class note', error)
         throw error
@@ -257,7 +256,7 @@ export function useAppDataWithToasts() {
     addTest: useCallback(async (testData: Omit<Test, 'id' | 'createdDate' | 'updatedDate'>): Promise<Test> => {
       try {
         const result = await appData.actions.addTest(testData)
-        toast.success(`Test "${testData.title}" created successfully`)
+        console.log(`Test "${testData.title}" created successfully`)
         return result
       } catch (error) {
         handleError('create test', error)
@@ -268,7 +267,7 @@ export function useAppDataWithToasts() {
     updateTest: useCallback(async (testId: string, updates: Partial<Test>): Promise<void> => {
       try {
         await appData.actions.updateTest(testId, updates)
-        toast.success('Test updated successfully')
+        console.log('Test updated successfully')
       } catch (error) {
         handleError('update test', error)
         throw error
@@ -278,7 +277,7 @@ export function useAppDataWithToasts() {
     deleteTest: useCallback(async (testId: string): Promise<void> => {
       try {
         await appData.actions.deleteTest(testId)
-        toast.success('Test deleted successfully')
+        console.log('Test deleted successfully')
       } catch (error) {
         handleError('delete test', error)
         throw error
@@ -288,7 +287,7 @@ export function useAppDataWithToasts() {
     addTestResult: useCallback(async (resultData: Omit<TestResult, 'id' | 'createdDate' | 'updatedDate'>): Promise<TestResult> => {
       try {
         const result = await appData.actions.addTestResult(resultData)
-        toast.success('Test result saved successfully')
+        console.log('Test result saved successfully')
         return result
       } catch (error) {
         handleError('save test result', error)
@@ -299,7 +298,7 @@ export function useAppDataWithToasts() {
     updateTestResult: useCallback(async (resultId: string, updates: Partial<TestResult>): Promise<void> => {
       try {
         await appData.actions.updateTestResult(resultId, updates)
-        toast.success('Test result updated successfully')
+        console.log('Test result updated successfully')
       } catch (error) {
         handleError('update test result', error)
         throw error
@@ -309,7 +308,7 @@ export function useAppDataWithToasts() {
     deleteTestResult: useCallback(async (resultId: string): Promise<void> => {
       try {
         await appData.actions.deleteTestResult(resultId)
-        toast.success('Test result deleted successfully')
+        console.log('Test result deleted successfully')
       } catch (error) {
         handleError('delete test result', error)
         throw error
@@ -319,7 +318,7 @@ export function useAppDataWithToasts() {
     addHomeworkAssignment: useCallback(async (assignmentData: Omit<HomeworkAssignment, 'id' | 'createdDate' | 'updatedDate'>): Promise<HomeworkAssignment> => {
       try {
         const result = await appData.actions.addHomeworkAssignment(assignmentData)
-        toast.success(`Assignment "${assignmentData.title}" created successfully`)
+        console.log(`Assignment "${assignmentData.title}" created successfully`)
         return result
       } catch (error) {
         handleError('create assignment', error)
@@ -330,7 +329,7 @@ export function useAppDataWithToasts() {
     updateHomeworkAssignment: useCallback(async (assignmentId: string, updates: Partial<HomeworkAssignment>): Promise<void> => {
       try {
         await appData.actions.updateHomeworkAssignment(assignmentId, updates)
-        toast.success('Assignment updated successfully')
+        console.log('Assignment updated successfully')
       } catch (error) {
         handleError('update assignment', error)
         throw error
@@ -340,7 +339,7 @@ export function useAppDataWithToasts() {
     deleteHomeworkAssignment: useCallback(async (assignmentId: string): Promise<void> => {
       try {
         await appData.actions.deleteHomeworkAssignment(assignmentId)
-        toast.success('Assignment deleted successfully')
+        console.log('Assignment deleted successfully')
       } catch (error) {
         handleError('delete assignment', error)
         throw error
@@ -350,7 +349,7 @@ export function useAppDataWithToasts() {
     addHomeworkSubmission: useCallback(async (submissionData: Omit<HomeworkSubmission, 'id' | 'createdDate' | 'updatedDate'>): Promise<HomeworkSubmission> => {
       try {
         const result = await appData.actions.addHomeworkSubmission(submissionData)
-        toast.success('Homework submitted successfully')
+        console.log('Homework submitted successfully')
         return result
       } catch (error) {
         handleError('submit homework', error)
@@ -361,7 +360,7 @@ export function useAppDataWithToasts() {
     updateHomeworkSubmission: useCallback(async (submissionId: string, updates: Partial<HomeworkSubmission>): Promise<void> => {
       try {
         await appData.actions.updateHomeworkSubmission(submissionId, updates)
-        toast.success('Homework submission updated successfully')
+        console.log('Homework submission updated successfully')
       } catch (error) {
         handleError('update homework submission', error)
         throw error
@@ -371,7 +370,7 @@ export function useAppDataWithToasts() {
     deleteHomeworkSubmission: useCallback(async (submissionId: string): Promise<void> => {
       try {
         await appData.actions.deleteHomeworkSubmission(submissionId)
-        toast.success('Homework submission deleted successfully')
+        console.log('Homework submission deleted successfully')
       } catch (error) {
         handleError('delete homework submission', error)
         throw error
@@ -382,7 +381,7 @@ export function useAppDataWithToasts() {
     refreshData: useCallback(async (): Promise<void> => {
       try {
         await appData.actions.refreshData()
-        toast.success('Data refreshed successfully')
+        console.log('Data refreshed successfully')
       } catch (error) {
         handleError('refresh data', error)
         throw error
@@ -391,7 +390,7 @@ export function useAppDataWithToasts() {
 
     clearCache: useCallback((): void => {
       appData.actions.clearCache()
-      toast.success('Cache cleared successfully')
+      console.log('Cache cleared successfully')
     }, [appData.actions])
   }
 
