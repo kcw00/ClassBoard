@@ -100,66 +100,7 @@ resource "aws_iam_role_policy_attachment" "rds_enhanced_monitoring" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 }
 
-# Variables for RDS
-variable "db_username" {
-  description = "Database username"
-  type        = string
-  default     = "classboard_admin"
-}
-
-variable "db_password" {
-  description = "Database password"
-  type        = string
-  sensitive   = true
-}
-
-variable "db_instance_class" {
-  description = "Database instance class"
-  type        = string
-  default     = null
-}
-
-variable "db_allocated_storage" {
-  description = "Database allocated storage in GB"
-  type        = number
-  default     = null
-}
-
-variable "db_max_allocated_storage" {
-  description = "Database maximum allocated storage in GB"
-  type        = number
-  default     = null
-}
-
-variable "db_multi_az" {
-  description = "Enable Multi-AZ deployment"
-  type        = bool
-  default     = null
-}
-
-variable "db_backup_retention_period" {
-  description = "Backup retention period in days"
-  type        = number
-  default     = null
-}
-
-variable "db_performance_insights_retention" {
-  description = "Performance Insights retention period in days"
-  type        = number
-  default     = null
-}
-
-variable "enable_read_replica" {
-  description = "Enable read replica"
-  type        = bool
-  default     = false
-}
-
-variable "read_replica_instance_class" {
-  description = "Read replica instance class"
-  type        = string
-  default     = "db.t3.micro"
-}
+# Variables are centralized in variables.tf
 
 # Outputs
 output "rds_endpoint" {

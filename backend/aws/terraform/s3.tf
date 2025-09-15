@@ -47,6 +47,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "files" {
   rule {
     id     = "delete_incomplete_multipart_uploads"
     status = "Enabled"
+    
+    filter {
+      prefix = ""
+    }
 
     abort_incomplete_multipart_upload {
       days_after_initiation = 7
@@ -56,6 +60,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "files" {
   rule {
     id     = "transition_to_ia"
     status = "Enabled"
+    
+    filter {
+      prefix = ""
+    }
 
     transition {
       days          = 30
@@ -141,6 +149,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "logs" {
   rule {
     id     = "delete_old_logs"
     status = "Enabled"
+    
+    filter {
+      prefix = ""
+    }
 
     expiration {
       days = var.environment == "production" ? 90 : 30

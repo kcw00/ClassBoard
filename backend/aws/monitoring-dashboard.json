@@ -1,0 +1,229 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", "classboard-production-db"],
+          [".", "DatabaseConnections", ".", "."],
+          [".", "FreeableMemory", ".", "."],
+          [".", "ReadLatency", ".", "."],
+          [".", "WriteLatency", ".", "."]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "RDS Performance Metrics",
+        "period": 300,
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/RDS", "FreeStorageSpace", "DBInstanceIdentifier", "classboard-production-db"],
+          [".", "ReadIOPS", ".", "."],
+          [".", "WriteIOPS", ".", "."]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "RDS Storage & I/O Metrics",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 6,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/Lambda", "Duration", "FunctionName", "classboard-grade-calculator"],
+          [".", "Errors", ".", "."],
+          [".", "Invocations", ".", "."]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "Grade Calculator Lambda",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 8,
+      "y": 6,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/Lambda", "Duration", "FunctionName", "classboard-report-generator"],
+          [".", "Errors", ".", "."],
+          [".", "Invocations", ".", "."]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "Report Generator Lambda",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 16,
+      "y": 6,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/Lambda", "Duration", "FunctionName", "classboard-email-notifications"],
+          [".", "Errors", ".", "."],
+          [".", "Invocations", ".", "."]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "Email Notifications Lambda",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 12,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/S3", "BucketSizeBytes", "BucketName", "classboard-production-files", "StorageType", "StandardStorage"],
+          [".", "NumberOfObjects", ".", ".", ".", "AllStorageTypes"]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "S3 Storage Metrics",
+        "period": 86400
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 12,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/CloudFront", "Requests", "DistributionId", "DISTRIBUTION_ID_PLACEHOLDER"],
+          [".", "BytesDownloaded", ".", "."],
+          [".", "4xxErrorRate", ".", "."],
+          [".", "5xxErrorRate", ".", "."]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "CloudFront CDN Metrics",
+        "period": 300
+      }
+    },
+    {
+      "type": "log",
+      "x": 0,
+      "y": 18,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "query": "SOURCE '/aws/lambda/classboard-grade-calculator'\n| SOURCE '/aws/lambda/classboard-report-generator'\n| SOURCE '/aws/lambda/classboard-email-notifications'\n| SOURCE '/aws/lambda/classboard-data-cleanup'\n| fields @timestamp, @message\n| filter @message like /ERROR/\n| sort @timestamp desc\n| limit 100",
+        "region": "us-east-1",
+        "title": "Recent Lambda Errors",
+        "view": "table"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 24,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", "classboard-production-db"]
+        ],
+        "view": "singleValue",
+        "region": "us-east-1",
+        "title": "Current RDS CPU",
+        "period": 300,
+        "stat": "Average"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 6,
+      "y": 24,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", "classboard-production-db"]
+        ],
+        "view": "singleValue",
+        "region": "us-east-1",
+        "title": "Active DB Connections",
+        "period": 300,
+        "stat": "Average"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 24,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/Lambda", "Errors", "FunctionName", "classboard-grade-calculator"],
+          [".", ".", ".", "classboard-report-generator"],
+          [".", ".", ".", "classboard-email-notifications"],
+          [".", ".", ".", "classboard-data-cleanup"]
+        ],
+        "view": "singleValue",
+        "region": "us-east-1",
+        "title": "Lambda Errors (24h)",
+        "period": 86400,
+        "stat": "Sum"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 18,
+      "y": 24,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/CloudFront", "4xxErrorRate", "DistributionId", "DISTRIBUTION_ID_PLACEHOLDER"],
+          [".", "5xxErrorRate", ".", "."]
+        ],
+        "view": "singleValue",
+        "region": "us-east-1",
+        "title": "CDN Error Rate",
+        "period": 3600,
+        "stat": "Average"
+      }
+    }
+  ]
+}

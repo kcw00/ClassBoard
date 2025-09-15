@@ -15,7 +15,6 @@ resource "aws_cognito_user_pool" "main" {
   # User attributes
   auto_verified_attributes = ["email"]
   username_attributes      = ["email"]
-  alias_attributes         = ["email"]
 
   # Email configuration
   dynamic "email_configuration" {

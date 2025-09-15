@@ -14,6 +14,7 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
 
 # Logs
 logs
@@ -96,3 +97,25 @@ jspm_packages/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Terraform files
+*.tfstate
+*.tfstate.backup
+backend/aws/.terraform/
+.terraform/
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+aws/terraform/.terraform.lock.hcl
+aws/terraform/production.tfplan
+
+# AWS environment export scripts
+export-env-vars-*.sh
+
+# backups
+*.bak
+backups/
