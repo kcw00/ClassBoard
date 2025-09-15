@@ -1,7 +1,10 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { fileService } from '../services/fileService';
+import { fileSecurityService } from '../services/fileSecurityService';
 import { authenticateToken } from '../middleware/auth';
+import { uploadLimiter } from '../middleware/rateLimiter';
+import { validateFileUploadSecurity } from '../middleware/validation';
 import {
   validateFileUpload,
   validateFileId,
@@ -25,7 +28,7 @@ const upload = multer({
  * Upload a file
  * POST /api/files/upload
  */
-router.post('/upload', authenticateToken, upload.single('file'), async (req: Request, res: Response) => {
+router.post('/upload', uploadLimiter, authenticateToken, upload.single('file'), validateFileUploadSecurity, async (req: Request, res: Response) => {
   try {
     const file = req.file;
     const { entityType, entityId, isPublic } = req.body;
@@ -65,6 +68,39 @@ router.post('/upload', authenticateToken, upload.single('file'), async (req: Req
         },
       });
     }
+
+    // Perform security scan on the file
+    const securityResult = await fileSecurityService.scanFile(
+      file.buffer,
+      file.originalname,
+      file.mimetype
+    );
+
+    if (!securityResult.isSecure) {
+      console.warn('File security scan failed:', {
+        filename: file.originalname,
+        threats: securityResult.threats,
+        userId,
+        timestamp: new Date().toISOString()
+      });
+
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'SECURITY_THREAT_DETECTED',
+          message: 'File contains security threats and cannot be uploaded',
+          details: securityResult.threats,
+        },
+      });
+    }
+
+    // Log successful security scan
+    console.log('File security scan passed:', {
+      filename: file.originalname,
+      fileHash: securityResult.fileHash,
+      userId,
+      timestamp: new Date().toISOString()
+    });
 
     // Upload file
     const uploadResult = await fileService.uploadFile({
@@ -296,7 +332,7 @@ router.get('/entity/:entityType/:entityId', authenticateToken, async (req: Reque
  * Upload multiple files
  * POST /api/files/upload-multiple
  */
-router.post('/upload-multiple', authenticateToken, upload.array('files', 10), async (req: Request, res: Response) => {
+router.post('/upload-multiple', uploadLimiter, authenticateToken, upload.array('files', 10), validateFileUploadSecurity, async (req: Request, res: Response) => {
   try {
     const files = req.files as Express.Multer.File[];
     const { entityType, entityId, isPublic } = req.body;
@@ -334,6 +370,31 @@ router.post('/upload-multiple', authenticateToken, upload.array('files', 10), as
             code: 'INVALID_FILE',
             message: `Invalid file: ${file.originalname}`,
             details: fileValidation.errors,
+          },
+        });
+      }
+
+      // Perform security scan on each file
+      const securityResult = await fileSecurityService.scanFile(
+        file.buffer,
+        file.originalname,
+        file.mimetype
+      );
+
+      if (!securityResult.isSecure) {
+        console.warn('File security scan failed:', {
+          filename: file.originalname,
+          threats: securityResult.threats,
+          userId,
+          timestamp: new Date().toISOString()
+        });
+
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'SECURITY_THREAT_DETECTED',
+            message: `File ${file.originalname} contains security threats and cannot be uploaded`,
+            details: securityResult.threats,
           },
         });
       }
