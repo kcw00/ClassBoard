@@ -643,18 +643,64 @@ export function useAppDataService(): UseAppDataServiceReturn {
   // Placeholder implementations for remaining actions
   // These follow the same pattern as above
   const addSchedule = useCallback(async (scheduleData: Omit<Schedule, 'id'>): Promise<Schedule> => {
-    return appDataService.addSchedule(scheduleData)
-  }, [])
+    const tempId = `temp-${Date.now()}`
+    const optimisticSchedule: Schedule = {
+      id: tempId,
+      ...scheduleData
+    }
+
+    // Optimistic update
+    setSchedules(prev => [...prev, optimisticSchedule])
+
+    try {
+      const newSchedule = await appDataService.addSchedule(scheduleData)
+
+      // Replace optimistic update with real data
+      setSchedules(prev => prev.map(s => s.id === tempId ? newSchedule : s))
+
+      return newSchedule
+    } catch (error) {
+      // Revert optimistic update
+      setSchedules(prev => prev.filter(s => s.id !== tempId))
+      handleError('addSchedule', error)
+      throw error
+    }
+  }, [handleError])
 
   const updateSchedule = useCallback(async (scheduleId: string, updates: Partial<Schedule>): Promise<void> => {
-    await appDataService.updateSchedule(scheduleId, updates)
-    await fetchSchedules()
-  }, [fetchSchedules])
+    const originalSchedule = schedules.find(s => s.id === scheduleId)
+    if (!originalSchedule) return
+
+    // Optimistic update
+    const updatedSchedule = { ...originalSchedule, ...updates }
+    setSchedules(prev => prev.map(s => s.id === scheduleId ? updatedSchedule : s))
+
+    try {
+      await appDataService.updateSchedule(scheduleId, updates)
+    } catch (error) {
+      // Revert optimistic update
+      setSchedules(prev => prev.map(s => s.id === scheduleId ? originalSchedule : s))
+      handleError('updateSchedule', error)
+      throw error
+    }
+  }, [schedules, handleError])
 
   const deleteSchedule = useCallback(async (scheduleId: string): Promise<void> => {
-    await appDataService.deleteSchedule(scheduleId)
-    await fetchSchedules()
-  }, [fetchSchedules])
+    const originalSchedule = schedules.find(s => s.id === scheduleId)
+    if (!originalSchedule) return
+
+    // Optimistic update
+    setSchedules(prev => prev.filter(s => s.id !== scheduleId))
+
+    try {
+      await appDataService.deleteSchedule(scheduleId)
+    } catch (error) {
+      // Revert optimistic update
+      setSchedules(prev => [...prev, originalSchedule])
+      handleError('deleteSchedule', error)
+      throw error
+    }
+  }, [schedules, handleError])
 
   const addScheduleException = useCallback(async (exceptionData: Omit<ScheduleException, 'id' | 'createdDate'>): Promise<ScheduleException> => {
     return appDataService.addScheduleException(exceptionData)
@@ -685,27 +731,110 @@ export function useAppDataService(): UseAppDataServiceReturn {
   }, [fetchMeetings])
 
   const addAttendanceRecord = useCallback(async (attendanceData: Omit<AttendanceRecord, 'id' | 'createdDate'>): Promise<AttendanceRecord> => {
-    return appDataService.addAttendanceRecord(attendanceData)
-  }, [])
+    const tempId = `temp-${Date.now()}`
+    const optimisticRecord: AttendanceRecord = {
+      id: tempId,
+      ...attendanceData,
+      createdDate: new Date().toISOString().split('T')[0]
+    }
+
+    // Optimistic update
+    setAttendanceRecords(prev => [...prev, optimisticRecord])
+
+    try {
+      const newRecord = await appDataService.addAttendanceRecord(attendanceData)
+
+      // Replace optimistic update with real data
+      setAttendanceRecords(prev => prev.map(r => r.id === tempId ? newRecord : r))
+
+      return newRecord
+    } catch (error) {
+      // Revert optimistic update
+      setAttendanceRecords(prev => prev.filter(r => r.id !== tempId))
+      handleError('addAttendanceRecord', error)
+      throw error
+    }
+  }, [handleError])
 
   const updateAttendanceRecord = useCallback(async (attendanceId: string, updates: Partial<AttendanceRecord>): Promise<void> => {
-    await appDataService.updateAttendanceRecord(attendanceId, updates)
-    await fetchAttendanceRecords()
-  }, [fetchAttendanceRecords])
+    const originalRecord = attendanceRecords.find(r => r.id === attendanceId)
+    if (!originalRecord) return
+
+    // Optimistic update
+    const updatedRecord = { ...originalRecord, ...updates }
+    setAttendanceRecords(prev => prev.map(r => r.id === attendanceId ? updatedRecord : r))
+
+    try {
+      await appDataService.updateAttendanceRecord(attendanceId, updates)
+    } catch (error) {
+      // Revert optimistic update
+      setAttendanceRecords(prev => prev.map(r => r.id === attendanceId ? originalRecord : r))
+      handleError('updateAttendanceRecord', error)
+      throw error
+    }
+  }, [attendanceRecords, handleError])
 
   const addClassNote = useCallback(async (noteData: Omit<ClassNote, 'id' | 'createdDate' | 'updatedDate'>): Promise<ClassNote> => {
-    return appDataService.addClassNote(noteData)
-  }, [])
+    const tempId = `temp-${Date.now()}`
+    const optimisticNote: ClassNote = {
+      id: tempId,
+      ...noteData,
+      createdDate: new Date().toISOString().split('T')[0],
+      updatedDate: new Date().toISOString().split('T')[0]
+    }
+
+    // Optimistic update
+    setClassNotes(prev => [...prev, optimisticNote])
+
+    try {
+      const newNote = await appDataService.addClassNote(noteData)
+
+      // Replace optimistic update with real data
+      setClassNotes(prev => prev.map(n => n.id === tempId ? newNote : n))
+
+      return newNote
+    } catch (error) {
+      // Revert optimistic update
+      setClassNotes(prev => prev.filter(n => n.id !== tempId))
+      handleError('addClassNote', error)
+      throw error
+    }
+  }, [handleError])
 
   const updateClassNote = useCallback(async (noteId: string, updates: Partial<ClassNote>): Promise<void> => {
-    await appDataService.updateClassNote(noteId, updates)
-    await fetchClassNotes()
-  }, [fetchClassNotes])
+    const originalNote = classNotes.find(n => n.id === noteId)
+    if (!originalNote) return
+
+    // Optimistic update
+    const updatedNote = { ...originalNote, ...updates, updatedDate: new Date().toISOString().split('T')[0] }
+    setClassNotes(prev => prev.map(n => n.id === noteId ? updatedNote : n))
+
+    try {
+      await appDataService.updateClassNote(noteId, updates)
+    } catch (error) {
+      // Revert optimistic update
+      setClassNotes(prev => prev.map(n => n.id === noteId ? originalNote : n))
+      handleError('updateClassNote', error)
+      throw error
+    }
+  }, [classNotes, handleError])
 
   const deleteClassNote = useCallback(async (noteId: string): Promise<void> => {
-    await appDataService.deleteClassNote(noteId)
-    await fetchClassNotes()
-  }, [fetchClassNotes])
+    const originalNote = classNotes.find(n => n.id === noteId)
+    if (!originalNote) return
+
+    // Optimistic update
+    setClassNotes(prev => prev.filter(n => n.id !== noteId))
+
+    try {
+      await appDataService.deleteClassNote(noteId)
+    } catch (error) {
+      // Revert optimistic update
+      setClassNotes(prev => [...prev, originalNote])
+      handleError('deleteClassNote', error)
+      throw error
+    }
+  }, [classNotes, handleError])
 
   const addTest = useCallback(async (testData: Omit<Test, 'id' | 'createdDate' | 'updatedDate'>): Promise<Test> => {
     return appDataService.addTest(testData)
