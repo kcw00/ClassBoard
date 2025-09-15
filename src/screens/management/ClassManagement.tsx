@@ -12,18 +12,40 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Plus, Users, MapPin, Clock, Settings, UserPlus, CalendarPlus, Trash2, Edit, RefreshCw, AlertCircle, CheckCircle } from "lucide-react"
+import { LoadingSpinner } from "@/components/common/LoadingSpinner"
+import { DeleteSuccessAnimation } from "@/components/common/DeleteSuccessToast"
+import { DeleteItemOverlay, useDeleteItemState } from "@/components/common/DeleteItemOverlay"
+import { toast } from "sonner"
 import { classColors } from "@/types"
 import type { Class } from "@/types"
 import { useAppData } from "@/context/AppDataMigrationContext"
+import { DeleteConfirmationDialog } from "@/components/common/DeleteConfirmationDialog"
+import { calculateClassDeletionImpact, type DeletionImpact } from "@/utils/impactCalculation"
+import { 
+  handleDeleteError, 
+  handleDeleteSuccess, 
+  handleImpactCalculationError,
+  retryOperation,
+  DEFAULT_RETRY_CONFIG
+} from "@/utils/errorHandling"
+import { useNetworkStatus } from "@/hooks/useNetworkStatus"
 
 export default function ClassManagement() {
   const navigate = useNavigate()
   const { data, actions, loading, errors, isInitialLoading } = useAppData()
+  const networkStatus = useNetworkStatus()
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false)
   const [selectedClass, setSelectedClass] = useState<Class | null>(null)
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [classToDelete, setClassToDelete] = useState<Class | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deletionImpact, setDeletionImpact] = useState<DeletionImpact | null>(null)
+  const [isCalculatingImpact, setIsCalculatingImpact] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
@@ -139,6 +161,113 @@ export default function ClassManagement() {
     } catch (error) {
       console.error('Failed to delete schedule:', error)
     }
+  }
+
+  const handleDeleteClick = async (classItem: Class, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setClassToDelete(classItem)
+    setIsCalculatingImpact(true)
+    setDeleteDialogOpen(true)
+    
+    const calculateImpact = async () => {
+      const impact = await calculateClassDeletionImpact(classItem.id)
+      setDeletionImpact(impact)
+    }
+    
+    try {
+      await retryOperation(
+        calculateImpact,
+        DEFAULT_RETRY_CONFIG,
+        (attempt, error) => {
+          setRetryCount(attempt)
+          console.log(`Impact calculation attempt ${attempt} failed:`, error)
+          toast.loading(`Calculating deletion impact... (attempt ${attempt})`, {
+            duration: 2000
+          })
+        }
+      )
+    } catch (error) {
+      handleImpactCalculationError(
+        error, 
+        'class', 
+        classItem.name,
+        () => handleDeleteClick(classItem, e)
+      )
+      setDeleteDialogOpen(false)
+      setClassToDelete(null)
+    } finally {
+      setIsCalculatingImpact(false)
+      setRetryCount(0)
+    }
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!classToDelete) return
+    
+    setIsDeleting(true)
+    
+    const performDelete = async () => {
+      await actions.deleteClass(classToDelete.id)
+    }
+    
+    try {
+      await retryOperation(
+        performDelete,
+        DEFAULT_RETRY_CONFIG,
+        (attempt, error) => {
+          setRetryCount(attempt)
+          console.log(`Delete attempt ${attempt} failed:`, error)
+          toast.loading(`Deleting class... (attempt ${attempt})`, {
+            duration: 2000
+          })
+        }
+      )
+      
+      // Success feedback
+      handleDeleteSuccess('class', classToDelete.name)
+      
+      // Show success animation
+      setShowSuccessAnimation(true)
+      
+      // Close dialog and reset state
+      setDeleteDialogOpen(false)
+      const deletedClassName = classToDelete.name
+      setClassToDelete(null)
+      setDeletionImpact(null)
+      
+      // Enhanced status message with more details
+      setStatusMessage({ 
+        type: 'success', 
+        message: `Class "${deletedClassName}" and all associated data have been permanently deleted.` 
+      })
+      setTimeout(() => setStatusMessage(null), 5000) // Longer duration for success messages
+      
+    } catch (error) {
+      // Enhanced error handling with retry option
+      handleDeleteError(
+        error, 
+        'class', 
+        classToDelete.name,
+        () => handleDeleteConfirm()
+      )
+      
+      // Also show status message for consistency with existing UI
+      setStatusMessage({ 
+        type: 'error', 
+        message: 'Failed to delete class. Please check the error message and try again.' 
+      })
+      setTimeout(() => setStatusMessage(null), 8000) // Longer duration for error messages
+      
+    } finally {
+      setIsDeleting(false)
+      setRetryCount(0)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false)
+    setClassToDelete(null)
+    setDeletionImpact(null)
   }
 
   const getScheduleForClass = (classId: string) => {
@@ -608,12 +737,19 @@ export default function ClassManagement() {
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {data.classes.map((classItem) => {
           const schedules = getScheduleForClass(classItem.id)
+          const deleteState = useDeleteItemState(classItem.id, classToDelete?.id || null)
+          
           return (
             <Card
               key={classItem.id}
               className="relative cursor-pointer hover:shadow-md transition-shadow flex flex-col h-full"
-              onClick={() => navigate(`/classes/${classItem.id}`)}
+              onClick={() => !deleteState.shouldDisableActions && navigate(`/classes/${classItem.id}`)}
             >
+              {/* Delete overlay */}
+              <DeleteItemOverlay
+                isDeleting={isDeleting && deleteState.isCurrentItem}
+                isCalculatingImpact={isCalculatingImpact && deleteState.isCurrentItem}
+              />
               <div
                 className="absolute top-0 left-0 w-1 h-full rounded-l-lg"
                 style={{ backgroundColor: classItem.color }}
@@ -676,8 +812,31 @@ export default function ClassManagement() {
                       e.stopPropagation()
                       handleManageClass(classItem)
                     }}
+                    title="Manage class"
                   >
                     <Settings className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => handleDeleteClick(classItem, e)}
+                    disabled={isDeleting || isCalculatingImpact || (classToDelete?.id === classItem.id)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20 hover:border-destructive/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={
+                      isDeleting && classToDelete?.id === classItem.id 
+                        ? "Deleting class..." 
+                        : isCalculatingImpact && classToDelete?.id === classItem.id
+                        ? "Calculating impact..."
+                        : "Delete class"
+                    }
+                  >
+                    {isDeleting && classToDelete?.id === classItem.id ? (
+                      <LoadingSpinner size="sm" className="text-destructive" />
+                    ) : isCalculatingImpact && classToDelete?.id === classItem.id ? (
+                      <LoadingSpinner size="sm" className="text-muted-foreground" />
+                    ) : (
+                      <Trash2 className="h-3 w-3" />
+                    )}
                   </Button>
                 </div>
               </CardContent>
@@ -685,6 +844,34 @@ export default function ClassManagement() {
           )
         })}
       </div>
+
+      {/* Success Animation */}
+      <DeleteSuccessAnimation
+        isVisible={showSuccessAnimation}
+        onComplete={() => setShowSuccessAnimation(false)}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Class"
+        description={
+          isCalculatingImpact 
+            ? "Calculating impact of deletion..." 
+            : "Are you sure you want to delete this class? This action cannot be undone."
+        }
+        itemName={classToDelete?.name || ''}
+        impactInfo={deletionImpact || undefined}
+        isLoading={isDeleting}
+        isRetrying={retryCount > 0}
+        retryCount={retryCount}
+        maxRetries={DEFAULT_RETRY_CONFIG.maxAttempts}
+        itemType="class"
+        isCalculatingImpact={isCalculatingImpact}
+        networkStatus={networkStatus.status}
+      />
     </div>
   )
 }

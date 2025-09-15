@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -73,7 +73,9 @@ export default function StudentDetails() {
   ])
   const [newNote, setNewNote] = useState({ title: "", content: "" })
 
-  const student = data.students.find(s => s.id === studentId)
+  const student = useMemo(() => {
+    return data.students.find(s => s.id === studentId)
+  }, [data.students, studentId])
 
   if (!student || !studentId) {
     return (
@@ -99,9 +101,11 @@ export default function StudentDetails() {
   })
 
   // Get student's enrolled classes
-  const enrolledClasses = data.classes.filter(classItem =>
-    classItem.enrolledStudents.includes(studentId)
-  )
+  const enrolledClasses = useMemo(() => {
+    return data.classes.filter(classItem =>
+      classItem.enrolledStudents.includes(studentId)
+    )
+  }, [data.classes, studentId])
 
   // Calculate attendance statistics
   const getAttendanceStats = () => {
@@ -122,7 +126,7 @@ export default function StudentDetails() {
   }
 
   // Get test results for student
-  const getTestResults = () => {
+  const testResults = useMemo(() => {
     return data.testResults
       .filter(result => result.studentId === studentId)
       .map(result => {
@@ -130,11 +134,10 @@ export default function StudentDetails() {
         return { ...result, test }
       })
       .sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime())
-  }
+  }, [data.testResults, data.tests, studentId])
 
   // Calculate test statistics
-  const getTestStats = () => {
-    const testResults = getTestResults()
+  const testStats = useMemo(() => {
     const totalTests = testResults.length
     const passedTests = testResults.filter(result => {
       const percentage = (result.score / result.maxScore) * 100
@@ -151,10 +154,10 @@ export default function StudentDetails() {
       failedTests: totalTests - passedTests,
       averageScore: Math.round(averageScore)
     }
-  }
+  }, [testResults])
 
   // Get homework submissions for student
-  const getHomeworkSubmissions = () => {
+  const homeworkSubmissions = useMemo(() => {
     return data.homeworkSubmissions
       .filter(submission => submission.studentId === studentId)
       .map(submission => {
@@ -162,15 +165,14 @@ export default function StudentDetails() {
         return { ...submission, assignment }
       })
       .sort((a, b) => new Date(b.assignment?.dueDate || '').getTime() - new Date(a.assignment?.dueDate || '').getTime())
-  }
+  }, [data.homeworkSubmissions, data.homeworkAssignments, studentId])
 
   // Calculate homework statistics
-  const getHomeworkStats = () => {
-    const submissions = getHomeworkSubmissions()
-    const totalAssignments = submissions.length
-    const submittedAssignments = submissions.filter(s => s.status !== 'not_submitted').length
-    const gradedAssignments = submissions.filter(s => s.status === 'graded' && s.score !== undefined)
-    const lateSubmissions = submissions.filter(s => s.status === 'late').length
+  const homeworkStats = useMemo(() => {
+    const totalAssignments = homeworkSubmissions.length
+    const submittedAssignments = homeworkSubmissions.filter(s => s.status !== 'not_submitted').length
+    const gradedAssignments = homeworkSubmissions.filter(s => s.status === 'graded' && s.score !== undefined)
+    const lateSubmissions = homeworkSubmissions.filter(s => s.status === 'late').length
 
     const averageScore = gradedAssignments.length > 0
       ? gradedAssignments.reduce((sum, s) => sum + ((s.score || 0) / s.maxScore) * 100, 0) / gradedAssignments.length
@@ -187,13 +189,9 @@ export default function StudentDetails() {
       averageScore: Math.round(averageScore),
       completionRate: Math.round(completionRate)
     }
-  }
+  }, [homeworkSubmissions])
 
   const attendanceStats = getAttendanceStats()
-  const testResults = getTestResults()
-  const testStats = getTestStats()
-  const homeworkSubmissions = getHomeworkSubmissions()
-  const homeworkStats = getHomeworkStats()
 
   // Edit handlers
   const handleEditAttendance = (attendanceId: string, _studentId: string, currentStatus: string, currentNotes: string) => {

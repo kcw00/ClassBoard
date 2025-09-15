@@ -91,12 +91,13 @@ interface ErrorStates {
 
 interface AppActions {
   addClass: (classData: Omit<Class, 'id' | 'createdDate' | 'enrolledStudents'>) => Promise<Class>
+  updateClass: (classId: string, updates: Partial<Class>) => Promise<void>
+  deleteClass: (classId: string) => Promise<void>
   addStudent: (studentData: Omit<Student, 'id' | 'enrollmentDate'>) => Promise<Student>
   updateStudent: (studentId: string, updates: Partial<Student>) => Promise<void>
   deleteStudent: (studentId: string) => Promise<void>
   addSchedule: (scheduleData: Omit<Schedule, 'id'>) => Promise<Schedule>
   updateSchedule: (scheduleId: string, updates: Partial<Schedule>) => Promise<void>
-  updateClass: (classId: string, updates: Partial<Class>) => Promise<void>
   enrollStudent: (classId: string, studentId: string) => Promise<void>
   unenrollStudent: (classId: string, studentId: string) => Promise<void>
   deleteSchedule: (scheduleId: string) => Promise<void>
@@ -561,6 +562,23 @@ export function useAppDataService(): UseAppDataServiceReturn {
     } catch (error) {
       setClasses(prev => prev.map(c => c.id === classId ? originalClass : c))
       handleError('updateClass', error)
+      throw error
+    }
+  }, [classes, handleError])
+
+  const deleteClass = useCallback(async (classId: string): Promise<void> => {
+    const originalClass = classes.find(c => c.id === classId)
+    if (!originalClass) return
+
+    // Optimistically remove the class from the UI
+    setClasses(prev => prev.filter(c => c.id !== classId))
+
+    try {
+      await appDataService.deleteClass(classId)
+    } catch (error) {
+      // Revert optimistic update
+      setClasses(prev => [...prev, originalClass])
+      handleError('deleteClass', error)
       throw error
     }
   }, [classes, handleError])
@@ -1109,12 +1127,13 @@ export function useAppDataService(): UseAppDataServiceReturn {
 
   const actions = useMemo(() => ({
     addClass,
+    updateClass,
+    deleteClass,
     addStudent,
     updateStudent,
     deleteStudent,
     addSchedule,
     updateSchedule,
-    updateClass,
     enrollStudent,
     unenrollStudent,
     deleteSchedule,
@@ -1145,12 +1164,13 @@ export function useAppDataService(): UseAppDataServiceReturn {
     clearCache
   }), [
     addClass,
+    updateClass,
+    deleteClass,
     addStudent,
     updateStudent,
     deleteStudent,
     addSchedule,
     updateSchedule,
-    updateClass,
     enrollStudent,
     unenrollStudent,
     deleteSchedule,

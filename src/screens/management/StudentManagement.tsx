@@ -8,20 +8,42 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Mail, Phone, User, Users, ChevronUp, ChevronDown, Search, CheckCircle, AlertCircle } from "lucide-react"
+import { Plus, Mail, Phone, User, Users, ChevronUp, ChevronDown, Search, CheckCircle, AlertCircle, Trash2 } from "lucide-react"
+import { LoadingSpinner } from "@/components/common/LoadingSpinner"
+import { DeleteSuccessAnimation } from "@/components/common/DeleteSuccessToast"
+import { DeleteItemOverlay, useDeleteItemState } from "@/components/common/DeleteItemOverlay"
+import { toast } from "sonner"
 import { useAppData } from "@/context/AppDataMigrationContext"
 import { Student } from "@/data"
+import { DeleteConfirmationDialog } from "@/components/common/DeleteConfirmationDialog"
+import { calculateStudentDeletionImpact, DeletionImpact } from "@/utils/impactCalculation"
+import { 
+  handleDeleteError, 
+  handleDeleteSuccess, 
+  handleImpactCalculationError,
+  retryOperation,
+  DEFAULT_RETRY_CONFIG
+} from "@/utils/errorHandling"
+import { useNetworkStatus } from "@/hooks/useNetworkStatus"
 
 export default function StudentManagement() {
   const navigate = useNavigate()
   const { data, actions } = useAppData()
+  const networkStatus = useNetworkStatus()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null)
+  const [, setEditingStudent] = useState<Student | null>(null)
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null)
+  const [deletionImpact, setDeletionImpact] = useState<DeletionImpact | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isCalculatingImpact, setIsCalculatingImpact] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -92,6 +114,112 @@ export default function StudentManagement() {
       enrollmentDate: student.enrollmentDate
     })
     setIsEditDialogOpen(true)
+  }
+
+  const handleDeleteClick = async (student: Student) => {
+    setStudentToDelete(student)
+    setIsCalculatingImpact(true)
+    setIsDeleteDialogOpen(true)
+    
+    const calculateImpact = async () => {
+      const impact = await calculateStudentDeletionImpact(student.id)
+      setDeletionImpact(impact)
+    }
+    
+    try {
+      await retryOperation(
+        calculateImpact,
+        DEFAULT_RETRY_CONFIG,
+        (attempt, error) => {
+          setRetryCount(attempt)
+          console.log(`Impact calculation attempt ${attempt} failed:`, error)
+          toast.loading(`Calculating deletion impact... (attempt ${attempt})`, {
+            duration: 2000
+          })
+        }
+      )
+    } catch (error) {
+      handleImpactCalculationError(
+        error, 
+        'student', 
+        student.name,
+        () => handleDeleteClick(student)
+      )
+      setIsDeleteDialogOpen(false)
+      setStudentToDelete(null)
+    } finally {
+      setIsCalculatingImpact(false)
+      setRetryCount(0)
+    }
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!studentToDelete) return
+
+    setIsDeleting(true)
+    
+    const performDelete = async () => {
+      await actions.deleteStudent(studentToDelete.id)
+    }
+    
+    try {
+      await retryOperation(
+        performDelete,
+        DEFAULT_RETRY_CONFIG,
+        (attempt, error) => {
+          setRetryCount(attempt)
+          console.log(`Delete attempt ${attempt} failed:`, error)
+          toast.loading(`Deleting student... (attempt ${attempt})`, {
+            duration: 2000
+          })
+        }
+      )
+      
+      // Success feedback
+      handleDeleteSuccess('student', studentToDelete.name)
+      
+      // Show success animation
+      setShowSuccessAnimation(true)
+      
+      // Close dialog and reset state
+      setIsDeleteDialogOpen(false)
+      const deletedStudentName = studentToDelete.name
+      setStudentToDelete(null)
+      setDeletionImpact(null)
+      
+      // Enhanced status message with more details
+      setStatusMessage({ 
+        type: 'success', 
+        message: `Student "${deletedStudentName}" and all associated records have been permanently deleted.` 
+      })
+      setTimeout(() => setStatusMessage(null), 5000) // Longer duration for success messages
+      
+    } catch (error) {
+      // Enhanced error handling with retry option
+      handleDeleteError(
+        error, 
+        'student', 
+        studentToDelete.name,
+        () => handleDeleteConfirm()
+      )
+      
+      // Also show status message for consistency with existing UI
+      setStatusMessage({ 
+        type: 'error', 
+        message: 'Failed to delete student. Please check the error message and try again.' 
+      })
+      setTimeout(() => setStatusMessage(null), 8000) // Longer duration for error messages
+      
+    } finally {
+      setIsDeleting(false)
+      setRetryCount(0)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setIsDeleteDialogOpen(false)
+    setStudentToDelete(null)
+    setDeletionImpact(null)
   }
 
   const getStudentClasses = (studentId: string) => {
@@ -265,12 +393,20 @@ export default function StudentManagement() {
       <div className="space-y-4">
         {viewMode === "cards" ? (
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {getFilteredAndSortedStudents().map((student) => (
-              <Card
-                key={student.id}
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => navigate(`/students/${student.id}`)}
-              >
+            {getFilteredAndSortedStudents().map((student) => {
+              const deleteState = useDeleteItemState(student.id, studentToDelete?.id || null)
+              
+              return (
+                <Card
+                  key={student.id}
+                  className="relative cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => !deleteState.shouldDisableActions && navigate(`/students/${student.id}`)}
+                >
+                  {/* Delete overlay */}
+                  <DeleteItemOverlay
+                    isDeleting={isDeleting && deleteState.isCurrentItem}
+                    isCalculatingImpact={isCalculatingImpact && deleteState.isCurrentItem}
+                  />
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{student.name}</CardTitle>
@@ -295,20 +431,49 @@ export default function StudentManagement() {
                         {getStudentClasses(student.id).length} classes
                       </span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleEditStudent(student)
-                      }}
-                    >
-                      <User className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleEditStudent(student)
+                        }}
+                        title="Edit student"
+                      >
+                        <User className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteClick(student)
+                        }}
+                        disabled={isDeleting || isCalculatingImpact || (studentToDelete?.id === student.id)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={
+                          isDeleting && studentToDelete?.id === student.id 
+                            ? "Deleting student..." 
+                            : isCalculatingImpact && studentToDelete?.id === student.id
+                            ? "Calculating impact..."
+                            : "Delete student"
+                        }
+                      >
+                        {isDeleting && studentToDelete?.id === student.id ? (
+                          <LoadingSpinner size="sm" className="text-destructive" />
+                        ) : isCalculatingImpact && studentToDelete?.id === student.id ? (
+                          <LoadingSpinner size="sm" className="text-muted-foreground" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )
+            })}
           </div>
         ) : (
           <Card>
@@ -346,12 +511,19 @@ export default function StudentManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {getFilteredAndSortedStudents().map((student) => (
-                    <TableRow
-                      key={student.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => navigate(`/students/${student.id}`)}
-                    >
+                  {getFilteredAndSortedStudents().map((student) => {
+                    const deleteState = useDeleteItemState(student.id, studentToDelete?.id || null)
+                    
+                    return (
+                      <TableRow
+                        key={student.id}
+                        className={`cursor-pointer hover:bg-muted/50 relative ${
+                          deleteState.isCurrentItem && (isDeleting || isCalculatingImpact) 
+                            ? 'opacity-60 pointer-events-none' 
+                            : ''
+                        }`}
+                        onClick={() => !deleteState.shouldDisableActions && navigate(`/students/${student.id}`)}
+                      >
                       <TableCell className="font-medium">{student.name}</TableCell>
                       <TableCell>{student.email}</TableCell>
                       <TableCell>{student.phone}</TableCell>
@@ -360,25 +532,60 @@ export default function StudentManagement() {
                       </TableCell>
                       <TableCell>{getStudentClasses(student.id).length}</TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleEditStudent(student)
-                          }}
-                        >
-                          <User className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleEditStudent(student)
+                            }}
+                            title="Edit student"
+                          >
+                            <User className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteClick(student)
+                            }}
+                            disabled={isDeleting || isCalculatingImpact || (studentToDelete?.id === student.id)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={
+                              isDeleting && studentToDelete?.id === student.id 
+                                ? "Deleting student..." 
+                                : isCalculatingImpact && studentToDelete?.id === student.id
+                                ? "Calculating impact..."
+                                : "Delete student"
+                            }
+                          >
+                            {isDeleting && studentToDelete?.id === student.id ? (
+                              <LoadingSpinner size="sm" className="text-destructive" />
+                            ) : isCalculatingImpact && studentToDelete?.id === student.id ? (
+                              <LoadingSpinner size="sm" className="text-muted-foreground" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    )
+                  })}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
         )}
       </div>
+
+      {/* Success Animation */}
+      <DeleteSuccessAnimation
+        isVisible={showSuccessAnimation}
+        onComplete={() => setShowSuccessAnimation(false)}
+      />
 
       {/* Edit Student Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -446,6 +653,28 @@ export default function StudentManagement() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Student"
+        description={
+          isCalculatingImpact 
+            ? "Calculating impact of deletion..." 
+            : "Are you sure you want to delete this student? This action cannot be undone."
+        }
+        itemName={studentToDelete?.name || ""}
+        impactInfo={deletionImpact || undefined}
+        isLoading={isDeleting}
+        isRetrying={retryCount > 0}
+        retryCount={retryCount}
+        maxRetries={DEFAULT_RETRY_CONFIG.maxAttempts}
+        itemType="student"
+        isCalculatingImpact={isCalculatingImpact}
+        networkStatus={networkStatus.status}
+      />
     </div>
   )
 }

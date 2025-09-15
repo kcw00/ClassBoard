@@ -10,3 +10,4 @@ export {
   useWarningToast, 
   useInfoToast 
 } from './Toast'
+export { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
