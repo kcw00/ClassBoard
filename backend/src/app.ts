@@ -18,6 +18,16 @@ import {
   authMonitoringMiddleware,
   fileMonitoringMiddleware
 } from './middleware/monitoring';
+import { 
+  securityHeaders, 
+  enforceHTTPS, 
+  limitRequestSize, 
+  requestTimeout,
+  preventParameterPollution,
+  securityAuditLog,
+  helmetConfig
+} from './middleware/security';
+import { sanitizeInput, preventSQLInjection } from './middleware/validation';
 import routes from './routes';
 import healthRoutes from './routes/health';
 
@@ -26,8 +36,24 @@ const app = express();
 // Request ID and timing middleware (must be first)
 app.use(requestIdMiddleware);
 
-// Security middleware
-app.use(helmet());
+// HTTPS enforcement (in production)
+app.use(enforceHTTPS);
+
+// Enhanced security middleware
+app.use(helmetConfig);
+app.use(securityHeaders);
+
+// Request timeout
+app.use(requestTimeout(30000)); // 30 seconds
+
+// Request size limiting
+app.use(limitRequestSize('10mb'));
+
+// Security audit logging
+app.use(securityAuditLog);
+
+// Parameter pollution prevention
+app.use(preventParameterPollution);
 
 // CORS middleware
 app.use(corsMiddleware);
@@ -61,6 +87,10 @@ if (config.server.nodeEnv === 'development') {
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Input sanitization and validation
+app.use(sanitizeInput);
+app.use(preventSQLInjection);
 
 // Health check routes (before API routes for priority)
 app.use('/api', healthRoutes);
