@@ -1,7 +1,7 @@
 import { createContext, useContext, ReactNode } from 'react'
 import { useAppDataService } from '@/hooks/useAppDataService'
 // Toast functionality removed - using console logging instead
-import {
+import type {
   Class,
   Student,
   Schedule,
@@ -13,7 +13,7 @@ import {
   TestResult,
   HomeworkAssignment,
   HomeworkSubmission
-} from '@/data/mockData'
+} from '@/types'
 
 interface AppData {
   classes: Class[]

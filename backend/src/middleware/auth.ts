@@ -25,6 +25,23 @@ export const authenticateToken = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    // Development bypass when Cognito is not configured
+    if (process.env.NODE_ENV === 'development' && 
+        (process.env.COGNITO_USER_POOL_ID === 'placeholder' || 
+         !process.env.COGNITO_USER_POOL_ID)) {
+      // Create a mock user for development
+      req.user = {
+        id: 'dev-user-1',
+        email: 'dev@example.com',
+        name: 'Development User',
+        role: 'teacher',
+        emailVerified: true
+      };
+      req.accessToken = 'dev-token';
+      next();
+      return;
+    }
+
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 

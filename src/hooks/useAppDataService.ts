@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { appDataService, ApiError, NetworkError } from '@/services/AppDataService'
-import {
+import type {
   Class,
   Student,
   Schedule,
@@ -12,7 +12,7 @@ import {
   TestResult,
   HomeworkAssignment,
   HomeworkSubmission
-} from '@/data/mockData'
+} from '@/types'
 
 interface AppData {
   classes: Class[]

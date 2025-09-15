@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react'
-import { mockData, Class, Student, Schedule, ScheduleException, Meeting, AttendanceRecord, ClassNote, Test, TestResult, HomeworkAssignment, HomeworkSubmission } from '@/data/mockData'
+import type { Class, Student, Schedule, ScheduleException, Meeting, AttendanceRecord, ClassNote, Test, TestResult, HomeworkAssignment, HomeworkSubmission } from '@/types'
 
 interface AppData {
   classes: Class[]
@@ -72,17 +72,20 @@ interface AppDataProviderProps {
 }
 
 export function AppDataProvider({ children }: AppDataProviderProps) {
-  const [classes, setClasses] = useState<Class[]>(mockData.classes)
-  const [students, setStudents] = useState<Student[]>(mockData.students)
-  const [schedules, setSchedules] = useState<Schedule[]>(mockData.schedules)
-  const [scheduleExceptions, setScheduleExceptions] = useState<ScheduleException[]>(mockData.scheduleExceptions)
-  const [meetings, setMeetings] = useState<Meeting[]>(mockData.meetings)
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(mockData.attendanceRecords)
-  const [classNotes, setClassNotes] = useState<ClassNote[]>(mockData.classNotes)
-  const [tests, setTests] = useState<Test[]>(mockData.tests)
-  const [testResults, setTestResults] = useState<TestResult[]>(mockData.testResults)
-  const [homeworkAssignments, setHomeworkAssignments] = useState<HomeworkAssignment[]>(mockData.homeworkAssignments)
-  const [homeworkSubmissions, setHomeworkSubmissions] = useState<HomeworkSubmission[]>(mockData.homeworkSubmissions)
+  const [classes, setClasses] = useState<Class[]>([])
+  const [students, setStudents] = useState<Student[]>([])
+  const [schedules, setSchedules] = useState<Schedule[]>([])
+  const [scheduleExceptions, setScheduleExceptions] = useState<ScheduleException[]>([])
+  const [meetings, setMeetings] = useState<Meeting[]>([])
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
+  const [classNotes, setClassNotes] = useState<ClassNote[]>([])
+  const [tests, setTests] = useState<Test[]>([])
+  const [testResults, setTestResults] = useState<TestResult[]>([])
+  const [homeworkAssignments, setHomeworkAssignments] = useState<HomeworkAssignment[]>([])
+  const [homeworkSubmissions, setHomeworkSubmissions] = useState<HomeworkSubmission[]>([])
+
+  // Note: This legacy context is now deprecated in favor of AppDataService
+  // It's kept for backward compatibility but should not be used in production
 
   const addClass = (classData: Omit<Class, 'id' | 'createdDate' | 'enrolledStudents'>) => {
     const newClass: Class = {
@@ -380,17 +383,9 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   }), [classes, students, schedules, scheduleExceptions, meetings, attendanceRecords, classNotes, tests, testResults, homeworkAssignments, homeworkSubmissions])
 
   const refreshData = () => {
-    setClasses(mockData.classes)
-    setStudents(mockData.students)
-    setSchedules(mockData.schedules)
-    setScheduleExceptions(mockData.scheduleExceptions)
-    setMeetings(mockData.meetings)
-    setAttendanceRecords(mockData.attendanceRecords)
-    setClassNotes(mockData.classNotes)
-    setTests(mockData.tests)
-    setTestResults(mockData.testResults)
-    setHomeworkAssignments(mockData.homeworkAssignments)
-    setHomeworkSubmissions(mockData.homeworkSubmissions)
+    // Legacy refresh function - no longer loads mock data
+    // Data should be fetched through AppDataService instead
+    console.warn('AppDataContext.refreshData() is deprecated. Use AppDataService instead.')
   }
 
   const appActions = useMemo(() => ({

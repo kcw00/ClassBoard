@@ -105,6 +105,21 @@ app.use(preventSQLInjection);
 // Health check routes (before API routes for priority)
 app.use('/api', healthRoutes);
 
+// Root route for debugging
+app.get('/', (req, res) => {
+  res.json({
+    message: 'ClassBoard API Server',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      classes: '/api/classes',
+      students: '/api/students'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // API routes
 app.use('/api', routes);
 

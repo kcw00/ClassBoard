@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from 'react'
 import { useEnhancedAppData, EnhancedAppDataProvider } from './EnhancedAppDataContext'
-import {
+import { useAppDataService } from '@/hooks/useAppDataService'
+import type {
   Class,
   Student,
   Schedule,
@@ -12,7 +13,7 @@ import {
   TestResult,
   HomeworkAssignment,
   HomeworkSubmission
-} from '@/data/mockData'
+} from '@/types'
 
 interface AppData {
   classes: Class[]
@@ -131,13 +132,13 @@ export function AppDataMigrationProvider({ children }: AppDataMigrationProviderP
 
 function AppDataMigrationProviderInner({ children }: AppDataMigrationProviderProps) {
 
-  // Use the appropriate data source
-  const enhancedData = useEnhancedAppData()
+  // Use the API service for production
+  const apiServiceData = useAppDataService()
   
-  // For now, always use the enhanced context until we can resolve the API service issues
+  // Use the API service now that the backend is ready
   const contextValue: AppDataMigrationContextType = {
-    ...enhancedData,
-    isUsingApiService: false
+    ...apiServiceData,
+    isUsingApiService: true
   }
 
   return (

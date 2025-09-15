@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useMemo, ReactNode, useCallback } from 'react'
-import { mockData, Class, Student, Schedule, ScheduleException, Meeting, AttendanceRecord, ClassNote, Test, TestResult, HomeworkAssignment, HomeworkSubmission } from '@/data/mockData'
+import type { Class, Student, Schedule, ScheduleException, Meeting, AttendanceRecord, ClassNote, Test, TestResult, HomeworkAssignment, HomeworkSubmission } from '@/types'
 
 interface AppData {
   classes: Class[]
@@ -106,18 +106,21 @@ interface EnhancedAppDataProviderProps {
 }
 
 export function EnhancedAppDataProvider({ children }: EnhancedAppDataProviderProps) {
-  // Data state (same as original AppDataContext)
-  const [classes, setClasses] = useState<Class[]>(mockData.classes)
-  const [students, setStudents] = useState<Student[]>(mockData.students)
-  const [schedules, setSchedules] = useState<Schedule[]>(mockData.schedules)
-  const [scheduleExceptions, setScheduleExceptions] = useState<ScheduleException[]>(mockData.scheduleExceptions)
-  const [meetings, setMeetings] = useState<Meeting[]>(mockData.meetings)
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(mockData.attendanceRecords)
-  const [classNotes, setClassNotes] = useState<ClassNote[]>(mockData.classNotes)
-  const [tests, setTests] = useState<Test[]>(mockData.tests)
-  const [testResults, setTestResults] = useState<TestResult[]>(mockData.testResults)
-  const [homeworkAssignments, setHomeworkAssignments] = useState<HomeworkAssignment[]>(mockData.homeworkAssignments)
-  const [homeworkSubmissions, setHomeworkSubmissions] = useState<HomeworkSubmission[]>(mockData.homeworkSubmissions)
+  // Data state - now starts empty, should be populated via API
+  const [classes, setClasses] = useState<Class[]>([])
+  const [students, setStudents] = useState<Student[]>([])
+  const [schedules, setSchedules] = useState<Schedule[]>([])
+  const [scheduleExceptions, setScheduleExceptions] = useState<ScheduleException[]>([])
+  const [meetings, setMeetings] = useState<Meeting[]>([])
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
+  const [classNotes, setClassNotes] = useState<ClassNote[]>([])
+  const [tests, setTests] = useState<Test[]>([])
+  const [testResults, setTestResults] = useState<TestResult[]>([])
+  const [homeworkAssignments, setHomeworkAssignments] = useState<HomeworkAssignment[]>([])
+  const [homeworkSubmissions, setHomeworkSubmissions] = useState<HomeworkSubmission[]>([])
+
+  // Note: This enhanced context is now deprecated in favor of AppDataService
+  // It's kept for backward compatibility but should not be used in production
 
   // Loading and error states
   const [loading, setLoading] = useState<LoadingStates>({
