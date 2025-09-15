@@ -1,4 +1,5 @@
-import {
+// Import types from a separate types file instead of mockData
+import type {
   Class,
   Student,
   Schedule,
@@ -10,7 +11,7 @@ import {
   TestResult,
   HomeworkAssignment,
   HomeworkSubmission
-} from '@/data/mockData'
+} from '@/types'
 
 // API Response types
 interface ApiResponse<T> {

@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import { useAppData } from '@/context/AppDataServiceContext'
 import { toast } from 'sonner'
 import { ApiError, NetworkError } from '@/services/AppDataService'
-import {
+import type {
   Class,
   Student,
   Schedule,
@@ -14,7 +14,7 @@ import {
   TestResult,
   HomeworkAssignment,
   HomeworkSubmission
-} from '@/data/mockData'
+} from '@/types'
 
 export function useAppDataWithToasts() {
   const appData = useAppData()

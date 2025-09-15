@@ -1,6 +1,6 @@
 // Jest globals (describe, it, beforeEach, afterEach, expect) are available automatically
 import { AppDataService, ApiError, NetworkError } from '../AppDataService'
-import { Class, Student } from '@/data/mockData'
+import type { Class, Student } from '@/types'
 
 // Mock fetch globally
 const mockFetch = jest.fn()

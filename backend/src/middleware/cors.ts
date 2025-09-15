@@ -11,11 +11,22 @@ const corsOptions: cors.CorsOptions = {
       'http://localhost:3000',
       'http://localhost:5173',
       'http://localhost:5174',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000',
     ];
+    
+    // In development, be more permissive
+    if (config.server.nodeEnv === 'development') {
+      // Allow any localhost origin in development
+      if (origin && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
+        return callback(null, true);
+      }
+    }
     
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn(`CORS: Origin ${origin} not allowed. Allowed origins:`, allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
   },

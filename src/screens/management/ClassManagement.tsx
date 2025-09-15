@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Plus, Users, MapPin, Clock, Settings, UserPlus, CalendarPlus, Trash2, Edit, RefreshCw, AlertCircle, CheckCircle } from "lucide-react"
-import { classColors, Class } from "@/data/mockData"
+import { classColors } from "@/types"
+import type { Class } from "@/types"
 import { useAppData } from "@/context/AppDataMigrationContext"
 
 export default function ClassManagement() {

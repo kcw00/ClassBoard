@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Users, MapPin, Clock, Calendar, FileText, Plus, Edit2, Trash2, UserPlus, UserMinus, BarChart3, TrendingUp } from "lucide-react"
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { useAppData } from "@/context/AppDataMigrationContext"
-import { ClassNote, Schedule, Student } from "@/data/mockData"
+import type { ClassNote, Schedule, Student } from "@/types"
 
 
 export default function ClassDetails() {

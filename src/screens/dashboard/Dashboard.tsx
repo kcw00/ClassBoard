@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Users, GraduationCap, Calendar, MapPin, CalendarCheck, UserCheck, RefreshCw, AlertCircle } from "lucide-react"
-import { classColors } from "@/data/mockData"
+import { classColors } from "@/types"
 import { useAppData } from "@/context/AppDataMigrationContext"
 import { ApiServiceTest } from "@/components/common/ApiServiceTest"
 
