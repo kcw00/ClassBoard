@@ -8,7 +8,7 @@
   - Configure CORS to allow requests from React frontend
   - _Requirements: 2.1, 2.2_
 
-- [ ] 2. Implement database schema and ORM setup
+- [x] 2. Implement database schema and ORM setup
   - Set up Prisma ORM with PostgreSQL connection
   - Create database schema based on existing TypeScript interfaces
   - Write database migration files for all core tables (users, students, classes, etc.)

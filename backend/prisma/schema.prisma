@@ -1,0 +1,332 @@
+// This is your Prisma schema file.
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String
+  role          UserRole @default(TEACHER)
+  cognitoUserId String?  @unique @map("cognito_user_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+// Student model
+model Student {
+  id             String   @id @default(uuid())
+  name           String
+  email          String
+  phone          String
+  grade          String
+  parentContact  String   @map("parent_contact")
+  enrollmentDate String   @map("enrollment_date") // Keeping as string to match existing format
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  enrollments        ClassEnrollment[]
+  attendanceRecords  AttendanceEntry[]
+  testResults        TestResult[]
+  homeworkSubmissions HomeworkSubmission[]
+
+  @@map("students")
+}
+
+// Class model
+model Class {
+  id              String   @id @default(uuid())
+  name            String
+  subject         String
+  description     String
+  room            String
+  capacity        Int
+  color           String
+  createdDate     String   @map("created_date") // Keeping as string to match existing format
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  enrollments         ClassEnrollment[]
+  schedules           Schedule[]
+  tests               Test[]
+  attendanceRecords   AttendanceRecord[]
+  classNotes          ClassNote[]
+  homeworkAssignments HomeworkAssignment[]
+
+  @@map("classes")
+}
+
+// Class enrollment junction table
+model ClassEnrollment {
+  id         String   @id @default(uuid())
+  classId    String   @map("class_id")
+  studentId  String   @map("student_id")
+  enrolledAt DateTime @default(now()) @map("enrolled_at")
+
+  // Relations
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, studentId])
+  @@map("class_enrollments")
+}
+
+// Schedule model
+model Schedule {
+  id        String   @id @default(uuid())
+  classId   String   @map("class_id")
+  dayOfWeek Int      @map("day_of_week") // 0=Sunday, 1=Monday, etc.
+  startTime String   @map("start_time")
+  endTime   String   @map("end_time")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  class      Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
+  exceptions ScheduleException[]
+
+  @@map("schedules")
+}
+
+// Schedule exception model
+model ScheduleException {
+  id          String   @id @default(uuid())
+  scheduleId  String   @map("schedule_id")
+  date        String   // YYYY-MM-DD format
+  startTime   String   @map("start_time")
+  endTime     String   @map("end_time")
+  cancelled   Boolean? @default(false)
+  createdDate String   @map("created_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@map("schedule_exceptions")
+}
+
+// Meeting model
+model Meeting {
+  id              String        @id @default(uuid())
+  title           String
+  description     String
+  date            String        // YYYY-MM-DD format
+  startTime       String        @map("start_time")
+  endTime         String        @map("end_time")
+  participants    String[]      // Array of participant IDs or names
+  participantType ParticipantType @map("participant_type")
+  location        String
+  meetingType     MeetingType   @map("meeting_type")
+  status          MeetingStatus
+  createdDate     String        @map("created_date")
+  notes           String?
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  @@map("meetings")
+}
+
+// Attendance record model
+model AttendanceRecord {
+  id            String   @id @default(uuid())
+  classId       String   @map("class_id")
+  date          String   // YYYY-MM-DD format
+  createdDate   String   @map("created_date")
+  updatedDate   String?  @map("updated_date")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  class           Class             @relation(fields: [classId], references: [id], onDelete: Cascade)
+  attendanceData  AttendanceEntry[]
+
+  @@map("attendance_records")
+}
+
+// Attendance entry model (for individual student attendance within a record)
+model AttendanceEntry {
+  id                 String           @id @default(uuid())
+  attendanceRecordId String           @map("attendance_record_id")
+  studentId          String           @map("student_id")
+  status             AttendanceStatus
+  notes              String?
+
+  // Relations
+  attendanceRecord AttendanceRecord @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  student          Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([attendanceRecordId, studentId])
+  @@map("attendance_entries")
+}
+
+// Class note model
+model ClassNote {
+  id          String   @id @default(uuid())
+  classId     String   @map("class_id")
+  date        String   // YYYY-MM-DD format
+  content     String
+  topics      String[] // Array of topics
+  homework    String?
+  objectives  String?
+  createdDate String   @map("created_date")
+  updatedDate String   @map("updated_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@map("class_notes")
+}
+
+// Test model
+model Test {
+  id          String   @id @default(uuid())
+  classId     String   @map("class_id")
+  title       String
+  description String
+  testDate    String   @map("test_date") // YYYY-MM-DD format
+  totalPoints Int      @map("total_points")
+  testType    TestType @map("test_type")
+  fileName    String?  @map("file_name")
+  fileUrl     String?  @map("file_url")
+  createdDate String   @map("created_date")
+  updatedDate String   @map("updated_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  class   Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  results TestResult[]
+
+  @@map("tests")
+}
+
+// Test result model
+model TestResult {
+  id            String   @id @default(uuid())
+  testId        String   @map("test_id")
+  studentId     String   @map("student_id")
+  score         Int
+  maxScore      Int      @map("max_score")
+  percentage    Float
+  grade         String
+  feedback      String?
+  submittedDate String?  @map("submitted_date") // YYYY-MM-DD format
+  gradedDate    String   @map("graded_date")    // YYYY-MM-DD format
+  createdDate   String   @map("created_date")
+  updatedDate   String   @map("updated_date")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  test    Test    @relation(fields: [testId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([testId, studentId])
+  @@map("test_results")
+}
+
+// Homework assignment model
+model HomeworkAssignment {
+  id           String   @id @default(uuid())
+  classId      String   @map("class_id")
+  title        String
+  description  String
+  assignedDate String   @map("assigned_date") // YYYY-MM-DD format
+  dueDate      String   @map("due_date")      // YYYY-MM-DD format
+  totalPoints  Int      @map("total_points")
+  instructions String?
+  resources    String[] // Array of resources
+  createdDate  String   @map("created_date")
+  updatedDate  String   @map("updated_date")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  class       Class                @relation(fields: [classId], references: [id], onDelete: Cascade)
+  submissions HomeworkSubmission[]
+
+  @@map("homework_assignments")
+}
+
+// Homework submission model
+model HomeworkSubmission {
+  id              String           @id @default(uuid())
+  assignmentId    String           @map("assignment_id")
+  studentId       String           @map("student_id")
+  submittedDate   String?          @map("submitted_date") // YYYY-MM-DD format
+  score           Int?
+  maxScore        Int              @map("max_score")
+  grade           String?
+  feedback        String?
+  status          SubmissionStatus
+  submissionNotes String?          @map("submission_notes")
+  gradedDate      String?          @map("graded_date") // YYYY-MM-DD format
+  createdDate     String           @map("created_date")
+  updatedDate     String           @map("updated_date")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  assignment HomeworkAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, studentId])
+  @@map("homework_submissions")
+}
+
+// Enums
+enum UserRole {
+  TEACHER
+  ADMIN
+}
+
+enum ParticipantType {
+  students
+  parents
+  teachers
+}
+
+enum MeetingType {
+  in_person @map("in-person")
+  virtual
+}
+
+enum MeetingStatus {
+  scheduled
+  completed
+  cancelled
+}
+
+enum AttendanceStatus {
+  present
+  absent
+  late
+  excused
+}
+
+enum TestType {
+  quiz
+  exam
+  assignment
+  project
+}
+
+enum SubmissionStatus {
+  not_submitted
+  submitted
+  graded
+  late
+}
