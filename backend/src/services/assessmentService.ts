@@ -17,6 +17,7 @@ export interface CreateTestData {
   title: string;
   description: string;
   testDate: string;
+  testTime: string;
   totalPoints: number;
   testType: TestType;
   fileName?: string;
@@ -27,6 +28,7 @@ export interface UpdateTestData {
   title?: string;
   description?: string;
   testDate?: string;
+  testTime?: string;
   totalPoints?: number;
   testType?: TestType;
   fileName?: string;

@@ -34,6 +34,13 @@ const createTestSchema = Joi.object({
       'string.pattern.base': 'Test date must be in YYYY-MM-DD format',
       'any.required': 'Test date is required',
     }),
+  testTime: Joi.string()
+    .pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
+    .required()
+    .messages({
+      'string.pattern.base': 'Test time must be in HH:MM format (24-hour)',
+      'any.required': 'Test time is required',
+    }),
   totalPoints: Joi.number()
     .integer()
     .min(1)
@@ -89,6 +96,12 @@ const updateTestSchema = Joi.object({
     .optional()
     .messages({
       'string.pattern.base': 'Test date must be in YYYY-MM-DD format',
+    }),
+  testTime: Joi.string()
+    .pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
+    .optional()
+    .messages({
+      'string.pattern.base': 'Test time must be in HH:MM format (24-hour)',
     }),
   totalPoints: Joi.number()
     .integer()

@@ -211,6 +211,7 @@ model Test {
   title       String
   description String
   testDate    String   @map("test_date") // YYYY-MM-DD format
+  testTime    String   @map("test_time") // HH:MM format
   totalPoints Int      @map("total_points")
   testType    TestType @map("test_type")
   fileName    String?  @map("file_name")

@@ -94,7 +94,8 @@ export default function CalendarView() {
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek)
       date.setDate(startOfWeek.getDate() + i)
-      const dateStr = date.toISOString().split('T')[0]
+      // Use local date string to avoid timezone issues
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
       // Add scheduled classes, checking for exceptions first
       data.schedules.forEach(schedule => {
@@ -205,7 +206,7 @@ export default function CalendarView() {
           title: `Test: ${test.title}`,
           description: `${test.testType} for ${classItem?.name || 'Unknown Class'}`,
           date: test.testDate,
-          time: '09:00', // Default time if not specified
+          time: test.testTime || '09:00', // Default time if not specified
           duration: 90, // Default duration for tests
           type: 'test',
           testId: test.id,
@@ -336,7 +337,7 @@ export default function CalendarView() {
           title: `Test: ${test.title}`,
           description: `${test.testType} for ${classItem?.name || 'Unknown Class'}`,
           date: test.testDate,
-          time: '09:00', // Default time if not specified
+          time: test.testTime || '09:00', // Default time if not specified
           duration: 90, // Default duration for tests
           type: 'test',
           testId: test.id,
@@ -400,6 +401,9 @@ export default function CalendarView() {
     e.preventDefault()
     if (!draggedEvent) return
 
+    console.log(`🔄 Drag and drop: ${draggedEvent.title} from ${draggedEvent.date} to ${date}`)
+    console.log(`🔄 Debug: Target date string: ${date}, Time: ${time}`)
+
     // Check if the drop is to the same date and time (no change needed)
     if (draggedEvent.date === date && draggedEvent.time === time) {
       setDraggedEvent(null)
@@ -450,10 +454,16 @@ export default function CalendarView() {
     // For other event types, apply changes if applicable
     if (draggedEvent.type === 'test' && draggedEvent.testId) {
       actions.updateTest(draggedEvent.testId, {
-        testDate: date
+        testDate: date,
+        testTime: time // Assuming test time can be updated
       })
       const dateFormatted = new Date(date).toLocaleDateString()
-      console.log(`✅ Test "${draggedEvent.title}" moved to ${dateFormatted}`)
+      // Note: Tests don't support time changes, only date changes
+      if (draggedEvent.date !== date) {
+        console.log(`✅ Test "${draggedEvent.title}" moved to ${dateFormatted}`)
+      } else {
+        console.log(`ℹ️ Test "${draggedEvent.title}" time change not supported - only date changes are saved`)
+      }
     }
 
     setDraggedEvent(null)
@@ -468,7 +478,10 @@ export default function CalendarView() {
     if (changeType === 'today') {
       // Create a one-time schedule exception for this specific date
       if (event.type === 'class') {
-        const scheduleId = event.id.replace('schedule-', '').split('-')[0]
+        // Extract schedule ID from event ID format: schedule-{uuid}-{dateStr}
+        // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 chars including dashes)
+        const withoutPrefix = event.id.replace('schedule-', '')
+        const scheduleId = withoutPrefix.substring(0, 36) // Extract the 36-character UUID
         const endTime = calculateEndTime(time, event.duration)
 
         try {
@@ -489,7 +502,7 @@ export default function CalendarView() {
             // Create new exception
             actions.addScheduleException({
               scheduleId: scheduleId,
-              date: date,
+              date: event.date,
               startTime: time,
               endTime: endTime
             })
@@ -503,9 +516,12 @@ export default function CalendarView() {
     } else if (changeType === 'recurring') {
       // Update the recurring schedule
       if (event.type === 'class') {
-        const scheduleId = event.id.replace('schedule-', '').split('-')[0]
-        const targetDate = new Date(date)
-        const dayOfWeek = targetDate.getDay()
+        // Extract schedule ID from event ID format: schedule-{uuid}-{dateStr}
+        // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 chars including dashes)
+        const withoutPrefix = event.id.replace('schedule-', '')
+        const scheduleId = withoutPrefix.substring(0, 36) // Extract the 36-character UUID
+        const targetDate = event.date ? new Date(event.date) : new Date()
+        const dayOfWeek = targetDate.getDay() - 2
         const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
         try {
@@ -554,7 +570,8 @@ export default function CalendarView() {
 
   // Get events for a specific date
   const getEventsForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0]
+    // Use local date string to avoid timezone issues
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
     return events.filter(event => event.date === dateStr)
   }
 
@@ -895,7 +912,8 @@ export default function CalendarView() {
                 {weekDates.map((date, dayIndex) => {
                   const dayEvents = getEventsForDate(date)
                   const isToday = date.toDateString() === new Date().toDateString()
-                  const dateStr = date.toISOString().split('T')[0]
+                  // Use local date string to avoid timezone issues
+                  const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
                   return (
                     <div key={dayIndex} className="border-r last:border-r-0 flex flex-col min-w-[100px] md:min-w-[120px]">
@@ -993,7 +1011,7 @@ export default function CalendarView() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Date:</span>
-                  <p className="font-medium">{new Date(selectedEvent.date).toLocaleDateString()}</p>
+                  <p className="font-medium">{selectedEvent.date}</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Time:</span>
@@ -1084,7 +1102,7 @@ export default function CalendarView() {
           <AlertDialogHeader>
             <AlertDialogTitle>Change Class Schedule</AlertDialogTitle>
             <AlertDialogDescription>
-              You're moving "{pendingDrop?.event.title}" to {pendingDrop && new Date(pendingDrop.date).toLocaleDateString()} at {pendingDrop?.time}.
+              You're moving "{pendingDrop?.event.title}" to {pendingDrop && pendingDrop?.date} at {pendingDrop?.time}.
               <br /><br />
               How would you like to apply this change?
             </AlertDialogDescription>
@@ -1103,7 +1121,7 @@ export default function CalendarView() {
               variant="secondary"
               onClick={() => handleClassScheduleChange('today')}
             >
-              Just for Today
+              Time Change Only
             </Button>
             <Button
               onClick={() => handleClassScheduleChange('recurring')}

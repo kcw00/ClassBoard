@@ -87,6 +87,7 @@ export interface Test {
   title: string
   description: string
   testDate: string // YYYY-MM-DD format
+  testTime: string // HH:MM format
   totalPoints: number
   testType: 'quiz' | 'exam' | 'assignment' | 'project'
   fileName?: string
