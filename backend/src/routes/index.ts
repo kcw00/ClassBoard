@@ -3,6 +3,7 @@ import authRoutes from './auth';
 import classRoutes from './classes';
 import studentRoutes from './students';
 import scheduleRoutes from './schedules';
+import assessmentRoutes from './assessments';
 
 const router = Router();
 
@@ -16,13 +17,7 @@ router.get('/health', (req, res) => {
   });
 });
 
-// Mount route modules
-router.use('/auth', authRoutes);
-router.use('/classes', classRoutes);
-router.use('/students', studentRoutes);
-router.use('/', scheduleRoutes); // Schedule routes are mounted at root level for flexibility
-
-// API info endpoint
+// API info endpoint (must be before root-level route mounting)
 router.get('/', (req, res) => {
   res.json({
     success: true,
@@ -35,9 +30,17 @@ router.get('/', (req, res) => {
       students: '/api/students',
       schedules: '/api/schedules',
       tests: '/api/tests',
+      homework: '/api/homework',
       files: '/api/files',
     },
   });
 });
+
+// Mount route modules
+router.use('/auth', authRoutes);
+router.use('/classes', classRoutes);
+router.use('/students', studentRoutes);
+router.use('/', scheduleRoutes); // Schedule routes are mounted at root level for flexibility
+router.use('/', assessmentRoutes); // Assessment routes are mounted at root level for flexibility
 
 export default router;

@@ -52,7 +52,7 @@
   - Write unit tests for schedule logic and API endpoints
   - _Requirements: 2.1, 2.2, 4.1, 4.2_
 
-- [ ] 8. Build assessment system API endpoints
+- [x] 8. Build assessment system API endpoints
   - Implement CRUD endpoints for tests and homework assignments
   - Create endpoints for test results and homework submissions
   - Add grade calculation and percentage logic
