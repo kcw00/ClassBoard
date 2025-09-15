@@ -752,8 +752,31 @@ export function useAppDataService(): UseAppDataServiceReturn {
   }, [fetchScheduleExceptions])
 
   const addMeeting = useCallback(async (meetingData: Omit<Meeting, 'id' | 'createdDate'>): Promise<Meeting> => {
-    return appDataService.addMeeting(meetingData)
-  }, [])
+    const tempId = `temp-${Date.now()}`
+    const currentDate = new Date().toISOString().split('T')[0]
+    const optimisticMeeting: Meeting = {
+      id: tempId,
+      ...meetingData,
+      createdDate: currentDate
+    }
+
+    // Optimistic update
+    setMeetings(prev => [...prev, optimisticMeeting])
+
+    try {
+      const newMeeting = await appDataService.addMeeting(meetingData)
+
+      // Replace optimistic update with real data
+      setMeetings(prev => prev.map(m => m.id === tempId ? newMeeting : m))
+
+      return newMeeting
+    } catch (error) {
+      // Revert optimistic update
+      setMeetings(prev => prev.filter(m => m.id !== tempId))
+      handleError('addMeeting', error)
+      throw error
+    }
+  }, [handleError])
 
   const updateMeeting = useCallback(async (meetingId: string, updates: Partial<Meeting>): Promise<void> => {
     const originalMeeting = meetings.find(m => m.id === meetingId)
@@ -774,9 +797,22 @@ export function useAppDataService(): UseAppDataServiceReturn {
   }, [meetings, handleError])
 
   const deleteMeeting = useCallback(async (meetingId: string): Promise<void> => {
-    await appDataService.deleteMeeting(meetingId)
-    await fetchMeetings()
-  }, [fetchMeetings])
+    const originalMeeting = meetings.find(m => m.id === meetingId)
+
+    // Optimistic update
+    setMeetings(prev => prev.filter(m => m.id !== meetingId))
+
+    try {
+      await appDataService.deleteMeeting(meetingId)
+    } catch (error) {
+      // Revert optimistic update
+      if (originalMeeting) {
+        setMeetings(prev => [...prev, originalMeeting])
+      }
+      handleError('deleteMeeting', error)
+      throw error
+    }
+  }, [meetings, handleError])
 
   const addAttendanceRecord = useCallback(async (attendanceData: Omit<AttendanceRecord, 'id' | 'createdDate'>): Promise<AttendanceRecord> => {
     const tempId = `temp-${Date.now()}`
