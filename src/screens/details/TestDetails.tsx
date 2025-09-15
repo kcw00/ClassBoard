@@ -12,8 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { toast } from "sonner@2.0.3"
-import { 
+import { toast } from "sonner"
+import {
   ArrowLeft,
   FileText,
   Clock,
@@ -42,11 +42,11 @@ export default function TestDetails() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { data, actions } = useAppData()
-  
+
   // URL parameter handling
   const tabFromUrl = searchParams.get('tab') || 'results'
   const focusFromUrl = searchParams.get('focus')
-  
+
   const [activeTab, setActiveTab] = useState(tabFromUrl)
   const [isAddResultDialogOpen, setIsAddResultDialogOpen] = useState(false)
   const [isEditResultDialogOpen, setIsEditResultDialogOpen] = useState(false)
@@ -78,18 +78,18 @@ export default function TestDetails() {
     if (tabFromUrl) {
       setActiveTab(tabFromUrl)
     }
-    
+
     // If focus=files, scroll to the results table and show helpful toast
     if (focusFromUrl === 'files' && tabFromUrl === 'results') {
       setTimeout(() => {
         const resultsTable = document.querySelector('[data-testid="results-table"]')
         if (resultsTable) {
-          resultsTable.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
+          resultsTable.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
           })
         }
-        
+
         // Show helpful toast
         const fileCount = testResults.filter(r => r.attachedFile).length
         if (fileCount > 0) {
@@ -100,7 +100,7 @@ export default function TestDetails() {
       }, 500)
     }
   }, [tabFromUrl, focusFromUrl, testResults])
-  
+
   if (!test) {
     return (
       <div className="space-y-6 p-6">
@@ -119,19 +119,19 @@ export default function TestDetails() {
     const totalSubmissions = testResults.length
     const expectedSubmissions = classItem?.enrolledStudents.length || 0
     const submissionRate = expectedSubmissions > 0 ? (totalSubmissions / expectedSubmissions) * 100 : 0
-    
-    const averageScore = testResults.length > 0 
+
+    const averageScore = testResults.length > 0
       ? testResults.reduce((sum, r) => sum + r.percentage, 0) / testResults.length
       : 0
-    
-    const highestScore = testResults.length > 0 
+
+    const highestScore = testResults.length > 0
       ? Math.max(...testResults.map(r => r.percentage))
       : 0
-      
-    const lowestScore = testResults.length > 0 
+
+    const lowestScore = testResults.length > 0
       ? Math.min(...testResults.map(r => r.percentage))
       : 0
-      
+
     const passRate = testResults.length > 0
       ? (testResults.filter(r => r.percentage >= 70).length / testResults.length) * 100
       : 0
@@ -176,7 +176,7 @@ export default function TestDetails() {
   // Handle adding new result
   const handleAddResult = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!newResult.studentId || !newResult.score) {
       toast.error("Please fill in required fields")
       return
@@ -185,7 +185,7 @@ export default function TestDetails() {
     const score = parseInt(newResult.score)
     const percentage = Math.round((score / test.totalPoints) * 100)
     let grade = 'F'
-    
+
     if (percentage >= 90) grade = 'A'
     else if (percentage >= 80) grade = 'B'
     else if (percentage >= 70) grade = 'C'
@@ -199,7 +199,8 @@ export default function TestDetails() {
       percentage: percentage,
       grade: grade,
       feedback: newResult.feedback,
-      gradedDate: new Date().toISOString().split('T')[0]
+      gradedDate: new Date().toISOString().split('T')[0],
+      attachedFile: null // Add this property to satisfy the required type
     }
 
     actions.addTestResult(resultData)
@@ -256,7 +257,7 @@ export default function TestDetails() {
   // Handle update result
   const handleUpdateResult = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!editResult.score) {
       toast.error("Please enter a score")
       return
@@ -270,7 +271,7 @@ export default function TestDetails() {
     const score = parseInt(editResult.score.toString())
     const percentage = Math.round((score / test.totalPoints) * 100)
     let grade = 'F'
-    
+
     if (percentage >= 90) grade = 'A'
     else if (percentage >= 80) grade = 'B'
     else if (percentage >= 70) grade = 'C'
@@ -295,12 +296,12 @@ export default function TestDetails() {
     }
 
     actions.updateTestResult(editingResult.id, updatedResult)
-    
+
     // Clean up
     if (filePreviewUrl) {
       URL.revokeObjectURL(filePreviewUrl)
     }
-    
+
     setIsEditResultDialogOpen(false)
     setEditingResult(null)
     setEditResult({
@@ -353,7 +354,7 @@ export default function TestDetails() {
   // Handle update test
   const handleUpdateTest = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!editingTest.title || !editingTest.classId || !editingTest.testDate) {
       toast.error("Please fill in all required fields")
       return
@@ -367,7 +368,7 @@ export default function TestDetails() {
       testDate: editingTest.testDate,
       testType: editingTest.testType
     })
-    
+
     setIsEditTestDialogOpen(false)
     setEditingTest(null)
     toast.success("Test updated successfully")
@@ -377,8 +378,8 @@ export default function TestDetails() {
   const gradeDistribution = getGradeDistribution()
   const resultsWithStudentInfo = getResultsWithStudentInfo()
   const enrolledStudents = classItem?.enrolledStudents || []
-  const studentsWithoutResults = data.students.filter(student => 
-    enrolledStudents.includes(student.id) && 
+  const studentsWithoutResults = data.students.filter(student =>
+    enrolledStudents.includes(student.id) &&
     !testResults.some(result => result.studentId === student.id)
   )
 
@@ -402,7 +403,7 @@ export default function TestDetails() {
             <Edit className="h-4 w-4 mr-2" />
             Edit Test
           </Button>
-          
+
           <Dialog open={isAddResultDialogOpen} onOpenChange={setIsAddResultDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -410,14 +411,14 @@ export default function TestDetails() {
                 Add Result
               </Button>
             </DialogTrigger>
-            <DialogContent className="mx-4" aria-describedby={undefined}>
+            <DialogContent className="mx-4" >
               <DialogHeader>
                 <DialogTitle>Add Test Result</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleAddResult} className="space-y-4">
                 <div>
                   <Label htmlFor="student">Student *</Label>
-                  <Select value={newResult.studentId} onValueChange={(value) => setNewResult({...newResult, studentId: value})}>
+                  <Select value={newResult.studentId} onValueChange={(value) => setNewResult({ ...newResult, studentId: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select student" />
                     </SelectTrigger>
@@ -436,7 +437,7 @@ export default function TestDetails() {
                     id="score"
                     type="number"
                     value={newResult.score}
-                    onChange={(e) => setNewResult({...newResult, score: e.target.value})}
+                    onChange={(e) => setNewResult({ ...newResult, score: e.target.value })}
                     min="0"
                     max={test.totalPoints}
                     required
@@ -447,7 +448,7 @@ export default function TestDetails() {
                   <Textarea
                     id="feedback"
                     value={newResult.feedback}
-                    onChange={(e) => setNewResult({...newResult, feedback: e.target.value})}
+                    onChange={(e) => setNewResult({ ...newResult, feedback: e.target.value })}
                     rows={3}
                     placeholder="Optional feedback for the student..."
                   />
@@ -461,14 +462,14 @@ export default function TestDetails() {
               </form>
             </DialogContent>
           </Dialog>
-          
+
           {/* Edit Result Dialog */}
           <Dialog open={isEditResultDialogOpen} onOpenChange={setIsEditResultDialogOpen}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4" aria-describedby={undefined}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4" >
               <DialogHeader>
                 <DialogTitle>Edit Test Result</DialogTitle>
               </DialogHeader>
-              
+
               <Tabs value={uploadMethod} onValueChange={(value) => setUploadMethod(value as 'manual' | 'file')} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="manual" className="flex items-center gap-2">
@@ -489,7 +490,7 @@ export default function TestDetails() {
                         id="editScore"
                         type="number"
                         value={editResult.score}
-                        onChange={(e) => setEditResult({...editResult, score: e.target.value})}
+                        onChange={(e) => setEditResult({ ...editResult, score: e.target.value })}
                         min="0"
                         max={test.totalPoints}
                         required={uploadMethod === 'manual'}
@@ -500,7 +501,7 @@ export default function TestDetails() {
                       <Textarea
                         id="editFeedback"
                         value={editResult.feedback}
-                        onChange={(e) => setEditResult({...editResult, feedback: e.target.value})}
+                        onChange={(e) => setEditResult({ ...editResult, feedback: e.target.value })}
                         rows={3}
                         placeholder="Optional feedback for the student..."
                       />
@@ -524,7 +525,7 @@ export default function TestDetails() {
                         </p>
                       </div>
                     </div>
-                    
+
                     {uploadedFile && (
                       <div className="p-3 bg-muted rounded-lg">
                         <div className="flex items-center gap-2 mb-3">
@@ -534,19 +535,19 @@ export default function TestDetails() {
                             ({(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)
                           </span>
                         </div>
-                        
+
                         {/* File Preview */}
                         {isImageFile(uploadedFile) && filePreviewUrl && (
                           <div className="mt-3">
                             <p className="text-sm font-medium mb-2">Preview:</p>
-                            <img 
-                              src={filePreviewUrl} 
-                              alt="Test result preview" 
+                            <img
+                              src={filePreviewUrl}
+                              alt="Test result preview"
                               className="max-w-full max-h-48 object-contain border rounded-lg"
                             />
                           </div>
                         )}
-                        
+
                         {isPDFFile(uploadedFile) && (
                           <div className="mt-3 p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
                             <div className="flex items-center gap-2">
@@ -566,7 +567,7 @@ export default function TestDetails() {
                         id="fileScore"
                         type="number"
                         value={editResult.score}
-                        onChange={(e) => setEditResult({...editResult, score: e.target.value})}
+                        onChange={(e) => setEditResult({ ...editResult, score: e.target.value })}
                         min="0"
                         max={test.totalPoints}
                         required={uploadMethod === 'file'}
@@ -582,7 +583,7 @@ export default function TestDetails() {
                       <Textarea
                         id="fileFeedback"
                         value={editResult.feedback}
-                        onChange={(e) => setEditResult({...editResult, feedback: e.target.value})}
+                        onChange={(e) => setEditResult({ ...editResult, feedback: e.target.value })}
                         rows={3}
                         placeholder="Add feedback based on the uploaded file..."
                       />
@@ -613,7 +614,7 @@ export default function TestDetails() {
 
           {/* Edit Test Dialog */}
           <Dialog open={isEditTestDialogOpen} onOpenChange={setIsEditTestDialogOpen}>
-            <DialogContent className="max-w-2xl mx-4" aria-describedby={undefined}>
+            <DialogContent className="max-w-2xl mx-4" >
               <DialogHeader>
                 <DialogTitle>Edit Test</DialogTitle>
               </DialogHeader>
@@ -625,13 +626,13 @@ export default function TestDetails() {
                       <Input
                         id="edit-title"
                         value={editingTest.title}
-                        onChange={(e) => setEditingTest({...editingTest, title: e.target.value})}
+                        onChange={(e) => setEditingTest({ ...editingTest, title: e.target.value })}
                         required
                       />
                     </div>
                     <div>
                       <Label htmlFor="edit-class">Class *</Label>
-                      <Select value={editingTest.classId} onValueChange={(value) => setEditingTest({...editingTest, classId: value})}>
+                      <Select value={editingTest.classId} onValueChange={(value) => setEditingTest({ ...editingTest, classId: value })}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select class" />
                         </SelectTrigger>
@@ -645,13 +646,13 @@ export default function TestDetails() {
                       </Select>
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="edit-description">Description</Label>
                     <Textarea
                       id="edit-description"
                       value={editingTest.description}
-                      onChange={(e) => setEditingTest({...editingTest, description: e.target.value})}
+                      onChange={(e) => setEditingTest({ ...editingTest, description: e.target.value })}
                       rows={2}
                     />
                   </div>
@@ -663,7 +664,7 @@ export default function TestDetails() {
                         id="edit-totalPoints"
                         type="number"
                         value={editingTest.totalPoints}
-                        onChange={(e) => setEditingTest({...editingTest, totalPoints: parseInt(e.target.value)})}
+                        onChange={(e) => setEditingTest({ ...editingTest, totalPoints: parseInt(e.target.value) })}
                         min="1"
                       />
                     </div>
@@ -673,13 +674,13 @@ export default function TestDetails() {
                         id="edit-testDate"
                         type="date"
                         value={editingTest.testDate}
-                        onChange={(e) => setEditingTest({...editingTest, testDate: e.target.value})}
+                        onChange={(e) => setEditingTest({ ...editingTest, testDate: e.target.value })}
                         required
                       />
                     </div>
                     <div>
                       <Label htmlFor="edit-testType">Test Type</Label>
-                      <Select value={editingTest.testType} onValueChange={(value: any) => setEditingTest({...editingTest, testType: value})}>
+                      <Select value={editingTest.testType} onValueChange={(value: any) => setEditingTest({ ...editingTest, testType: value })}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -759,7 +760,7 @@ export default function TestDetails() {
             <p className="text-xs text-muted-foreground mt-1">{stats.submissionRate}% submitted</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -816,98 +817,97 @@ export default function TestDetails() {
             <CardContent>
               <div className="overflow-x-auto">
                 <Table data-testid="results-table">
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="cursor-default">Student</TableHead>
-                    <TableHead className="cursor-default">Score</TableHead>
-                    <TableHead className="cursor-default">Percentage</TableHead>
-                    <TableHead className="cursor-default">Grade</TableHead>
-                    <TableHead className="cursor-default">Graded Date</TableHead>
-                    <TableHead className="cursor-default w-44">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {resultsWithStudentInfo.map((result) => (
-                    <TableRow key={result.id}>
-                      <TableCell>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">{result.studentName}</p>
-                            {result.attachedFile && (
-                              <div className={`flex items-center gap-1 ${focusFromUrl === 'files' ? 'animate-pulse' : ''}`}>
-                                <FileText className="h-3 w-3 text-blue-600" title="Has attached file" />
-                              </div>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">{result.studentEmail}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{result.score}/{result.maxScore}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span>{result.percentage}%</span>
-                          <div className={`w-2 h-2 rounded-full ${
-                            result.percentage >= 90 ? 'bg-green-500' : 
-                            result.percentage >= 80 ? 'bg-blue-500' :
-                            result.percentage >= 70 ? 'bg-yellow-500' : 
-                            result.percentage >= 60 ? 'bg-orange-500' : 'bg-red-500'
-                          }`} />
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={result.percentage >= 70 ? "default" : "destructive"}>
-                          {result.grade}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{new Date(result.gradedDate).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={() => handleViewStudent(result.studentId)}
-                            className="h-8 w-8 p-0"
-                            title="View student details"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {result.attachedFile && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              onClick={() => handleViewAttachedFile(result)}
-                              className={`h-8 w-8 p-0 ${focusFromUrl === 'files' ? 'bg-blue-50 animate-pulse' : ''}`}
-                              title="View attached file"
-                            >
-                              <FileText className="h-4 w-4 text-blue-600" />
-                            </Button>
-                          )}
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={() => handleEditResult(result)}
-                            className="h-8 w-8 p-0"
-                            title="Edit result"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={() => handleDeleteResult(result.id, result.studentName)}
-                            className="h-8 w-8 p-0"
-                            title="Delete result"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="cursor-default">Student</TableHead>
+                      <TableHead className="cursor-default">Score</TableHead>
+                      <TableHead className="cursor-default">Percentage</TableHead>
+                      <TableHead className="cursor-default">Grade</TableHead>
+                      <TableHead className="cursor-default">Graded Date</TableHead>
+                      <TableHead className="cursor-default w-44">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
+                  </TableHeader>
+                  <TableBody>
+                    {resultsWithStudentInfo.map((result) => (
+                      <TableRow key={result.id}>
+                        <TableCell>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{(result as any).studentName}</p>
+                              {(result as any).attachedFile && (
+                                <div className={`flex items-center gap-1 ${focusFromUrl === 'files' ? 'animate-pulse' : ''}`}>
+                                  <FileText className="h-3 w-3 text-blue-600" />
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground">{(result as any).studentEmail}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>{result.score}/{result.maxScore}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span>{(result as any).percentage}%</span>
+                            <div className={`w-2 h-2 rounded-full ${(result as any).percentage >= 90 ? 'bg-green-500' :
+                              (result as any).percentage >= 80 ? 'bg-blue-500' :
+                                (result as any).percentage >= 70 ? 'bg-yellow-500' :
+                                  (result as any).percentage >= 60 ? 'bg-orange-500' : 'bg-red-500'
+                              }`} />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={(result as any).percentage >= 70 ? "default" : "destructive"}>
+                            {(result as any).grade}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{new Date((result as any).gradedDate).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleViewStudent((result as any).studentId)}
+                              className="h-8 w-8 p-0"
+                              title="View student details"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {(result as any).attachedFile && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleViewAttachedFile(result)}
+                                className={`h-8 w-8 p-0 ${focusFromUrl === 'files' ? 'bg-blue-50 animate-pulse' : ''}`}
+                                title="View attached file"
+                              >
+                                <FileText className="h-4 w-4 text-blue-600" />
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditResult(result)}
+                              className="h-8 w-8 p-0"
+                              title="Edit result"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteResult(result.id, result.studentName)}
+                              className="h-8 w-8 p-0"
+                              title="Delete result"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
                 </Table>
               </div>
-              
+
               {resultsWithStudentInfo.length === 0 && (
                 <div className="text-center py-8">
                   <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -934,7 +934,7 @@ export default function TestDetails() {
                     const percentage = testResults.length > 0 ? (count / testResults.length) * 100 : 0
                     const colors = {
                       A: 'bg-green-500',
-                      B: 'bg-blue-500', 
+                      B: 'bg-blue-500',
                       C: 'bg-yellow-500',
                       D: 'bg-orange-500',
                       F: 'bg-red-500'
@@ -948,7 +948,7 @@ export default function TestDetails() {
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-muted-foreground">{count} students</span>
                           <div className="w-20 bg-muted rounded-full h-2">
-                            <div 
+                            <div
                               className={`h-2 rounded-full ${colors[grade as keyof typeof colors]}`}
                               style={{ width: `${percentage}%` }}
                             />

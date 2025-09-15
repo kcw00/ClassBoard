@@ -4,18 +4,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Users, GraduationCap, Calendar, Clock, MapPin, CalendarCheck, UserCheck } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Users, GraduationCap, Calendar, MapPin, CalendarCheck, UserCheck, RefreshCw, AlertCircle } from "lucide-react"
 import { classColors } from "@/data/mockData"
 import { useAppData } from "@/context/AppDataContext"
+import { ApiServiceTest } from "@/components/common/ApiServiceTest"
 
 export default function Dashboard() {
   const navigate = useNavigate()
   const { data, actions } = useAppData()
+  
+  // Mock loading states for now - these will be real when we switch to API service
+  const loading = { classes: false, students: false, schedules: false, meetings: false }
+  const errors = {}
+  const isInitialLoading = false
   const [activeModal, setActiveModal] = useState<string | null>(null)
   const [classFormData, setClassFormData] = useState({
     name: "",
@@ -74,7 +81,7 @@ export default function Dashboard() {
       subject: classFormData.subject,
       description: classFormData.description,
       room: classFormData.room,
-      capacity: classFormData.capacity,
+      capacity: parseInt(classFormData.capacity) || 0,
       color: classFormData.color
     })
     setClassFormData({ name: "", subject: "", description: "", room: "", capacity: "", color: "#3b82f6" })
@@ -98,7 +105,7 @@ export default function Dashboard() {
     e.preventDefault()
     actions.addSchedule({
       classId: scheduleFormData.classId,
-      dayOfWeek: scheduleFormData.dayOfWeek,
+      dayOfWeek: parseInt(scheduleFormData.dayOfWeek) || 0,
       startTime: scheduleFormData.startTime,
       endTime: scheduleFormData.endTime
     })
@@ -168,6 +175,96 @@ export default function Dashboard() {
     }
   ]
 
+  // Show loading state during initial load
+  if (isInitialLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">Loading your classroom data...</p>
+          </div>
+          <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+        
+        {/* Loading skeleton for statistics cards */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-3 w-20" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        {/* Loading skeleton for content cards */}
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+          {[...Array(2)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-4 w-48" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, j) => (
+                    <div key={j} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="w-3 h-3 rounded-full" />
+                        <div className="space-y-1">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-3 w-32" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-5 w-12" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state if there are critical errors
+  const hasErrors = Object.keys(errors).length > 0
+  if (hasErrors) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">Overview of your classroom management system</p>
+          </div>
+        </div>
+        
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            There was an error loading your data. Please try refreshing the page.
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="ml-2"
+              onClick={() => window.location.reload()}
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -176,6 +273,9 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">Overview of your classroom management system</p>
         </div>
+        {(loading?.classes || loading?.students) && (
+          <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+        )}
       </div>
 
       {/* Statistics Cards */}
@@ -189,7 +289,11 @@ export default function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalStudents}</div>
+            {loading?.students ? (
+              <Skeleton className="h-8 w-16 mb-2" />
+            ) : (
+              <div className="text-2xl font-bold">{totalStudents}</div>
+            )}
             <p className="text-xs text-muted-foreground">
               Active enrollments
             </p>
@@ -205,7 +309,11 @@ export default function Dashboard() {
             <GraduationCap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalClasses}</div>
+            {loading?.classes ? (
+              <Skeleton className="h-8 w-16 mb-2" />
+            ) : (
+              <div className="text-2xl font-bold">{totalClasses}</div>
+            )}
             <p className="text-xs text-muted-foreground">
               Active courses
             </p>
@@ -221,7 +329,11 @@ export default function Dashboard() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{todayClasses}</div>
+            {loading?.schedules ? (
+              <Skeleton className="h-8 w-16 mb-2" />
+            ) : (
+              <div className="text-2xl font-bold">{todayClasses}</div>
+            )}
             <p className="text-xs text-muted-foreground">
               Scheduled for today
             </p>
@@ -237,7 +349,11 @@ export default function Dashboard() {
             <CalendarCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalMeetings}</div>
+            {loading?.meetings ? (
+              <Skeleton className="h-8 w-16 mb-2" />
+            ) : (
+              <div className="text-2xl font-bold">{totalMeetings}</div>
+            )}
             <p className="text-xs text-muted-foreground">
               {upcomingMeetings} upcoming
             </p>
@@ -256,29 +372,44 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentClasses.map((classItem) => (
-                <div 
-                  key={classItem.id} 
-                  className="flex items-center justify-between cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-colors"
-                  onClick={() => navigate(`/classes/${classItem.id}`)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: classItem.color }}
-                    />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {classItem.name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {classItem.subject} • {classItem.enrolledStudents.length} students
-                      </p>
+              {loading?.classes ? (
+                [...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-2">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="w-3 h-3 rounded-full" />
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
                     </div>
+                    <Skeleton className="h-5 w-12" />
                   </div>
-                  <Badge variant="secondary">{classItem.room}</Badge>
-                </div>
-              ))}
+                ))
+              ) : (
+                recentClasses.map((classItem) => (
+                  <div 
+                    key={classItem.id} 
+                    className="flex items-center justify-between cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-colors"
+                    onClick={() => navigate(`/classes/${classItem.id}`)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: classItem.color }}
+                      />
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {classItem.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {classItem.subject} • {classItem.enrolledStudents.length} students
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary">{classItem.room}</Badge>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -306,6 +437,9 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+        
+        {/* API Service Integration Test */}
+        <ApiServiceTest />
       </div>
 
       {/* Modals */}
@@ -330,7 +464,7 @@ export default function Dashboard() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="class-subject">Subject</Label>
-              <Select value={classFormData.subject} onValueChange={(value) => setClassFormData({ ...classFormData, subject: value })}>
+              <Select value={classFormData.subject} onValueChange={(value: string) => setClassFormData({ ...classFormData, subject: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a subject" />
                 </SelectTrigger>
@@ -443,7 +577,7 @@ export default function Dashboard() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="student-grade">Grade</Label>
-              <Select value={studentFormData.grade} onValueChange={(value) => setStudentFormData({ ...studentFormData, grade: value })}>
+              <Select value={studentFormData.grade} onValueChange={(value: string) => setStudentFormData({ ...studentFormData, grade: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select grade" />
                 </SelectTrigger>
@@ -486,7 +620,7 @@ export default function Dashboard() {
           <form onSubmit={handleScheduleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="schedule-class">Class</Label>
-              <Select value={scheduleFormData.classId} onValueChange={(value) => setScheduleFormData({ ...scheduleFormData, classId: value })}>
+              <Select value={scheduleFormData.classId} onValueChange={(value: string) => setScheduleFormData({ ...scheduleFormData, classId: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a class" />
                 </SelectTrigger>
@@ -501,7 +635,7 @@ export default function Dashboard() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="schedule-day">Day of Week</Label>
-              <Select value={scheduleFormData.dayOfWeek} onValueChange={(value) => setScheduleFormData({ ...scheduleFormData, dayOfWeek: value })}>
+              <Select value={scheduleFormData.dayOfWeek} onValueChange={(value: string) => setScheduleFormData({ ...scheduleFormData, dayOfWeek: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select day" />
                 </SelectTrigger>

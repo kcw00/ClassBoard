@@ -12,13 +12,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, Users, MapPin, Clock, Settings, UserPlus, CalendarPlus, Trash2, Edit } from "lucide-react"
-import { classColors } from "@/data/mockData"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Plus, Users, MapPin, Clock, Settings, UserPlus, CalendarPlus, Trash2, Edit, RefreshCw, AlertCircle } from "lucide-react"
+import { classColors, Class } from "@/data/mockData"
 import { useAppData } from "@/context/AppDataContext"
 
 export default function ClassManagement() {
   const navigate = useNavigate()
   const { data, actions } = useAppData()
+
+  // Mock loading and error states since basic AppDataContext doesn't provide them
+  const loading = { classes: false }
+  const errors = {}
+  const isInitialLoading = false
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false)
   const [selectedClass, setSelectedClass] = useState<Class | null>(null)
@@ -51,7 +58,7 @@ export default function ClassManagement() {
       subject: formData.subject,
       description: formData.description,
       room: formData.room,
-      capacity: formData.capacity,
+      capacity: parseInt(formData.capacity, 10),
       color: formData.color
     })
     setFormData({ name: "", subject: "", description: "", room: "", capacity: "", color: "#3b82f6" })
@@ -74,7 +81,7 @@ export default function ClassManagement() {
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedClass) return
-    
+
     actions.updateClass(selectedClass.id, {
       name: editFormData.name,
       subject: editFormData.subject,
@@ -89,7 +96,7 @@ export default function ClassManagement() {
 
   const handleEnrollStudent = (studentId: string, enrolled: boolean) => {
     if (!selectedClass) return
-    
+
     if (enrolled) {
       actions.enrollStudent(selectedClass.id, studentId)
     } else {
@@ -100,10 +107,10 @@ export default function ClassManagement() {
   const handleAddSchedule = (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedClass) return
-    
+
     actions.addSchedule({
       classId: selectedClass.id,
-      dayOfWeek: scheduleFormData.dayOfWeek,
+      dayOfWeek: parseInt(scheduleFormData.dayOfWeek, 10),
       startTime: scheduleFormData.startTime,
       endTime: scheduleFormData.endTime
     })
@@ -135,6 +142,80 @@ export default function ClassManagement() {
     return data.students.filter(student => !classItem.enrolledStudents.includes(student.id))
   }
 
+  // Show loading state during initial load
+  if (isInitialLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Classes</h1>
+            <p className="text-muted-foreground">Loading your classes...</p>
+          </div>
+          <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+
+        {/* Loading skeleton for classes */}
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="w-3 h-3 rounded-full" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
+                  <Skeleton className="h-5 w-16" />
+                </div>
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <div className="flex items-center gap-4 pt-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state if there are critical errors
+  const hasErrors = Object.keys(errors || {}).length > 0
+  if (hasErrors) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Classes</h1>
+            <p className="text-muted-foreground">Manage your classes and enrollments</p>
+          </div>
+        </div>
+
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            There was an error loading your classes. Please try refreshing the page.
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-2"
+              onClick={() => actions.refreshData?.()}
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -145,6 +226,9 @@ export default function ClassManagement() {
             Manage your classes and enrollments
           </p>
         </div>
+        {loading?.classes && (
+          <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+        )}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button aria-label="Add Class">
@@ -152,7 +236,7 @@ export default function ClassManagement() {
               <span className="hidden sm:inline sm:ml-2">Add Class</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]" aria-describedby={undefined}>
+          <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Add New Class</DialogTitle>
             </DialogHeader>
@@ -220,9 +304,8 @@ export default function ClassManagement() {
                     <button
                       key={colorOption.value}
                       type="button"
-                      className={`w-8 h-8 rounded-lg border-2 ${
-                        formData.color === colorOption.value ? 'border-foreground' : 'border-border'
-                      }`}
+                      className={`w-8 h-8 rounded-lg border-2 ${formData.color === colorOption.value ? 'border-foreground' : 'border-border'
+                        }`}
                       style={{ backgroundColor: colorOption.value }}
                       onClick={() => setFormData({ ...formData, color: colorOption.value })}
                       title={colorOption.name}
@@ -237,14 +320,14 @@ export default function ClassManagement() {
 
         {/* Manage Class Dialog */}
         <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
-          <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-auto" aria-describedby={undefined}>
+          <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" />
                 Manage Class: {selectedClass?.name}
               </DialogTitle>
             </DialogHeader>
-            
+
             {selectedClass && (
               <Tabs defaultValue="details" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
@@ -328,9 +411,8 @@ export default function ClassManagement() {
                           <button
                             key={colorOption.value}
                             type="button"
-                            className={`w-8 h-8 rounded-lg border-2 ${
-                              editFormData.color === colorOption.value ? 'border-foreground' : 'border-border'
-                            }`}
+                            className={`w-8 h-8 rounded-lg border-2 ${editFormData.color === colorOption.value ? 'border-foreground' : 'border-border'
+                              }`}
                             style={{ backgroundColor: colorOption.value }}
                             onClick={() => setEditFormData({ ...editFormData, color: colorOption.value })}
                             title={colorOption.name}
@@ -489,19 +571,19 @@ export default function ClassManagement() {
         {data.classes.map((classItem) => {
           const schedules = getScheduleForClass(classItem.id)
           return (
-            <Card 
-              key={classItem.id} 
+            <Card
+              key={classItem.id}
               className="relative cursor-pointer hover:shadow-md transition-shadow flex flex-col h-full"
               onClick={() => navigate(`/classes/${classItem.id}`)}
             >
-              <div 
+              <div
                 className="absolute top-0 left-0 w-1 h-full rounded-l-lg"
                 style={{ backgroundColor: classItem.color }}
               />
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div 
+                    <div
                       className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: classItem.color }}
                     />
@@ -538,9 +620,9 @@ export default function ClassManagement() {
                   )}
                 </div>
                 <div className="pt-4 flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex-1"
                     onClick={(e) => {
                       e.stopPropagation()
@@ -549,9 +631,9 @@ export default function ClassManagement() {
                   >
                     View Details
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={(e) => {
                       e.stopPropagation()
                       handleManageClass(classItem)
