@@ -18,10 +18,19 @@ import type { Class } from "@/types"
 import { useAppData } from "@/context/AppDataMigrationContext"
 import { DeleteConfirmationDialog } from "@/components/common/DeleteConfirmationDialog"
 import { calculateClassDeletionImpact, type DeletionImpact } from "@/utils/impactCalculation"
+import { 
+  handleDeleteError, 
+  handleDeleteSuccess, 
+  handleImpactCalculationError,
+  retryOperation,
+  DEFAULT_RETRY_CONFIG
+} from "@/utils/errorHandling"
+import { useNetworkStatus } from "@/hooks/useNetworkStatus"
 
 export default function ClassManagement() {
   const navigate = useNavigate()
   const { data, actions, loading, errors, isInitialLoading } = useAppData()
+  const networkStatus = useNetworkStatus()
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false)
@@ -32,6 +41,7 @@ export default function ClassManagement() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deletionImpact, setDeletionImpact] = useState<DeletionImpact | null>(null)
   const [isCalculatingImpact, setIsCalculatingImpact] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
@@ -155,16 +165,35 @@ export default function ClassManagement() {
     setIsCalculatingImpact(true)
     setDeleteDialogOpen(true)
     
-    try {
+    const calculateImpact = async () => {
       const impact = await calculateClassDeletionImpact(classItem.id)
       setDeletionImpact(impact)
+    }
+    
+    try {
+      await retryOperation(
+        calculateImpact,
+        DEFAULT_RETRY_CONFIG,
+        (attempt, error) => {
+          setRetryCount(attempt)
+          console.log(`Impact calculation attempt ${attempt} failed:`, error)
+          toast.loading(`Calculating deletion impact... (attempt ${attempt})`, {
+            duration: 2000
+          })
+        }
+      )
     } catch (error) {
-      console.error('Failed to calculate deletion impact:', error)
-      toast.error('Failed to calculate deletion impact. Please try again.')
+      handleImpactCalculationError(
+        error, 
+        'class', 
+        classItem.name,
+        () => handleDeleteClick(classItem, e)
+      )
       setDeleteDialogOpen(false)
       setClassToDelete(null)
     } finally {
       setIsCalculatingImpact(false)
+      setRetryCount(0)
     }
   }
 
@@ -172,36 +201,59 @@ export default function ClassManagement() {
     if (!classToDelete) return
     
     setIsDeleting(true)
-    try {
+    
+    const performDelete = async () => {
       await actions.deleteClass(classToDelete.id)
+    }
+    
+    try {
+      await retryOperation(
+        performDelete,
+        DEFAULT_RETRY_CONFIG,
+        (attempt, error) => {
+          setRetryCount(attempt)
+          console.log(`Delete attempt ${attempt} failed:`, error)
+          toast.loading(`Deleting class... (attempt ${attempt})`, {
+            duration: 2000
+          })
+        }
+      )
       
       // Success feedback
-      toast.success(`Class "${classToDelete.name}" deleted successfully!`)
+      handleDeleteSuccess('class', classToDelete.name)
       
       // Close dialog and reset state
       setDeleteDialogOpen(false)
+      const deletedClassName = classToDelete.name
       setClassToDelete(null)
       setDeletionImpact(null)
       
       // Also show status message for consistency with existing UI
       setStatusMessage({ 
         type: 'success', 
-        message: `Class "${classToDelete.name}" deleted successfully!` 
+        message: `Class "${deletedClassName}" deleted successfully!` 
       })
       setTimeout(() => setStatusMessage(null), 3000)
+      
     } catch (error) {
-      console.error('Failed to delete class:', error)
+      // Enhanced error handling with retry option
+      handleDeleteError(
+        error, 
+        'class', 
+        classToDelete.name,
+        () => handleDeleteConfirm()
+      )
       
-      // Error feedback
-      toast.error('Failed to delete class. Please try again.')
-      
+      // Also show status message for consistency with existing UI
       setStatusMessage({ 
         type: 'error', 
-        message: 'Failed to delete class. Please try again.' 
+        message: 'Failed to delete class. Please check the error message and try again.' 
       })
-      setTimeout(() => setStatusMessage(null), 5000)
+      setTimeout(() => setStatusMessage(null), 8000) // Longer duration for error messages
+      
     } finally {
       setIsDeleting(false)
+      setRetryCount(0)
     }
   }
 
@@ -779,7 +831,13 @@ export default function ClassManagement() {
         }
         itemName={classToDelete?.name || ''}
         impactInfo={deletionImpact || undefined}
-        isLoading={isDeleting || isCalculatingImpact}
+        isLoading={isDeleting}
+        isRetrying={retryCount > 0}
+        retryCount={retryCount}
+        maxRetries={DEFAULT_RETRY_CONFIG.maxAttempts}
+        itemType="class"
+        isCalculatingImpact={isCalculatingImpact}
+        networkStatus={networkStatus.status}
       />
     </div>
   )

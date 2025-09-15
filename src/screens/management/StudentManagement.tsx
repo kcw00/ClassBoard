@@ -9,14 +9,24 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Mail, Phone, User, Users, ChevronUp, ChevronDown, Search, CheckCircle, AlertCircle, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 import { useAppData } from "@/context/AppDataMigrationContext"
 import { Student } from "@/data"
 import { DeleteConfirmationDialog } from "@/components/common/DeleteConfirmationDialog"
 import { calculateStudentDeletionImpact, DeletionImpact } from "@/utils/impactCalculation"
+import { 
+  handleDeleteError, 
+  handleDeleteSuccess, 
+  handleImpactCalculationError,
+  retryOperation,
+  DEFAULT_RETRY_CONFIG
+} from "@/utils/errorHandling"
+import { useNetworkStatus } from "@/hooks/useNetworkStatus"
 
 export default function StudentManagement() {
   const navigate = useNavigate()
   const { data, actions } = useAppData()
+  const networkStatus = useNetworkStatus()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [, setEditingStudent] = useState<Student | null>(null)
@@ -28,6 +38,8 @@ export default function StudentManagement() {
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null)
   const [deletionImpact, setDeletionImpact] = useState<DeletionImpact | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isCalculatingImpact, setIsCalculatingImpact] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -102,16 +114,38 @@ export default function StudentManagement() {
 
   const handleDeleteClick = async (student: Student) => {
     setStudentToDelete(student)
-    try {
+    setIsCalculatingImpact(true)
+    setIsDeleteDialogOpen(true)
+    
+    const calculateImpact = async () => {
       const impact = await calculateStudentDeletionImpact(student.id)
       setDeletionImpact(impact)
-      setIsDeleteDialogOpen(true)
+    }
+    
+    try {
+      await retryOperation(
+        calculateImpact,
+        DEFAULT_RETRY_CONFIG,
+        (attempt, error) => {
+          setRetryCount(attempt)
+          console.log(`Impact calculation attempt ${attempt} failed:`, error)
+          toast.loading(`Calculating deletion impact... (attempt ${attempt})`, {
+            duration: 2000
+          })
+        }
+      )
     } catch (error) {
-      setStatusMessage({ 
-        type: 'error', 
-        message: 'Failed to calculate deletion impact. Please try again.' 
-      })
-      setTimeout(() => setStatusMessage(null), 5000)
+      handleImpactCalculationError(
+        error, 
+        'student', 
+        student.name,
+        () => handleDeleteClick(student)
+      )
+      setIsDeleteDialogOpen(false)
+      setStudentToDelete(null)
+    } finally {
+      setIsCalculatingImpact(false)
+      setRetryCount(0)
     }
   }
 
@@ -119,24 +153,59 @@ export default function StudentManagement() {
     if (!studentToDelete) return
 
     setIsDeleting(true)
-    try {
+    
+    const performDelete = async () => {
       await actions.deleteStudent(studentToDelete.id)
+    }
+    
+    try {
+      await retryOperation(
+        performDelete,
+        DEFAULT_RETRY_CONFIG,
+        (attempt, error) => {
+          setRetryCount(attempt)
+          console.log(`Delete attempt ${attempt} failed:`, error)
+          toast.loading(`Deleting student... (attempt ${attempt})`, {
+            duration: 2000
+          })
+        }
+      )
+      
+      // Success feedback
+      handleDeleteSuccess('student', studentToDelete.name)
+      
+      // Close dialog and reset state
       setIsDeleteDialogOpen(false)
+      const deletedStudentName = studentToDelete.name
       setStudentToDelete(null)
       setDeletionImpact(null)
+      
+      // Also show status message for consistency with existing UI
       setStatusMessage({ 
         type: 'success', 
-        message: `Student "${studentToDelete.name}" deleted successfully!` 
+        message: `Student "${deletedStudentName}" deleted successfully!` 
       })
       setTimeout(() => setStatusMessage(null), 3000)
+      
     } catch (error) {
+      // Enhanced error handling with retry option
+      handleDeleteError(
+        error, 
+        'student', 
+        studentToDelete.name,
+        () => handleDeleteConfirm()
+      )
+      
+      // Also show status message for consistency with existing UI
       setStatusMessage({ 
         type: 'error', 
-        message: 'Failed to delete student. Please try again.' 
+        message: 'Failed to delete student. Please check the error message and try again.' 
       })
-      setTimeout(() => setStatusMessage(null), 5000)
+      setTimeout(() => setStatusMessage(null), 8000) // Longer duration for error messages
+      
     } finally {
       setIsDeleting(false)
+      setRetryCount(0)
     }
   }
 
@@ -535,10 +604,20 @@ export default function StudentManagement() {
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         title="Delete Student"
-        description="Are you sure you want to delete this student? This action cannot be undone."
+        description={
+          isCalculatingImpact 
+            ? "Calculating impact of deletion..." 
+            : "Are you sure you want to delete this student? This action cannot be undone."
+        }
         itemName={studentToDelete?.name || ""}
         impactInfo={deletionImpact || undefined}
         isLoading={isDeleting}
+        isRetrying={retryCount > 0}
+        retryCount={retryCount}
+        maxRetries={DEFAULT_RETRY_CONFIG.maxAttempts}
+        itemType="student"
+        isCalculatingImpact={isCalculatingImpact}
+        networkStatus={networkStatus.status}
       />
     </div>
   )

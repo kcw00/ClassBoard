@@ -10,7 +10,8 @@ import {
   AlertDialogTitle,
 } from '../ui/alert-dialog';
 import { LoadingSpinner } from './LoadingSpinner';
-import { AlertTriangle } from 'lucide-react';
+import { DeleteLoadingState } from './DeleteLoadingState';
+import { AlertTriangle, Wifi, WifiOff } from 'lucide-react';
 
 interface ImpactItem {
   type: string;
@@ -31,6 +32,12 @@ interface DeleteConfirmationDialogProps {
     warningMessage?: string;
   };
   isLoading?: boolean;
+  isRetrying?: boolean;
+  retryCount?: number;
+  maxRetries?: number;
+  itemType?: 'class' | 'student';
+  isCalculatingImpact?: boolean;
+  networkStatus?: 'online' | 'offline' | 'slow';
 }
 
 export function DeleteConfirmationDialog({
@@ -42,6 +49,12 @@ export function DeleteConfirmationDialog({
   itemName,
   impactInfo,
   isLoading = false,
+  isRetrying = false,
+  retryCount = 0,
+  maxRetries = 3,
+  itemType = 'class',
+  isCalculatingImpact = false,
+  networkStatus = 'online',
 }: DeleteConfirmationDialogProps) {
   const handleConfirm = () => {
     if (!isLoading) {
@@ -71,15 +84,60 @@ export function DeleteConfirmationDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
+        {/* Network status indicator */}
+        {networkStatus !== 'online' && (
+          <div className="rounded-md bg-yellow-50 dark:bg-yellow-950/20 p-3 border border-yellow-200 dark:border-yellow-800">
+            <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
+              {networkStatus === 'offline' ? (
+                <WifiOff className="h-4 w-4" />
+              ) : (
+                <Wifi className="h-4 w-4" />
+              )}
+              <p className="text-sm font-medium">
+                {networkStatus === 'offline' 
+                  ? 'No internet connection detected'
+                  : 'Slow network connection detected'
+                }
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Loading state for deletion */}
+        {isLoading && (
+          <DeleteLoadingState
+            isLoading={isLoading}
+            isRetrying={isRetrying}
+            retryCount={retryCount}
+            maxRetries={maxRetries}
+            operation="deleting"
+            itemType={itemType}
+            itemName={itemName}
+          />
+        )}
+
+        {/* Loading state for impact calculation */}
+        {isCalculatingImpact && (
+          <DeleteLoadingState
+            isLoading={isCalculatingImpact}
+            operation="calculating"
+            itemType={itemType}
+            itemName={itemName}
+            showProgress={false}
+          />
+        )}
+
         {/* Item name display */}
-        <div className="rounded-md bg-muted p-3">
-          <p className="font-medium text-sm">
-            Item to delete: <span className="text-destructive">{itemName}</span>
-          </p>
-        </div>
+        {!isLoading && !isCalculatingImpact && (
+          <div className="rounded-md bg-muted p-3">
+            <p className="font-medium text-sm">
+              Item to delete: <span className="text-destructive">{itemName}</span>
+            </p>
+          </div>
+        )}
 
         {/* Impact information */}
-        {impactInfo && impactInfo.hasAssociatedData && (
+        {!isLoading && !isCalculatingImpact && impactInfo && impactInfo.hasAssociatedData && (
           <div className="space-y-3">
             {impactInfo.warningMessage && (
               <div className="rounded-md bg-destructive/10 p-3 border border-destructive/20">
@@ -108,7 +166,7 @@ export function DeleteConfirmationDialog({
         )}
 
         {/* Safe deletion message */}
-        {impactInfo && !impactInfo.hasAssociatedData && (
+        {!isLoading && !isCalculatingImpact && impactInfo && !impactInfo.hasAssociatedData && (
           <div className="rounded-md bg-green-50 dark:bg-green-950/20 p-3 border border-green-200 dark:border-green-800">
             <p className="text-sm text-green-800 dark:text-green-200">
               This item has no associated data and can be safely deleted.
@@ -119,20 +177,25 @@ export function DeleteConfirmationDialog({
         <AlertDialogFooter>
           <AlertDialogCancel
             onClick={handleCancel}
-            disabled={isLoading}
+            disabled={isLoading || isCalculatingImpact}
             className="sm:mr-2"
           >
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
-            disabled={isLoading}
-            className="bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20"
+            disabled={isLoading || isCalculatingImpact || !impactInfo}
+            className="bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 disabled:opacity-50"
           >
             {isLoading ? (
               <>
                 <LoadingSpinner size="sm" className="mr-2" />
-                Deleting...
+                {isRetrying ? `Deleting... (${retryCount}/${maxRetries})` : 'Deleting...'}
+              </>
+            ) : isCalculatingImpact ? (
+              <>
+                <LoadingSpinner size="sm" className="mr-2" />
+                Calculating...
               </>
             ) : (
               'Delete'
