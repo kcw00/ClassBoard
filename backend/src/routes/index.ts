@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import authRoutes from './auth';
 import classRoutes from './classes';
+import studentRoutes from './students';
 
 const router = Router();
 
@@ -17,6 +18,7 @@ router.get('/health', (req, res) => {
 // Mount route modules
 router.use('/auth', authRoutes);
 router.use('/classes', classRoutes);
+router.use('/students', studentRoutes);
 
 // API info endpoint
 router.get('/', (req, res) => {
