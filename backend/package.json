@@ -15,6 +15,8 @@
     "test:performance": "jest --testPathPattern='src/__tests__/performance/.*\\.test\\.ts$' --runInBand",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --watchAll=false",
+    "test:comprehensive": "tsx scripts/run-comprehensive-tests.ts",
+    "test:load": "artillery run performance/load-test.yml",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
