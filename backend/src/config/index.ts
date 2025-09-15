@@ -37,6 +37,12 @@ interface Config {
     windowMs: number;
     maxRequests: number;
   };
+  security: {
+    maxFileSize: string;
+    allowedFileTypes: string[];
+    enableVirusScanning: boolean;
+    trustedIPs: string[];
+  };
 }
 
 const config: Config = {
@@ -72,6 +78,12 @@ const config: Config = {
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+  },
+  security: {
+    maxFileSize: process.env.MAX_FILE_SIZE || '50MB',
+    allowedFileTypes: (process.env.ALLOWED_FILE_TYPES || 'image/jpeg,image/png,image/gif,application/pdf,text/plain').split(','),
+    enableVirusScanning: process.env.ENABLE_VIRUS_SCANNING === 'true',
+    trustedIPs: (process.env.TRUSTED_IPS || '').split(',').filter(ip => ip.trim()),
   },
 };
 
