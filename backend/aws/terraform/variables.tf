@@ -33,6 +33,18 @@ variable "db_password" {
   sensitive   = true
 }
 
+variable "db_name" {
+  description = "Database name"
+  type        = string
+  default     = "classboard"
+}
+
+variable "from_email" {
+  description = "From email address for notifications"
+  type        = string
+  default     = "noreply@classboard.app"
+}
+
 # Tags
 variable "common_tags" {
   description = "Common tags to apply to all resources"
