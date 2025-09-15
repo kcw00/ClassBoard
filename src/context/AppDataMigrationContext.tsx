@@ -1,6 +1,5 @@
 import { createContext, useContext, ReactNode } from 'react'
-import { useAppDataService } from '@/hooks/useAppDataService'
-// Toast functionality removed - using console logging instead
+import { useEnhancedAppData, EnhancedAppDataProvider } from './EnhancedAppDataContext'
 import {
   Class,
   Student,
@@ -97,37 +96,58 @@ interface AppActions {
   clearCache: () => void
 }
 
-interface AppDataServiceContextType {
+interface AppDataMigrationContextType {
   data: AppData
   actions: AppActions
   loading: LoadingStates
   errors: ErrorStates
   isInitialLoading: boolean
+  isUsingApiService: boolean
 }
 
-const AppDataServiceContext = createContext<AppDataServiceContextType | undefined>(undefined)
+const AppDataMigrationContext = createContext<AppDataMigrationContextType | undefined>(undefined)
 
 export function useAppData() {
-  const context = useContext(AppDataServiceContext)
+  const context = useContext(AppDataMigrationContext)
   if (context === undefined) {
-    throw new Error('useAppData must be used within an AppDataServiceProvider')
+    throw new Error('useAppData must be used within an AppDataMigrationProvider')
   }
   return context
 }
 
-interface AppDataServiceProviderProps {
+interface AppDataMigrationProviderProps {
   children: ReactNode
 }
 
-export function AppDataServiceProvider({ children }: AppDataServiceProviderProps) {
-  const serviceData = useAppDataService()
-
+export function AppDataMigrationProvider({ children }: AppDataMigrationProviderProps) {
   return (
-    <AppDataServiceContext.Provider value={serviceData}>
-      {children}
-    </AppDataServiceContext.Provider>
+    <EnhancedAppDataProvider>
+      <AppDataMigrationProviderInner>
+        {children}
+      </AppDataMigrationProviderInner>
+    </EnhancedAppDataProvider>
   )
 }
 
-// Export for backward compatibility
-export { useAppData as useEnhancedAppData }
+function AppDataMigrationProviderInner({ children }: AppDataMigrationProviderProps) {
+
+  // Use the appropriate data source
+  const enhancedData = useEnhancedAppData()
+  
+  // For now, always use the enhanced context until we can resolve the API service issues
+  const contextValue: AppDataMigrationContextType = {
+    ...enhancedData,
+    isUsingApiService: false
+  }
+
+  return (
+    <AppDataMigrationContext.Provider value={contextValue}>
+      {children}
+    </AppDataMigrationContext.Provider>
+  )
+}
+
+// Export individual implementations for testing and specific use cases
+export { useEnhancedAppData as useAppDataLegacy } from './EnhancedAppDataContext'
+export { useAppDataService } from '@/hooks/useAppDataService'
+export { useAppDataWithToasts } from '@/hooks/useAppDataWithToasts'

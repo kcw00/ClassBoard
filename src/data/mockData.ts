@@ -95,6 +95,7 @@ export interface Test {
 }
 
 export interface TestResult {
+  attachedFile: unknown
   id: string
   testId: string
   studentId: string
@@ -805,7 +806,7 @@ export const mockData = {
       updatedDate: "2024-12-02"
     },
     {
-      id: "2", 
+      id: "2",
       classId: "2", // Chemistry Fundamentals
       date: "2024-12-03", // Tuesday
       attendanceData: [
@@ -867,7 +868,7 @@ export const mockData = {
     {
       id: "2",
       classId: "2", // Chemistry Fundamentals
-      date: "2024-12-03", 
+      date: "2024-12-03",
       content: "Introduced chemical bonding concepts. Conducted lab demonstration of ionic vs covalent compounds.",
       topics: ["Chemical bonding", "Ionic compounds", "Covalent compounds", "Lab safety"],
       homework: "Read Chapter 8, sections 8.1-8.3. Complete bonding practice sheet.",
@@ -883,7 +884,7 @@ export const mockData = {
       topics: ["WWI causes", "Nationalism", "Alliance systems", "Imperialism"],
       homework: "Essay: Analyze the role of nationalism in starting WWI (2 pages, due Friday)",
       objectives: "Students will analyze the multiple causes of World War I",
-      createdDate: "2024-12-02", 
+      createdDate: "2024-12-02",
       updatedDate: "2024-12-02"
     }
   ] as ClassNote[],
@@ -1086,18 +1087,18 @@ export const mockData = {
     {
       id: "1",
       scheduleId: "1", // Algebra II Monday 9:00-10:30
-      date: "2024-12-16", 
+      date: "2024-12-16",
       startTime: "10:00",
       endTime: "11:30",
       createdDate: new Date().toISOString().split('T')[0]
     },
     // Example: Cancel Chemistry class on Thursday Dec 19th
     {
-      id: "2", 
+      id: "2",
       scheduleId: "5", // Chemistry Thursday 11:00-12:30
       date: "2024-12-19",
       startTime: "11:00",
-      endTime: "12:30", 
+      endTime: "12:30",
       cancelled: true,
       createdDate: new Date().toISOString().split('T')[0]
     }
