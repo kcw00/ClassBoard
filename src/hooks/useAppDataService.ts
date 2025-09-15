@@ -703,13 +703,48 @@ export function useAppDataService(): UseAppDataServiceReturn {
   }, [schedules, handleError])
 
   const addScheduleException = useCallback(async (exceptionData: Omit<ScheduleException, 'id' | 'createdDate'>): Promise<ScheduleException> => {
-    return appDataService.addScheduleException(exceptionData)
-  }, [])
+    const tempId = `temp-${Date.now()}`
+    const optimisticException: ScheduleException = {
+      id: tempId,
+      ...exceptionData,
+      createdDate: new Date().toISOString().split('T')[0]
+    }
+
+    // Optimistic update
+    setScheduleExceptions(prev => [...prev, optimisticException])
+
+    try {
+      const newException = await appDataService.addScheduleException(exceptionData)
+
+      // Replace optimistic update with real data
+      setScheduleExceptions(prev => prev.map(e => e.id === tempId ? newException : e))
+
+      return newException
+    } catch (error) {
+      // Remove optimistic update on error
+      setScheduleExceptions(prev => prev.filter(e => e.id !== tempId))
+      handleError('addScheduleException', error)
+      throw error
+    }
+  }, [handleError])
 
   const updateScheduleException = useCallback(async (exceptionId: string, updates: Partial<ScheduleException>): Promise<void> => {
-    await appDataService.updateScheduleException(exceptionId, updates)
-    await fetchScheduleExceptions()
-  }, [fetchScheduleExceptions])
+    const originalException = scheduleExceptions.find(e => e.id === exceptionId)
+    if (!originalException) return
+
+    // Optimistic update
+    const updatedException = { ...originalException, ...updates }
+    setScheduleExceptions(prev => prev.map(e => e.id === exceptionId ? updatedException : e))
+
+    try {
+      await appDataService.updateScheduleException(exceptionId, updates)
+    } catch (error) {
+      // Revert optimistic update
+      setScheduleExceptions(prev => prev.map(e => e.id === exceptionId ? originalException : e))
+      handleError('updateScheduleException', error)
+      throw error
+    }
+  }, [scheduleExceptions, handleError])
 
   const deleteScheduleException = useCallback(async (exceptionId: string): Promise<void> => {
     await appDataService.deleteScheduleException(exceptionId)
@@ -721,9 +756,22 @@ export function useAppDataService(): UseAppDataServiceReturn {
   }, [])
 
   const updateMeeting = useCallback(async (meetingId: string, updates: Partial<Meeting>): Promise<void> => {
-    await appDataService.updateMeeting(meetingId, updates)
-    await fetchMeetings()
-  }, [fetchMeetings])
+    const originalMeeting = meetings.find(m => m.id === meetingId)
+    if (!originalMeeting) return
+
+    // Optimistic update
+    const updatedMeeting = { ...originalMeeting, ...updates }
+    setMeetings(prev => prev.map(m => m.id === meetingId ? updatedMeeting : m))
+
+    try {
+      await appDataService.updateMeeting(meetingId, updates)
+    } catch (error) {
+      // Revert optimistic update
+      setMeetings(prev => prev.map(m => m.id === meetingId ? originalMeeting : m))
+      handleError('updateMeeting', error)
+      throw error
+    }
+  }, [meetings, handleError])
 
   const deleteMeeting = useCallback(async (meetingId: string): Promise<void> => {
     await appDataService.deleteMeeting(meetingId)
@@ -837,32 +885,134 @@ export function useAppDataService(): UseAppDataServiceReturn {
   }, [classNotes, handleError])
 
   const addTest = useCallback(async (testData: Omit<Test, 'id' | 'createdDate' | 'updatedDate'>): Promise<Test> => {
-    return appDataService.addTest(testData)
-  }, [])
+    const tempId = `temp-${Date.now()}`
+    const currentDate = new Date().toISOString().split('T')[0]
+    const optimisticTest: Test = {
+      id: tempId,
+      ...testData,
+      createdDate: currentDate,
+      updatedDate: currentDate
+    }
+
+    // Optimistic update
+    setTests(prev => [...prev, optimisticTest])
+
+    try {
+      const newTest = await appDataService.addTest(testData)
+
+      // Replace optimistic update with real data
+      setTests(prev => prev.map(t => t.id === tempId ? newTest : t))
+
+      return newTest
+    } catch (error) {
+      // Revert optimistic update
+      setTests(prev => prev.filter(t => t.id !== tempId))
+      handleError('addTest', error)
+      throw error
+    }
+  }, [handleError])
 
   const updateTest = useCallback(async (testId: string, updates: Partial<Test>): Promise<void> => {
-    await appDataService.updateTest(testId, updates)
-    await fetchTests()
-  }, [fetchTests])
+    const originalTest = tests.find(t => t.id === testId)
+    if (!originalTest) return
+
+    // Optimistic update
+    const updatedTest = { ...originalTest, ...updates }
+    setTests(prev => prev.map(t => t.id === testId ? updatedTest : t))
+
+    try {
+      await appDataService.updateTest(testId, updates)
+    } catch (error) {
+      // Revert optimistic update
+      setTests(prev => prev.map(t => t.id === testId ? originalTest : t))
+      handleError('updateTest', error)
+      throw error
+    }
+  }, [tests, handleError])
 
   const deleteTest = useCallback(async (testId: string): Promise<void> => {
-    await appDataService.deleteTest(testId)
-    await fetchTests()
-    await fetchTestResults() // Also refresh test results
-  }, [fetchTests, fetchTestResults])
+    const originalTest = tests.find(t => t.id === testId)
+    const originalResults = testResults.filter(r => r.testId === testId)
+
+    // Optimistic update - remove test and its results
+    setTests(prev => prev.filter(t => t.id !== testId))
+    setTestResults(prev => prev.filter(r => r.testId !== testId))
+
+    try {
+      await appDataService.deleteTest(testId)
+    } catch (error) {
+      // Revert optimistic update
+      if (originalTest) {
+        setTests(prev => [...prev, originalTest])
+      }
+      setTestResults(prev => [...prev, ...originalResults])
+      handleError('deleteTest', error)
+      throw error
+    }
+  }, [tests, testResults, handleError])
 
   const addTestResult = useCallback(async (resultData: Omit<TestResult, 'id' | 'createdDate' | 'updatedDate'>): Promise<TestResult> => {
-    return appDataService.addTestResult(resultData)
-  }, [])
+    const tempId = `temp-${Date.now()}`
+    const currentDate = new Date().toISOString().split('T')[0]
+    const optimisticResult: TestResult = {
+      id: tempId,
+      ...resultData,
+      createdDate: currentDate,
+      updatedDate: currentDate
+    }
+
+    // Optimistic update
+    setTestResults(prev => [...prev, optimisticResult])
+
+    try {
+      const newResult = await appDataService.addTestResult(resultData)
+
+      // Replace optimistic update with real data
+      setTestResults(prev => prev.map(r => r.id === tempId ? newResult : r))
+
+      return newResult
+    } catch (error) {
+      // Revert optimistic update
+      setTestResults(prev => prev.filter(r => r.id !== tempId))
+      handleError('addTestResult', error)
+      throw error
+    }
+  }, [handleError])
 
   const updateTestResult = useCallback(async (resultId: string, updates: Partial<TestResult>): Promise<void> => {
-    await appDataService.updateTestResult(resultId, updates)
-    await fetchTestResults()
-  }, [fetchTestResults])
+    const originalResult = testResults.find(r => r.id === resultId)
+    if (!originalResult) return
+
+    // Optimistic update
+    const updatedResult = { ...originalResult, ...updates }
+    setTestResults(prev => prev.map(r => r.id === resultId ? updatedResult : r))
+
+    try {
+      await appDataService.updateTestResult(resultId, updates)
+    } catch (error) {
+      // Revert optimistic update
+      setTestResults(prev => prev.map(r => r.id === resultId ? originalResult : r))
+      handleError('updateTestResult', error)
+      throw error
+    }
+  }, [testResults, handleError])
 
   const deleteTestResult = useCallback(async (resultId: string): Promise<void> => {
-    await appDataService.deleteTestResult(resultId)
-    await fetchTestResults()
+    const originalResult = testResults.find(r => r.id === resultId)
+
+    // Optimistic update
+    setTestResults(prev => prev.filter(r => r.id !== resultId))
+
+    try {
+      await appDataService.deleteTestResult(resultId)
+    } catch (error) {
+      // Revert optimistic update
+      if (originalResult) {
+        setTestResults(prev => [...prev, originalResult])
+      }
+      handleError('deleteTestResult', error)
+      throw error
+    }
   }, [fetchTestResults])
 
   const addHomeworkAssignment = useCallback(async (assignmentData: Omit<HomeworkAssignment, 'id' | 'createdDate' | 'updatedDate'>): Promise<HomeworkAssignment> => {

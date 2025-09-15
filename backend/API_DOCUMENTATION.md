@@ -371,7 +371,7 @@ Create new meeting.
   "participants": ["participant-id"],
   "participantType": "parents",
   "location": "Room 101",
-  "meetingType": "in-person",
+  "meetingType": "in_person",
   "status": "scheduled"
 }
 ```

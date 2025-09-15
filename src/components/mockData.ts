@@ -48,7 +48,7 @@ export interface Meeting {
   participants: string[] // Student IDs or names
   participantType: "students" | "parents" | "teachers"
   location: string
-  meetingType: "in-person" | "virtual"
+  meetingType: "in_person" | "virtual"
   status: "scheduled" | "completed" | "cancelled"
   createdDate: string
   notes?: string
@@ -664,7 +664,7 @@ export const mockData = {
       participants: ["1"],
       participantType: "parents",
       location: "Classroom Math 101",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "scheduled",
       createdDate: "2024-12-01",
       notes: "Focus on algebra concepts and study habits"
@@ -679,7 +679,7 @@ export const mockData = {
       participants: ["2"],
       participantType: "students",
       location: "Science Lab 205",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "completed",
       createdDate: "2024-11-25",
       notes: "Reviewed safety protocols and report formatting"
@@ -694,7 +694,7 @@ export const mockData = {
       participants: ["3"],
       participantType: "parents",
       location: "Conference Room A",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "scheduled",
       createdDate: "2024-11-20",
       notes: "Include special education coordinator and school counselor"
@@ -724,7 +724,7 @@ export const mockData = {
       participants: ["Emily Brown", "Frank Miller"],
       participantType: "teachers",
       location: "Principal's Office",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "completed",
       createdDate: "2024-11-28",
       notes: "Developed positive behavior support plans"
@@ -739,7 +739,7 @@ export const mockData = {
       participants: ["1", "3"],
       participantType: "students",
       location: "Math 101",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "scheduled",
       createdDate: "2024-12-01",
       notes: "Focus on algebra and problem-solving techniques"
@@ -754,7 +754,7 @@ export const mockData = {
       participants: ["Parent Community"],
       participantType: "parents",
       location: "School Cafeteria",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "scheduled",
       createdDate: "2024-11-15",
       notes: "Refreshments will be provided"
@@ -770,7 +770,7 @@ export const mockData = {
       participants: ["Parent Test"],
       participantType: "parents",
       location: "Conference Room B",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "scheduled",
       createdDate: new Date().toISOString().split('T')[0],
       notes: "Test meeting for today"
@@ -785,7 +785,7 @@ export const mockData = {
       participants: ["1"],
       participantType: "students",
       location: "Guidance Office",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "scheduled",
       createdDate: new Date().toISOString().split('T')[0],
       notes: "Regular academic progress check"
@@ -806,7 +806,7 @@ export const mockData = {
       updatedDate: "2024-12-02"
     },
     {
-      id: "2", 
+      id: "2",
       classId: "2", // Chemistry Fundamentals
       date: "2024-12-03", // Tuesday
       attendanceData: [
@@ -868,7 +868,7 @@ export const mockData = {
     {
       id: "2",
       classId: "2", // Chemistry Fundamentals
-      date: "2024-12-03", 
+      date: "2024-12-03",
       content: "Introduced chemical bonding concepts. Conducted lab demonstration of ionic vs covalent compounds.",
       topics: ["Chemical bonding", "Ionic compounds", "Covalent compounds", "Lab safety"],
       homework: "Read Chapter 8, sections 8.1-8.3. Complete bonding practice sheet.",
@@ -884,7 +884,7 @@ export const mockData = {
       topics: ["WWI causes", "Nationalism", "Alliance systems", "Imperialism"],
       homework: "Essay: Analyze the role of nationalism in starting WWI (2 pages, due Friday)",
       objectives: "Students will analyze the multiple causes of World War I",
-      createdDate: "2024-12-02", 
+      createdDate: "2024-12-02",
       updatedDate: "2024-12-02"
     }
   ] as ClassNote[],
@@ -1087,18 +1087,18 @@ export const mockData = {
     {
       id: "1",
       scheduleId: "1", // Algebra II Monday 9:00-10:30
-      date: "2024-12-16", 
+      date: "2024-12-16",
       startTime: "10:00",
       endTime: "11:30",
       createdDate: new Date().toISOString().split('T')[0]
     },
     // Example: Cancel Chemistry class on Thursday Dec 19th
     {
-      id: "2", 
+      id: "2",
       scheduleId: "5", // Chemistry Thursday 11:00-12:30
       date: "2024-12-19",
       startTime: "11:00",
-      endTime: "12:30", 
+      endTime: "12:30",
       cancelled: true,
       createdDate: new Date().toISOString().split('T')[0]
     }

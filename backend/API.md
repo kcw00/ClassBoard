@@ -416,7 +416,7 @@ Create a new meeting.
   "participants": ["student-uuid"],
   "participantType": "parents",
   "location": "Classroom Math 101",
-  "meetingType": "in-person",
+  "meetingType": "in_person",
   "status": "scheduled",
   "notes": "Focus on algebra concepts"
 }
@@ -493,18 +493,18 @@ Detailed system health check including database and AWS services.
 
 ## Error Codes
 
-| Code | Description |
-|------|-------------|
-| `VALIDATION_ERROR` | Request validation failed |
-| `AUTHENTICATION_REQUIRED` | Valid authentication token required |
-| `INSUFFICIENT_PERMISSIONS` | User lacks required permissions |
-| `RESOURCE_NOT_FOUND` | Requested resource does not exist |
-| `RESOURCE_CONFLICT` | Resource already exists or conflict |
-| `RATE_LIMIT_EXCEEDED` | Too many requests |
-| `DATABASE_ERROR` | Database operation failed |
-| `AWS_SERVICE_ERROR` | AWS service operation failed |
-| `FILE_UPLOAD_ERROR` | File upload operation failed |
-| `INTERNAL_SERVER_ERROR` | Unexpected server error |
+| Code                       | Description                         |
+| -------------------------- | ----------------------------------- |
+| `VALIDATION_ERROR`         | Request validation failed           |
+| `AUTHENTICATION_REQUIRED`  | Valid authentication token required |
+| `INSUFFICIENT_PERMISSIONS` | User lacks required permissions     |
+| `RESOURCE_NOT_FOUND`       | Requested resource does not exist   |
+| `RESOURCE_CONFLICT`        | Resource already exists or conflict |
+| `RATE_LIMIT_EXCEEDED`      | Too many requests                   |
+| `DATABASE_ERROR`           | Database operation failed           |
+| `AWS_SERVICE_ERROR`        | AWS service operation failed        |
+| `FILE_UPLOAD_ERROR`        | File upload operation failed        |
+| `INTERNAL_SERVER_ERROR`    | Unexpected server error             |
 
 ## Rate Limiting
 

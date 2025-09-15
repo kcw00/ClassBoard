@@ -9,7 +9,7 @@ CREATE TYPE "FileEntityType" AS ENUM ('test', 'homework_submission', 'student_pr
 
 -- AlterEnum
 BEGIN;
-CREATE TYPE "MeetingType_new" AS ENUM ('in-person', 'virtual');
+CREATE TYPE "MeetingType_new" AS ENUM ('in_person', 'virtual');
 ALTER TABLE "meetings" ALTER COLUMN "meeting_type" TYPE "MeetingType_new" USING ("meeting_type"::text::"MeetingType_new");
 ALTER TYPE "MeetingType" RENAME TO "MeetingType_old";
 ALTER TYPE "MeetingType_new" RENAME TO "MeetingType";

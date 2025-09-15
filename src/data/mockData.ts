@@ -48,7 +48,7 @@ export interface Meeting {
   participants: string[] // Student IDs or names
   participantType: "students" | "parents" | "teachers"
   location: string
-  meetingType: "in-person" | "virtual"
+  meetingType: "in_person" | "virtual"
   status: "scheduled" | "completed" | "cancelled"
   createdDate: string
   notes?: string
@@ -665,7 +665,7 @@ export const mockData = {
       participants: ["1"],
       participantType: "parents",
       location: "Classroom Math 101",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "scheduled",
       createdDate: "2024-12-01",
       notes: "Focus on algebra concepts and study habits"
@@ -680,7 +680,7 @@ export const mockData = {
       participants: ["2"],
       participantType: "students",
       location: "Science Lab 205",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "completed",
       createdDate: "2024-11-25",
       notes: "Reviewed safety protocols and report formatting"
@@ -695,7 +695,7 @@ export const mockData = {
       participants: ["3"],
       participantType: "parents",
       location: "Conference Room A",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "scheduled",
       createdDate: "2024-11-20",
       notes: "Include special education coordinator and school counselor"
@@ -725,7 +725,7 @@ export const mockData = {
       participants: ["Emily Brown", "Frank Miller"],
       participantType: "teachers",
       location: "Principal's Office",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "completed",
       createdDate: "2024-11-28",
       notes: "Developed positive behavior support plans"
@@ -740,7 +740,7 @@ export const mockData = {
       participants: ["1", "3"],
       participantType: "students",
       location: "Math 101",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "scheduled",
       createdDate: "2024-12-01",
       notes: "Focus on algebra and problem-solving techniques"
@@ -755,7 +755,7 @@ export const mockData = {
       participants: ["Parent Community"],
       participantType: "parents",
       location: "School Cafeteria",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "scheduled",
       createdDate: "2024-11-15",
       notes: "Refreshments will be provided"
@@ -771,7 +771,7 @@ export const mockData = {
       participants: ["Parent Test"],
       participantType: "parents",
       location: "Conference Room B",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "scheduled",
       createdDate: new Date().toISOString().split('T')[0],
       notes: "Test meeting for today"
@@ -786,7 +786,7 @@ export const mockData = {
       participants: ["1"],
       participantType: "students",
       location: "Guidance Office",
-      meetingType: "in-person",
+      meetingType: "in_person",
       status: "scheduled",
       createdDate: new Date().toISOString().split('T')[0],
       notes: "Regular academic progress check"

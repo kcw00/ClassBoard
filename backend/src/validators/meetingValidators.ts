@@ -18,8 +18,8 @@ export const createMeetingSchema = Joi.object({
   endTime: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).required().messages({
     'string.pattern.base': 'End time must be in HH:MM format'
   }),
-  participants: Joi.array().items(Joi.string()).min(1).required().messages({
-    'array.min': 'At least one participant is required'
+  participants: Joi.array().items(Joi.string()).optional().default([]).messages({
+    'array.base': 'Participants must be an array'
   }),
   participantType: Joi.string().valid('students', 'parents', 'teachers').required(),
   location: Joi.string().max(200).allow('').optional().messages({
@@ -27,7 +27,7 @@ export const createMeetingSchema = Joi.object({
   }),
   meetingType: Joi.string().valid('in_person', 'virtual').required(),
   status: Joi.string().valid('scheduled', 'completed', 'cancelled').default('scheduled'),
-  notes: Joi.string().max(1000).optional().messages({
+  notes: Joi.string().max(1000).allow('').optional().messages({
     'string.max': 'Notes must be less than 1000 characters'
   })
 }).custom((value, helpers) => {
@@ -64,8 +64,8 @@ export const updateMeetingSchema = Joi.object({
   endTime: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).optional().messages({
     'string.pattern.base': 'End time must be in HH:MM format'
   }),
-  participants: Joi.array().items(Joi.string()).min(1).optional().messages({
-    'array.min': 'At least one participant is required'
+  participants: Joi.array().items(Joi.string()).optional().messages({
+    'array.base': 'Participants must be an array'
   }),
   participantType: Joi.string().valid('students', 'parents', 'teachers').optional(),
   location: Joi.string().max(200).allow('').optional().messages({
@@ -73,7 +73,7 @@ export const updateMeetingSchema = Joi.object({
   }),
   meetingType: Joi.string().valid('in_person', 'virtual').optional(),
   status: Joi.string().valid('scheduled', 'completed', 'cancelled').optional(),
-  notes: Joi.string().max(1000).optional().messages({
+  notes: Joi.string().max(1000).allow('').optional().messages({
     'string.max': 'Notes must be less than 1000 characters'
   })
 }).custom((value, helpers) => {

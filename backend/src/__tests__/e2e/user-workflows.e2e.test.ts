@@ -13,7 +13,7 @@ describe('End-to-End User Workflows', () => {
   beforeAll(async () => {
     // Setup test authentication
     setupTestAuth();
-    
+
     // Setup test data
     testUserId = 'e2e-user-id';
     authToken = generateValidTestToken({
@@ -231,7 +231,7 @@ describe('End-to-End User Workflows', () => {
     it('should handle complete file upload and management workflow', async () => {
       // Create a test file buffer
       const testFileContent = Buffer.from('This is a test file content for E2E testing');
-      
+
       // Upload file
       const uploadResponse = await request(app)
         .post('/api/files/upload')
@@ -298,7 +298,7 @@ describe('End-to-End User Workflows', () => {
           meetingDate: new Date().toISOString().split('T')[0],
           startTime: '10:00',
           endTime: '11:00',
-          meetingType: 'in-person',
+          meetingType: 'in_person',
           location: 'Room 101',
         })
         .expect(201);
@@ -362,7 +362,7 @@ describe('End-to-End User Workflows', () => {
         // Ignore cleanup errors
       }
     }
-    
+
     if (testStudentId) {
       try {
         await request(app)

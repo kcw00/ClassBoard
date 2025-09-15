@@ -71,7 +71,7 @@
 - [x] 10. Build attendance and meeting management APIs
   - Implement API endpoints for attendance record management
   - Create meeting scheduling and management endpoints
-  - Add support for different meeting types (in-person, virtual)
+  - Add support for different meeting types (in_person, virtual)
   - Implement attendance reporting and analytics endpoints
   - Write tests for attendance and meeting functionality
   - _Requirements: 2.1, 2.2, 4.1, 4.2, 6.1, 6.2, 6.3, 6.4_

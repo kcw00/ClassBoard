@@ -50,7 +50,7 @@ export interface Meeting {
   participants: string[] // Student IDs or names
   participantType: "students" | "parents" | "teachers"
   location: string
-  meetingType: "in-person" | "virtual"
+  meetingType: "in_person" | "virtual"
   status: "scheduled" | "completed" | "cancelled"
   createdDate: string
   notes?: string
