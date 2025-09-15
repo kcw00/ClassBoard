@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from "react"
+<<<<<<< Updated upstream
 import { toast } from "sonner"
+=======
+<<<<<<< Updated upstream
+import { toast } from "sonner@2.0.3"
+=======
+// Toast functionality removed - using console logging instead
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
 export interface User {
   id: string

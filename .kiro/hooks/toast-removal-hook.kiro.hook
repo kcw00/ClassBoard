@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "name": "Toast Dependencies Removal",
+  "description": "Monitors frontend files to ensure toast dependencies are removed, showSuccess/showError are replaced with console logging (logSuccess/logError), and action method dependencies are simplified",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "src/**/*.tsx",
+      "src/**/*.ts",
+      "src/components/**/*",
+      "src/hooks/**/*",
+      "src/services/**/*",
+      "src/screens/**/*",
+      "src/context/**/*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review the modified frontend files to ensure: 1) All toast dependencies have been removed from imports and package.json, 2) All instances of showSuccess() and showError() have been replaced with logSuccess() and logError() console logging functions, 3) Action method dependencies have been simplified and unnecessary toast-related code has been cleaned up. Check for any remaining toast references, verify console logging is properly implemented, and ensure the code maintains functionality without toast notifications."
+  }
+}

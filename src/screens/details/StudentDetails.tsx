@@ -7,34 +7,28 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { toast } from "sonner"
-import {
-  ArrowLeft,
-  Mail,
-  Phone,
-  User,
-  Calendar,
-  GraduationCap,
-  TrendingUp,
-  FileText,
-  Edit,
-  CheckCircle,
-  XCircle,
+import { 
+  ArrowLeft, 
+  Mail, 
+  Phone, 
+  User, 
+  Calendar, 
+  GraduationCap, 
+  TrendingUp, 
+  FileText, 
+  Edit, 
+  CheckCircle, 
+  XCircle, 
   Clock,
   Trash2,
-  BookOpen,
   ClipboardList,
   Save,
-  X,
-  Plus
-} from "lucide-react"
-import { useAppData } from "@/context/AppDataContext"
+  X} from "lucide-react"
+import { useAppData } from "@/context/AppDataMigrationContext"
 import { FilePreviewModal } from "@/components/common"
-import { Student } from "@/data/mockData"
 
 interface StudentNote {
   id: string
@@ -217,7 +211,7 @@ export default function StudentDetails() {
       )
       actions.updateAttendanceRecord(attendanceId, { attendanceData: updatedAttendanceData })
       setEditingAttendance(null)
-      toast.success("Attendance updated successfully")
+      console.log("✅ Attendance updated successfully")
     }
   }
 
@@ -239,7 +233,7 @@ export default function StudentDetails() {
         feedback: testResultEditData.feedback
       })
       setEditingTestResult(null)
-      toast.success("Test result updated successfully")
+      console.log("✅ Test result updated successfully")
     }
   }
 
@@ -266,7 +260,7 @@ export default function StudentDetails() {
         gradedDate: homeworkEditData.status === 'graded' ? new Date().toISOString().split('T')[0] : undefined
       })
       setEditingHomework(null)
-      toast.success("Homework submission updated successfully")
+      console.log("✅ Homework submission updated successfully")
     }
   }
 
@@ -303,7 +297,7 @@ export default function StudentDetails() {
       setSelectedFile(result.attachedFile)
       setIsFilePreviewOpen(true)
     } else {
-      toast.error("File not available")
+      console.error("❌ File not available")
     }
   }
 

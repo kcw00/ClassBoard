@@ -3,14 +3,13 @@ import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Mail, Phone, User, Users, ChevronUp, ChevronDown, Search } from "lucide-react"
-import { useAppData } from "@/context/AppDataContext"
+import { Plus, Mail, Phone, User, Users, ChevronUp, ChevronDown, Search, CheckCircle, AlertCircle } from "lucide-react"
+import { useAppData } from "@/context/AppDataMigrationContext"
 import { Student } from "@/data"
 
 export default function StudentManagement() {
@@ -22,6 +21,7 @@ export default function StudentManagement() {
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -39,31 +39,45 @@ export default function StudentManagement() {
     enrollmentDate: ""
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    actions.addStudent({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      grade: formData.grade,
-      parentContact: formData.parentContact
-    })
-    setFormData({ name: "", email: "", phone: "", grade: "", parentContact: "" })
-    setIsDialogOpen(false)
+    try {
+      await actions.addStudent({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        grade: formData.grade,
+        parentContact: formData.parentContact
+      })
+      setFormData({ name: "", email: "", phone: "", grade: "", parentContact: "" })
+      setIsDialogOpen(false)
+      setStatusMessage({ type: 'success', message: `Student "${formData.name}" added successfully!` })
+      setTimeout(() => setStatusMessage(null), 3000)
+    } catch (error) {
+      setStatusMessage({ type: 'error', message: 'Failed to add student. Please try again.' })
+      setTimeout(() => setStatusMessage(null), 5000)
+    }
   }
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    actions.updateStudent(editFormData.id, {
-      name: editFormData.name,
-      email: editFormData.email,
-      phone: editFormData.phone,
-      grade: editFormData.grade,
-      parentContact: editFormData.parentContact
-    })
-    setIsEditDialogOpen(false)
-    setEditingStudent(null)
-    setEditFormData({ id: "", name: "", email: "", phone: "", grade: "", parentContact: "", enrollmentDate: "" })
+    try {
+      await actions.updateStudent(editFormData.id, {
+        name: editFormData.name,
+        email: editFormData.email,
+        phone: editFormData.phone,
+        grade: editFormData.grade,
+        parentContact: editFormData.parentContact
+      })
+      setIsEditDialogOpen(false)
+      setEditingStudent(null)
+      setEditFormData({ id: "", name: "", email: "", phone: "", grade: "", parentContact: "", enrollmentDate: "" })
+      setStatusMessage({ type: 'success', message: 'Student updated successfully!' })
+      setTimeout(() => setStatusMessage(null), 3000)
+    } catch (error) {
+      setStatusMessage({ type: 'error', message: 'Failed to update student. Please try again.' })
+      setTimeout(() => setStatusMessage(null), 5000)
+    }
   }
 
   const handleEditStudent = (student: Student) => {
@@ -126,6 +140,24 @@ export default function StudentManagement() {
 
   return (
     <div className="space-y-6 p-6">
+      {/* Status Message */}
+      {statusMessage && (
+        <div className={`mb-4 p-3 rounded-md ${
+          statusMessage.type === 'success' 
+            ? 'bg-green-50 text-green-800 border border-green-200' 
+            : 'bg-red-50 text-red-800 border border-red-200'
+        }`}>
+          <div className="flex items-center">
+            {statusMessage.type === 'success' ? (
+              <CheckCircle className="h-4 w-4 mr-2" />
+            ) : (
+              <AlertCircle className="h-4 w-4 mr-2" />
+            )}
+            {statusMessage.message}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>

@@ -3,32 +3,26 @@ import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Plus, Users, MapPin, Clock, Settings, UserPlus, CalendarPlus, Trash2, Edit, RefreshCw, AlertCircle } from "lucide-react"
+import { Plus, Users, MapPin, Clock, Settings, UserPlus, CalendarPlus, Trash2, Edit, RefreshCw, AlertCircle, CheckCircle } from "lucide-react"
 import { classColors, Class } from "@/data/mockData"
-import { useAppData } from "@/context/AppDataContext"
+import { useAppData } from "@/context/AppDataMigrationContext"
 
 export default function ClassManagement() {
   const navigate = useNavigate()
-  const { data, actions } = useAppData()
+  const { data, actions, loading, errors, isInitialLoading } = useAppData()
 
-  // Mock loading and error states since basic AppDataContext doesn't provide them
-  const loading = { classes: false }
-  const errors = {}
-  const isInitialLoading = false
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false)
   const [selectedClass, setSelectedClass] = useState<Class | null>(null)
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null)
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
@@ -51,18 +45,25 @@ export default function ClassManagement() {
     endTime: ""
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    actions.addClass({
-      name: formData.name,
-      subject: formData.subject,
-      description: formData.description,
-      room: formData.room,
-      capacity: parseInt(formData.capacity, 10),
-      color: formData.color
-    })
-    setFormData({ name: "", subject: "", description: "", room: "", capacity: "", color: "#3b82f6" })
-    setIsDialogOpen(false)
+    try {
+      await actions.addClass({
+        name: formData.name,
+        subject: formData.subject,
+        description: formData.description,
+        room: formData.room,
+        capacity: parseInt(formData.capacity, 10),
+        color: formData.color
+      })
+      setFormData({ name: "", subject: "", description: "", room: "", capacity: "", color: "#3b82f6" })
+      setIsDialogOpen(false)
+      setStatusMessage({ type: 'success', message: `Class "${formData.name}" created successfully!` })
+      setTimeout(() => setStatusMessage(null), 3000)
+    } catch (error) {
+      setStatusMessage({ type: 'error', message: 'Failed to create class. Please try again.' })
+      setTimeout(() => setStatusMessage(null), 5000)
+    }
   }
 
   const handleManageClass = (classItem: Class) => {
@@ -78,29 +79,43 @@ export default function ClassManagement() {
     setIsManageDialogOpen(true)
   }
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedClass) return
-
-    actions.updateClass(selectedClass.id, {
-      name: editFormData.name,
-      subject: editFormData.subject,
-      description: editFormData.description,
-      room: editFormData.room,
-      capacity: parseInt(editFormData.capacity),
-      color: editFormData.color
-    })
-    setIsManageDialogOpen(false)
-    setSelectedClass(null)
+    try {
+      await actions.updateClass(selectedClass.id, {
+        name: editFormData.name,
+        subject: editFormData.subject,
+        description: editFormData.description,
+        room: editFormData.room,
+        capacity: parseInt(editFormData.capacity),
+        color: editFormData.color
+      })
+      setIsManageDialogOpen(false)
+      setSelectedClass(null)
+      setStatusMessage({ type: 'success', message: 'Class updated successfully!' })
+      setTimeout(() => setStatusMessage(null), 3000)
+    } catch (error) {
+      setStatusMessage({ type: 'error', message: 'Failed to update class. Please try again.' })
+      setTimeout(() => setStatusMessage(null), 5000)
+    }
   }
 
-  const handleEnrollStudent = (studentId: string, enrolled: boolean) => {
+  const handleEnrollStudent = async (studentId: string, enrolled: boolean) => {
     if (!selectedClass) return
 
-    if (enrolled) {
-      actions.enrollStudent(selectedClass.id, studentId)
-    } else {
-      actions.unenrollStudent(selectedClass.id, studentId)
+    try {
+      if (enrolled) {
+        await actions.enrollStudent(selectedClass.id, studentId)
+        setStatusMessage({ type: 'success', message: 'Student enrolled successfully!' })
+      } else {
+        await actions.unenrollStudent(selectedClass.id, studentId)
+        setStatusMessage({ type: 'success', message: 'Student unenrolled successfully!' })
+      }
+      setTimeout(() => setStatusMessage(null), 3000)
+    } catch (error) {
+      setStatusMessage({ type: 'error', message: 'Failed to update enrollment. Please try again.' })
+      setTimeout(() => setStatusMessage(null), 5000)
     }
   }
 
@@ -218,6 +233,24 @@ export default function ClassManagement() {
 
   return (
     <div className="space-y-6 p-6">
+      {/* Status Message */}
+      {statusMessage && (
+        <div className={`mb-4 p-3 rounded-md ${
+          statusMessage.type === 'success' 
+            ? 'bg-green-50 text-green-800 border border-green-200' 
+            : 'bg-red-50 text-red-800 border border-red-200'
+        }`}>
+          <div className="flex items-center">
+            {statusMessage.type === 'success' ? (
+              <CheckCircle className="h-4 w-4 mr-2" />
+            ) : (
+              <AlertCircle className="h-4 w-4 mr-2" />
+            )}
+            {statusMessage.message}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

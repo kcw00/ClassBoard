@@ -3,8 +3,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -12,17 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { toast } from "sonner"
+// Toast functionality removed - using console logging instead
 import {
   ArrowLeft,
   FileText,
-  Clock,
   Users,
   TrendingUp,
-  Calendar,
   Edit,
-  Download,
-  Upload,
   BarChart3,
   PieChart,
   GraduationCap,
@@ -34,7 +29,7 @@ import {
   Eye,
   FileUp
 } from "lucide-react"
-import { useAppData } from "@/context/AppDataContext"
+import { useAppData } from "@/context/AppDataMigrationContext"
 import { FilePreviewModal } from "@/components/common"
 
 export default function TestDetails() {
@@ -93,9 +88,9 @@ export default function TestDetails() {
         // Show helpful toast
         const fileCount = testResults.filter(r => r.attachedFile).length
         if (fileCount > 0) {
-          toast.info(`Found ${fileCount} result${fileCount > 1 ? 's' : ''} with attached files. Click the blue file icons to view them.`)
+          console.log(`ℹ️ Found ${fileCount} result${fileCount > 1 ? 's' : ''} with attached files. Click the blue file icons to view them.`)
         } else {
-          toast.info("No files found for this test.")
+          console.log("ℹ️ No files found for this test.")
         }
       }, 500)
     }
@@ -178,7 +173,7 @@ export default function TestDetails() {
     e.preventDefault()
 
     if (!newResult.studentId || !newResult.score) {
-      toast.error("Please fill in required fields")
+      console.error("❌ Please fill in required fields")
       return
     }
 
@@ -210,7 +205,7 @@ export default function TestDetails() {
       score: '',
       feedback: ''
     })
-    toast.success("Test result added successfully")
+    console.log("✅ Test result added successfully")
   }
 
   // Handle edit result
@@ -259,12 +254,12 @@ export default function TestDetails() {
     e.preventDefault()
 
     if (!editResult.score) {
-      toast.error("Please enter a score")
+      console.error("❌ Please enter a score")
       return
     }
 
     if (uploadMethod === 'file' && !uploadedFile) {
-      toast.error("Please upload a file")
+      console.error("❌ Please upload a file")
       return
     }
 
@@ -311,7 +306,7 @@ export default function TestDetails() {
     setUploadMethod('manual')
     setUploadedFile(null)
     setFilePreviewUrl('')
-    toast.success("Test result updated successfully")
+    console.log("✅ Test result updated successfully")
   }
 
   // Handle view student
@@ -325,7 +320,7 @@ export default function TestDetails() {
       setSelectedFile(result.attachedFile)
       setIsFilePreviewOpen(true)
     } else {
-      toast.error("File not available")
+      console.error("❌ File not available")
     }
   }
 
@@ -333,7 +328,7 @@ export default function TestDetails() {
   const handleDeleteResult = (resultId: string, studentName: string) => {
     if (window.confirm(`Are you sure you want to delete the result for ${studentName}?`)) {
       actions.deleteTestResult(resultId)
-      toast.success("Test result deleted successfully")
+      console.log("✅ Test result deleted successfully")
     }
   }
 
@@ -356,7 +351,7 @@ export default function TestDetails() {
     e.preventDefault()
 
     if (!editingTest.title || !editingTest.classId || !editingTest.testDate) {
-      toast.error("Please fill in all required fields")
+      console.error("❌ Please fill in all required fields")
       return
     }
 
@@ -371,7 +366,7 @@ export default function TestDetails() {
 
     setIsEditTestDialogOpen(false)
     setEditingTest(null)
-    toast.success("Test updated successfully")
+    console.log("✅ Test updated successfully")
   }
 
   const stats = getTestStats()

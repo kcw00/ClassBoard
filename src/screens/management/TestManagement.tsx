@@ -4,33 +4,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { toast } from "sonner"
+// Toast functionality removed - using console logging instead
 import {
   Plus,
   FileText,
   Clock,
-  Users,
   TrendingUp,
-  Calendar,
-  Edit,
   Eye,
   Upload,
   Search,
-  Filter,
-  MoreVertical,
   CheckCircle,
-  XCircle,
   Trash2
 } from "lucide-react"
-import { useAppData } from "@/context/AppDataContext"
+import { useAppData } from "@/context/AppDataMigrationContext"
 
 export default function TestManagement() {
   const { data, actions } = useAppData()
@@ -112,7 +104,7 @@ export default function TestManagement() {
     e.preventDefault()
 
     if (!newTest.title || !newTest.classId || !newTest.testDate) {
-      toast.error("Please fill in all required fields")
+      console.error("❌ Please fill in all required fields")
       return
     }
 
@@ -135,7 +127,7 @@ export default function TestManagement() {
       testDate: '',
       testType: 'exam'
     })
-    toast.success("Test created successfully")
+    console.log("✅ Test created successfully")
   }
 
   // Handle editing test
@@ -156,7 +148,7 @@ export default function TestManagement() {
     e.preventDefault()
 
     if (!editingTest.title || !editingTest.classId || !editingTest.testDate) {
-      toast.error("Please fill in all required fields")
+      console.error("❌ Please fill in all required fields")
       return
     }
 
@@ -171,7 +163,7 @@ export default function TestManagement() {
 
     setIsEditDialogOpen(false)
     setEditingTest(null)
-    toast.success("Test updated successfully")
+    console.log("✅ Test updated successfully")
   }
 
 
@@ -180,7 +172,7 @@ export default function TestManagement() {
   const handleDeleteTest = (testId: string, testTitle: string) => {
     if (window.confirm(`Are you sure you want to delete "${testTitle}"? This will also delete all associated results.`)) {
       actions.deleteTest(testId)
-      toast.success("Test deleted successfully")
+      console.log("✅ Test deleted successfully")
     }
   }
 
@@ -249,7 +241,7 @@ export default function TestManagement() {
                 </Button>
                 <Button onClick={() => {
                   setIsUploadDialogOpen(false)
-                  toast.success("Test file uploaded successfully")
+                  console.log("✅ Test file uploaded successfully")
                 }} aria-label="Upload">
                   <span>Upload</span>
                 </Button>

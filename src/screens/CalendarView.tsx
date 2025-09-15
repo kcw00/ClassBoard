@@ -4,15 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, Clock, MapPin, Users, Plus, ChevronLeft, ChevronRight, ExternalLink, GripVertical } from "lucide-react"
+import { Calendar, Clock, MapPin, Users, Plus, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react"
 import { useAppData } from "@/context/AppDataContext"
-import { toast } from "sonner"
 
 interface CalendarEvent {
   id: string
@@ -445,7 +443,7 @@ export default function CalendarView() {
         })
 
         const dateFormatted = new Date(date).toLocaleDateString()
-        toast.success(`Meeting "${draggedEvent.title}" moved to ${dateFormatted} at ${newStartTime}`)
+        console.log(`✅ Meeting "${draggedEvent.title}" moved to ${dateFormatted} at ${newStartTime}`)
       }
     }
 
@@ -455,7 +453,7 @@ export default function CalendarView() {
         testDate: date
       })
       const dateFormatted = new Date(date).toLocaleDateString()
-      toast.success(`Test "${draggedEvent.title}" moved to ${dateFormatted}`)
+      console.log(`✅ Test "${draggedEvent.title}" moved to ${dateFormatted}`)
     }
 
     setDraggedEvent(null)
@@ -486,7 +484,7 @@ export default function CalendarView() {
               endTime: endTime,
               cancelled: false
             })
-            toast.success(`Class "${event.title}" moved to ${time} for ${new Date(date).toLocaleDateString()} only`)
+            console.log(`✅ Class "${event.title}" moved to ${time} for ${new Date(date).toLocaleDateString()} only`)
           } else {
             // Create new exception
             actions.addScheduleException({
@@ -495,10 +493,10 @@ export default function CalendarView() {
               startTime: time,
               endTime: endTime
             })
-            toast.success(`Class "${event.title}" moved to ${time} for ${new Date(date).toLocaleDateString()} only`)
+            console.log(`✅ Class "${event.title}" moved to ${time} for ${new Date(date).toLocaleDateString()} only`)
           }
         } catch (error) {
-          toast.error('Failed to create schedule exception')
+          console.error('❌ Failed to create schedule exception')
           console.error('Error creating schedule exception:', error)
         }
       }
@@ -518,9 +516,9 @@ export default function CalendarView() {
             endTime: calculateEndTime(time, event.duration)
           })
 
-          toast.success(`Class "${event.title}" schedule updated to ${dayNames[dayOfWeek]}s at ${time}`)
+          console.log(`✅ Class "${event.title}" schedule updated to ${dayNames[dayOfWeek]}s at ${time}`)
         } catch (error) {
-          toast.error('Failed to update class schedule')
+          console.error('❌ Failed to update class schedule')
           console.error('Error updating schedule:', error)
         }
       }

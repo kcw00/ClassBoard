@@ -2,7 +2,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
 import { Button } from "@/components/ui/button"
 import { Download, FileText, X } from "lucide-react"
+<<<<<<< Updated upstream
 import { toast } from "sonner"
+=======
+<<<<<<< Updated upstream
+import { toast } from "sonner@2.0.3"
+=======
+// Toast functionality removed - using console logging instead
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
 interface FileAttachment {
   name: string
@@ -41,9 +49,9 @@ export default function FilePreviewModal({ isOpen, onClose, file, title }: FileP
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      toast.success(`Downloaded ${file.name}`)
+      console.log(`✅ Downloaded ${file.name}`)
     } catch (error) {
-      toast.error("Failed to download file")
+      console.error("❌ Failed to download file")
     }
   }
 
@@ -86,7 +94,7 @@ export default function FilePreviewModal({ isOpen, onClose, file, title }: FileP
                   src={file.url}
                   alt={file.name}
                   className="max-w-full max-h-[60vh] object-contain rounded border bg-white shadow-sm"
-                  onError={() => toast.error("Failed to load image")}
+                  onError={() => console.error("❌ Failed to load image")}
                 />
               </div>
             )}
@@ -97,7 +105,7 @@ export default function FilePreviewModal({ isOpen, onClose, file, title }: FileP
                   src={file.url}
                   className="w-full h-[60vh] border-0"
                   title={file.name}
-                  onError={() => toast.error("Failed to load PDF")}
+                  onError={() => console.error("❌ Failed to load PDF")}
                 />
               </div>
             )}

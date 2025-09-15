@@ -16,6 +16,7 @@ interface AppData {
 }
 
 interface AppActions {
+  refreshData(): void
   addClass: (classData: Omit<Class, 'id' | 'createdDate' | 'enrolledStudents'>) => Class
   addStudent: (studentData: Omit<Student, 'id' | 'enrollmentDate'>) => Student
   updateStudent: (studentId: string, updates: Partial<Student>) => void
@@ -106,7 +107,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   }
 
   const updateStudent = (studentId: string, updates: Partial<Student>) => {
-    const updatedStudents = students.map(student => 
+    const updatedStudents = students.map(student =>
       student.id === studentId ? { ...student, ...updates } : student
     )
     setStudents(updatedStudents)
@@ -115,13 +116,13 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   const deleteStudent = (studentId: string) => {
     const updatedStudents = students.filter(student => student.id !== studentId)
     setStudents(updatedStudents)
-    
+
     const updatedClasses = classes.map(classItem => ({
       ...classItem,
       enrolledStudents: classItem.enrolledStudents.filter(id => id !== studentId)
     }))
     setClasses(updatedClasses)
-    
+
     const updatedAttendanceRecords = attendanceRecords.map(record => ({
       ...record,
       attendanceData: record.attendanceData.filter(entry => entry.studentId !== studentId)
@@ -140,7 +141,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   }
 
   const updateClass = (classId: string, updates: Partial<Class>) => {
-    const updatedClasses = classes.map(classItem => 
+    const updatedClasses = classes.map(classItem =>
       classItem.id === classId ? { ...classItem, ...updates } : classItem
     )
     setClasses(updatedClasses)
@@ -171,7 +172,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   }
 
   const updateSchedule = (scheduleId: string, updates: Partial<Schedule>) => {
-    const updatedSchedules = schedules.map(schedule => 
+    const updatedSchedules = schedules.map(schedule =>
       schedule.id === scheduleId ? { ...schedule, ...updates } : schedule
     )
     setSchedules(updatedSchedules)
@@ -193,7 +194,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   }
 
   const updateScheduleException = (exceptionId: string, updates: Partial<ScheduleException>) => {
-    const updatedExceptions = scheduleExceptions.map(exception => 
+    const updatedExceptions = scheduleExceptions.map(exception =>
       exception.id === exceptionId ? { ...exception, ...updates } : exception
     )
     setScheduleExceptions(updatedExceptions)
@@ -215,7 +216,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   }
 
   const updateMeeting = (meetingId: string, updates: Partial<Meeting>) => {
-    const updatedMeetings = meetings.map(meeting => 
+    const updatedMeetings = meetings.map(meeting =>
       meeting.id === meetingId ? { ...meeting, ...updates } : meeting
     )
     setMeetings(updatedMeetings)
@@ -237,7 +238,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   }
 
   const updateAttendanceRecord = (attendanceId: string, updates: Partial<AttendanceRecord>) => {
-    const updatedRecords = attendanceRecords.map(record => 
+    const updatedRecords = attendanceRecords.map(record =>
       record.id === attendanceId ? { ...record, ...updates } : record
     )
     setAttendanceRecords(updatedRecords)
@@ -255,7 +256,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   }
 
   const updateClassNote = (noteId: string, updates: Partial<ClassNote>) => {
-    const updatedNotes = classNotes.map(note => 
+    const updatedNotes = classNotes.map(note =>
       note.id === noteId ? { ...note, ...updates, updatedDate: new Date().toISOString().split('T')[0] } : note
     )
     setClassNotes(updatedNotes)
@@ -278,7 +279,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   }
 
   const updateTest = (testId: string, updates: Partial<Test>) => {
-    const updatedTests = tests.map(test => 
+    const updatedTests = tests.map(test =>
       test.id === testId ? { ...test, ...updates, updatedDate: new Date().toISOString().split('T')[0] } : test
     )
     setTests(updatedTests)
@@ -287,7 +288,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   const deleteTest = (testId: string) => {
     const updatedTests = tests.filter(test => test.id !== testId)
     setTests(updatedTests)
-    
+
     const updatedTestResults = testResults.filter(result => result.testId !== testId)
     setTestResults(updatedTestResults)
   }
@@ -304,7 +305,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   }
 
   const updateTestResult = (resultId: string, updates: Partial<TestResult>) => {
-    const updatedResults = testResults.map(result => 
+    const updatedResults = testResults.map(result =>
       result.id === resultId ? { ...result, ...updates, updatedDate: new Date().toISOString().split('T')[0] } : result
     )
     setTestResults(updatedResults)
@@ -327,7 +328,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   }
 
   const updateHomeworkAssignment = (assignmentId: string, updates: Partial<HomeworkAssignment>) => {
-    const updatedAssignments = homeworkAssignments.map(assignment => 
+    const updatedAssignments = homeworkAssignments.map(assignment =>
       assignment.id === assignmentId ? { ...assignment, ...updates, updatedDate: new Date().toISOString().split('T')[0] } : assignment
     )
     setHomeworkAssignments(updatedAssignments)
@@ -336,7 +337,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   const deleteHomeworkAssignment = (assignmentId: string) => {
     const updatedAssignments = homeworkAssignments.filter(assignment => assignment.id !== assignmentId)
     setHomeworkAssignments(updatedAssignments)
-    
+
     const updatedSubmissions = homeworkSubmissions.filter(submission => submission.assignmentId !== assignmentId)
     setHomeworkSubmissions(updatedSubmissions)
   }
@@ -353,7 +354,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
   }
 
   const updateHomeworkSubmission = (submissionId: string, updates: Partial<HomeworkSubmission>) => {
-    const updatedSubmissions = homeworkSubmissions.map(submission => 
+    const updatedSubmissions = homeworkSubmissions.map(submission =>
       submission.id === submissionId ? { ...submission, ...updates, updatedDate: new Date().toISOString().split('T')[0] } : submission
     )
     setHomeworkSubmissions(updatedSubmissions)
@@ -366,7 +367,7 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
 
   const appData = useMemo(() => ({
     classes,
-    students, 
+    students,
     schedules,
     scheduleExceptions,
     meetings,
@@ -378,7 +379,22 @@ export function AppDataProvider({ children }: AppDataProviderProps) {
     homeworkSubmissions
   }), [classes, students, schedules, scheduleExceptions, meetings, attendanceRecords, classNotes, tests, testResults, homeworkAssignments, homeworkSubmissions])
 
+  const refreshData = () => {
+    setClasses(mockData.classes)
+    setStudents(mockData.students)
+    setSchedules(mockData.schedules)
+    setScheduleExceptions(mockData.scheduleExceptions)
+    setMeetings(mockData.meetings)
+    setAttendanceRecords(mockData.attendanceRecords)
+    setClassNotes(mockData.classNotes)
+    setTests(mockData.tests)
+    setTestResults(mockData.testResults)
+    setHomeworkAssignments(mockData.homeworkAssignments)
+    setHomeworkSubmissions(mockData.homeworkSubmissions)
+  }
+
   const appActions = useMemo(() => ({
+    refreshData,
     addClass,
     addStudent,
     updateStudent,
