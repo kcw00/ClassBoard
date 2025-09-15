@@ -15,20 +15,31 @@
       "idleTimeoutMillis": 600000
     },
     "s3": {
-      "bucketName": "classboard-prod-files",
+      "bucketName": "${S3_BUCKET_NAME}",
       "region": "us-east-1",
       "signedUrlExpiration": 3600,
-      "maxFileSize": "25MB",
+      "maxFileSize": "200MB",
       "allowedFileTypes": [
         "image/jpeg",
+        "image/jpg",
         "image/png",
         "image/gif",
+        "image/webp",
         "application/pdf",
         "application/msword",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "text/plain"
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "text/plain",
+        "text/csv",
+        "video/mp4",
+        "video/mpeg",
+        "video/quicktime",
+        "audio/mpeg",
+        "audio/wav",
+        "audio/mp3"
       ]
     },
     "cloudfront": {
@@ -43,27 +54,27 @@
     "lambda": {
       "region": "us-east-1",
       "timeout": 300,
-      "memorySize": 1024
+      "memorySize": 2048
     }
   },
   "api": {
-    "port": 3000,
+    "port": 3001,
     "cors": {
-      "origin": ["https://classboard.app"],
+      "origin": ["https://classboard.app", "https://www.classboard.app"],
       "credentials": true
     },
     "rateLimit": {
       "windowMs": 900000,
-      "max": 200
+      "max": 500
     },
     "jwt": {
-      "expiresIn": "15m",
-      "refreshExpiresIn": "30d"
+      "expiresIn": "1h",
+      "refreshExpiresIn": "7d"
     }
   },
   "logging": {
     "level": "warn",
-    "format": "json"
+    "format": "combined"
   },
   "monitoring": {
     "enabled": true,
@@ -73,11 +84,11 @@
     },
     "alerts": {
       "errorRate": {
-        "threshold": 5,
+        "threshold": 2,
         "period": 300
       },
       "responseTime": {
-        "threshold": 2000,
+        "threshold": 1000,
         "period": 300
       }
     }

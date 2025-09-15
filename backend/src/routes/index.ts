@@ -4,6 +4,7 @@ import classRoutes from './classes';
 import studentRoutes from './students';
 import scheduleRoutes from './schedules';
 import assessmentRoutes from './assessments';
+import fileRoutes from './files';
 
 const router = Router();
 
@@ -42,5 +43,6 @@ router.use('/classes', classRoutes);
 router.use('/students', studentRoutes);
 router.use('/', scheduleRoutes); // Schedule routes are mounted at root level for flexibility
 router.use('/', assessmentRoutes); // Assessment routes are mounted at root level for flexibility
+router.use('/files', fileRoutes);
 
 export default router;
