@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from "react"
-import { toast } from "sonner"
 
 export interface User {
   id: string
@@ -42,7 +41,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const savedUser = localStorage.getItem("classboard_user")
     const hasSeenLaunch = localStorage.getItem("classboard_seen_launch")
-    
+
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser)
@@ -59,11 +58,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (credentials: { email: string; password: string }) => {
     setIsLoading(true)
-    
+
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
-      
+
       // Demo credentials check
       if (credentials.email === "teacher@classboard.com" && credentials.password === "demo123") {
         const userData: User = {
@@ -72,13 +71,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
           name: "Demo Teacher",
           role: "teacher"
         }
-        
+
         setUser(userData)
         localStorage.setItem("classboard_user", JSON.stringify(userData))
         localStorage.setItem("classboard_seen_launch", "true")
         setShowLaunchScreen(false)
-        
-        toast.success(`Welcome back, ${userData.name}!`)
+
+        console.log(`Welcome back, ${userData.name}!`)
       } else {
         // For demo purposes, we'll accept any email/password combination
         // In a real app, this would make an actual API call
@@ -88,16 +87,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
           name: credentials.email.split("@")[0].replace(/[._]/g, " "),
           role: "teacher"
         }
-        
+
         setUser(userData)
         localStorage.setItem("classboard_user", JSON.stringify(userData))
         localStorage.setItem("classboard_seen_launch", "true")
         setShowLaunchScreen(false)
-        
-        toast.success(`Welcome, ${userData.name}!`)
+
+        console.log(`Welcome, ${userData.name}!`)
       }
     } catch (error) {
-      toast.error("Login failed. Please try again.")
+      console.error("Login failed. Please try again.")
       throw error
     } finally {
       setIsLoading(false)
@@ -107,7 +106,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = () => {
     setUser(null)
     localStorage.removeItem("classboard_user")
-    toast.success("You've been logged out successfully")
+    console.log("You've been logged out successfully")
   }
 
   const dismissLaunchScreen = () => {

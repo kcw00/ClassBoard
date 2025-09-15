@@ -6,15 +6,15 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Users, MapPin, Clock, Calendar, FileText, Plus, Edit2, Trash2, UserPlus, UserMinus, BarChart3, TrendingUp } from "lucide-react"
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
-import { useAppData } from "@/context/AppDataContext"
+import { useAppData } from "@/context/AppDataMigrationContext"
 import { ClassNote, Schedule, Student } from "@/data/mockData"
+
 
 export default function ClassDetails() {
   const { id: classId } = useParams()
@@ -270,7 +270,7 @@ export default function ClassDetails() {
     setIsStudentDialogOpen(true)
   }
 
-  const handleSaveStudent = () => {
+  const handleSaveStudent = async () => {
     if (!studentFormData.name.trim() || !studentFormData.email.trim()) return
 
     if (selectedStudent) {
@@ -282,7 +282,7 @@ export default function ClassDetails() {
         parentContact: studentFormData.parentContact
       })
     } else {
-      const newStudent = actions.addStudent({
+      const newStudent = await actions.addStudent({
         name: studentFormData.name,
         email: studentFormData.email,
         phone: studentFormData.phone,
@@ -708,7 +708,7 @@ export default function ClassDetails() {
                           return (
                             <div key={entry.studentId} className="flex items-center gap-2 p-2 border rounded">
                               <div className={`w-2 h-2 rounded-full ${entry.status === 'present' ? 'bg-green-500' :
-                                  entry.status === 'absent' ? 'bg-red-500' : 'bg-yellow-500'
+                                entry.status === 'absent' ? 'bg-red-500' : 'bg-yellow-500'
                                 }`} />
                               <span className="text-sm">{student?.name || 'Unknown Student'}</span>
                               <Badge variant="outline" className="ml-auto text-xs">

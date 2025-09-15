@@ -12,17 +12,12 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Users, GraduationCap, Calendar, MapPin, CalendarCheck, UserCheck, RefreshCw, AlertCircle } from "lucide-react"
 import { classColors } from "@/data/mockData"
-import { useAppData } from "@/context/AppDataContext"
+import { useAppData } from "@/context/AppDataMigrationContext"
 import { ApiServiceTest } from "@/components/common/ApiServiceTest"
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { data, actions } = useAppData()
-  
-  // Mock loading states for now - these will be real when we switch to API service
-  const loading = { classes: false, students: false, schedules: false, meetings: false }
-  const errors = {}
-  const isInitialLoading = false
+  const { data, actions, loading, errors, isInitialLoading } = useAppData()
   const [activeModal, setActiveModal] = useState<string | null>(null)
   const [classFormData, setClassFormData] = useState({
     name: "",

@@ -54,13 +54,39 @@ interface ErrorStates {
   testResults?: string
   homeworkAssignments?: string
   homeworkSubmissions?: string
-}
-
-interface OptimisticUpdate<T> {
-  id: string
-  type: 'add' | 'update' | 'delete'
-  data?: T
-  originalData?: T
+  addClass?: string
+  addStudent?: string
+  updateStudent?: string
+  deleteStudent?: string
+  updateClass?: string
+  enrollStudent?: string
+  unenrollStudent?: string
+  addSchedule?: string
+  updateSchedule?: string
+  deleteSchedule?: string
+  addScheduleException?: string
+  updateScheduleException?: string
+  deleteScheduleException?: string
+  addMeeting?: string
+  updateMeeting?: string
+  deleteMeeting?: string
+  addAttendanceRecord?: string
+  updateAttendanceRecord?: string
+  addClassNote?: string
+  updateClassNote?: string
+  deleteClassNote?: string
+  addTest?: string
+  updateTest?: string
+  deleteTest?: string
+  addTestResult?: string
+  updateTestResult?: string
+  deleteTestResult?: string
+  addHomeworkAssignment?: string
+  updateHomeworkAssignment?: string
+  deleteHomeworkAssignment?: string
+  addHomeworkSubmission?: string
+  updateHomeworkSubmission?: string
+  deleteHomeworkSubmission?: string
 }
 
 interface AppActions {
@@ -97,7 +123,7 @@ interface AppActions {
   addHomeworkSubmission: (submissionData: Omit<HomeworkSubmission, 'id' | 'createdDate' | 'updatedDate'>) => Promise<HomeworkSubmission>
   updateHomeworkSubmission: (submissionId: string, updates: Partial<HomeworkSubmission>) => Promise<void>
   deleteHomeworkSubmission: (submissionId: string) => Promise<void>
-  
+
   // Additional utility methods
   refreshData: () => Promise<void>
   clearCache: () => void
@@ -146,15 +172,12 @@ export function useAppDataService(): UseAppDataServiceReturn {
   // Initial loading state
   const [isInitialLoading, setIsInitialLoading] = useState(true)
 
-  // Optimistic updates tracking
-  const [optimisticUpdates, setOptimisticUpdates] = useState<Map<string, OptimisticUpdate<any>>>(new Map())
-
   // Helper function to handle errors
-  const handleError = useCallback((operation: string, error: unknown) => {
+  const handleError = useCallback((operation: keyof ErrorStates, error: unknown) => {
     console.error(`Error in ${operation}:`, error)
-    
+
     let errorMessage = 'An unexpected error occurred'
-    
+
     if (error instanceof ApiError) {
       errorMessage = error.message
     } else if (error instanceof NetworkError) {
@@ -164,7 +187,7 @@ export function useAppDataService(): UseAppDataServiceReturn {
     }
 
     setErrors(prev => ({ ...prev, [operation]: errorMessage }))
-    
+
     // Clear error after 5 seconds
     setTimeout(() => {
       setErrors(prev => {
@@ -178,19 +201,6 @@ export function useAppDataService(): UseAppDataServiceReturn {
   // Helper function to set loading state
   const setLoadingState = useCallback((operation: keyof LoadingStates, isLoading: boolean) => {
     setLoading(prev => ({ ...prev, [operation]: isLoading }))
-  }, [])
-
-  // Optimistic update helpers
-  const addOptimisticUpdate = useCallback(<T>(key: string, update: OptimisticUpdate<T>) => {
-    setOptimisticUpdates(prev => new Map(prev).set(key, update))
-  }, [])
-
-  const removeOptimisticUpdate = useCallback((key: string) => {
-    setOptimisticUpdates(prev => {
-      const newMap = new Map(prev)
-      newMap.delete(key)
-      return newMap
-    })
   }, [])
 
   // Data fetching functions
@@ -432,24 +442,21 @@ export function useAppDataService(): UseAppDataServiceReturn {
 
     // Optimistic update
     setClasses(prev => [...prev, optimisticClass])
-    addOptimisticUpdate(tempId, { id: tempId, type: 'add', data: optimisticClass })
 
     try {
       const newClass = await appDataService.addClass(classData)
-      
+
       // Replace optimistic update with real data
       setClasses(prev => prev.map(c => c.id === tempId ? newClass : c))
-      removeOptimisticUpdate(tempId)
-      
+
       return newClass
     } catch (error) {
       // Revert optimistic update
       setClasses(prev => prev.filter(c => c.id !== tempId))
-      removeOptimisticUpdate(tempId)
       handleError('addClass', error)
       throw error
     }
-  }, [addOptimisticUpdate, removeOptimisticUpdate, handleError])
+  }, [handleError])
 
   const addStudent = useCallback(async (studentData: Omit<Student, 'id' | 'enrollmentDate'>): Promise<Student> => {
     const tempId = `temp-${Date.now()}`
@@ -461,24 +468,21 @@ export function useAppDataService(): UseAppDataServiceReturn {
 
     // Optimistic update
     setStudents(prev => [...prev, optimisticStudent])
-    addOptimisticUpdate(tempId, { id: tempId, type: 'add', data: optimisticStudent })
 
     try {
       const newStudent = await appDataService.addStudent(studentData)
-      
+
       // Replace optimistic update with real data
       setStudents(prev => prev.map(s => s.id === tempId ? newStudent : s))
-      removeOptimisticUpdate(tempId)
-      
+
       return newStudent
     } catch (error) {
       // Revert optimistic update
       setStudents(prev => prev.filter(s => s.id !== tempId))
-      removeOptimisticUpdate(tempId)
       handleError('addStudent', error)
       throw error
     }
-  }, [addOptimisticUpdate, removeOptimisticUpdate, handleError])
+  }, [handleError])
 
   const updateStudent = useCallback(async (studentId: string, updates: Partial<Student>): Promise<void> => {
     const originalStudent = students.find(s => s.id === studentId)
@@ -487,19 +491,16 @@ export function useAppDataService(): UseAppDataServiceReturn {
     // Optimistic update
     const updatedStudent = { ...originalStudent, ...updates }
     setStudents(prev => prev.map(s => s.id === studentId ? updatedStudent : s))
-    addOptimisticUpdate(studentId, { id: studentId, type: 'update', data: updatedStudent, originalData: originalStudent })
 
     try {
       await appDataService.updateStudent(studentId, updates)
-      removeOptimisticUpdate(studentId)
     } catch (error) {
       // Revert optimistic update
       setStudents(prev => prev.map(s => s.id === studentId ? originalStudent : s))
-      removeOptimisticUpdate(studentId)
       handleError('updateStudent', error)
       throw error
     }
-  }, [students, addOptimisticUpdate, removeOptimisticUpdate, handleError])
+  }, [students, handleError])
 
   const deleteStudent = useCallback(async (studentId: string): Promise<void> => {
     const originalStudent = students.find(s => s.id === studentId)
@@ -507,32 +508,28 @@ export function useAppDataService(): UseAppDataServiceReturn {
 
     // Optimistic update
     setStudents(prev => prev.filter(s => s.id !== studentId))
-    
+
     // Also remove from class enrollments
     setClasses(prev => prev.map(c => ({
       ...c,
       enrolledStudents: c.enrolledStudents.filter(id => id !== studentId)
     })))
-    
+
     // Remove from attendance records
     setAttendanceRecords(prev => prev.map(record => ({
       ...record,
       attendanceData: record.attendanceData.filter(entry => entry.studentId !== studentId)
     })))
 
-    addOptimisticUpdate(studentId, { id: studentId, type: 'delete', originalData: originalStudent })
-
     try {
       await appDataService.deleteStudent(studentId)
-      removeOptimisticUpdate(studentId)
     } catch (error) {
       // Revert optimistic update
       setStudents(prev => [...prev, originalStudent])
-      removeOptimisticUpdate(studentId)
       handleError('deleteStudent', error)
       throw error
     }
-  }, [students, addOptimisticUpdate, removeOptimisticUpdate, handleError])
+  }, [students, handleError])
 
   // Continue with other action implementations...
   // For brevity, I'll implement a few more key ones and provide the pattern
@@ -543,18 +540,15 @@ export function useAppDataService(): UseAppDataServiceReturn {
 
     const updatedClass = { ...originalClass, ...updates }
     setClasses(prev => prev.map(c => c.id === classId ? updatedClass : c))
-    addOptimisticUpdate(classId, { id: classId, type: 'update', data: updatedClass, originalData: originalClass })
 
     try {
       await appDataService.updateClass(classId, updates)
-      removeOptimisticUpdate(classId)
     } catch (error) {
       setClasses(prev => prev.map(c => c.id === classId ? originalClass : c))
-      removeOptimisticUpdate(classId)
       handleError('updateClass', error)
       throw error
     }
-  }, [classes, addOptimisticUpdate, removeOptimisticUpdate, handleError])
+  }, [classes, handleError])
 
   const enrollStudent = useCallback(async (classId: string, studentId: string): Promise<void> => {
     const originalClass = classes.find(c => c.id === classId)
@@ -568,23 +562,15 @@ export function useAppDataService(): UseAppDataServiceReturn {
     }
 
     setClasses(prev => prev.map(c => c.id === classId ? updatedClass : c))
-    addOptimisticUpdate(`enroll-${classId}-${studentId}`, { 
-      id: `enroll-${classId}-${studentId}`, 
-      type: 'update', 
-      data: updatedClass, 
-      originalData: originalClass 
-    })
 
     try {
       await appDataService.enrollStudent(classId, studentId)
-      removeOptimisticUpdate(`enroll-${classId}-${studentId}`)
     } catch (error) {
       setClasses(prev => prev.map(c => c.id === classId ? originalClass : c))
-      removeOptimisticUpdate(`enroll-${classId}-${studentId}`)
       handleError('enrollStudent', error)
       throw error
     }
-  }, [classes, addOptimisticUpdate, removeOptimisticUpdate, handleError])
+  }, [classes, handleError])
 
   const unenrollStudent = useCallback(async (classId: string, studentId: string): Promise<void> => {
     const originalClass = classes.find(c => c.id === classId)
@@ -596,23 +582,15 @@ export function useAppDataService(): UseAppDataServiceReturn {
     }
 
     setClasses(prev => prev.map(c => c.id === classId ? updatedClass : c))
-    addOptimisticUpdate(`unenroll-${classId}-${studentId}`, { 
-      id: `unenroll-${classId}-${studentId}`, 
-      type: 'update', 
-      data: updatedClass, 
-      originalData: originalClass 
-    })
 
     try {
       await appDataService.unenrollStudent(classId, studentId)
-      removeOptimisticUpdate(`unenroll-${classId}-${studentId}`)
     } catch (error) {
       setClasses(prev => prev.map(c => c.id === classId ? originalClass : c))
-      removeOptimisticUpdate(`unenroll-${classId}-${studentId}`)
       handleError('unenrollStudent', error)
       throw error
     }
-  }, [classes, addOptimisticUpdate, removeOptimisticUpdate, handleError])
+  }, [classes, handleError])
 
   // Utility actions
   const refreshData = useCallback(async (): Promise<void> => {

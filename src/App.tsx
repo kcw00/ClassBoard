@@ -1,9 +1,8 @@
-import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from './components/layout'
-import { AppDataProvider } from './context/AppDataContext'
+import { AppDataMigrationProvider } from './context/AppDataMigrationContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { Toaster } from './components/ui/sonner'
+// Removed toast dependencies for simplified provider structure
 import LaunchScreen from './screens/auth/LaunchScreen'
 import LoginPage from './screens/auth/LoginPage'
 
@@ -49,8 +48,8 @@ function AppContent() {
   // Show launch screen first
   if (showLaunchScreen && !isAuthenticated) {
     return (
-      <LaunchScreen 
-        onGetStarted={dismissLaunchScreen} 
+      <LaunchScreen
+        onGetStarted={dismissLaunchScreen}
       />
     )
   }
@@ -58,7 +57,7 @@ function AppContent() {
   // Show login page if not authenticated and launch screen is dismissed
   if (!isAuthenticated) {
     return (
-      <LoginPage 
+      <LoginPage
         onLogin={login}
         onBack={resetToLaunchScreen}
         isLoading={isLoading}
@@ -74,10 +73,9 @@ export default function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppDataProvider>
+        <AppDataMigrationProvider>
           <AppContent />
-          <Toaster />
-        </AppDataProvider>
+        </AppDataMigrationProvider>
       </AuthProvider>
     </Router>
   )

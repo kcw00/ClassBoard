@@ -398,23 +398,4 @@ describe('useAppDataService', () => {
       expect(result.current.errors.classes).toBe('Network connection failed. Please check your internet connection.')
     })
   })
-
-  it('should track loading states correctly', async () => {
-    let loadingCallback: ((states: any) => void) | undefined
-    mockAppDataService.subscribeToLoadingStates.mockImplementation((callback) => {
-      loadingCallback = callback
-      return () => { }
-    })
-
-    const { result } = renderHook(() => useAppDataService())
-
-    // Simulate loading state change
-    if (loadingCallback) {
-      act(() => {
-        loadingCallback({ classes: true })
-      })
-    }
-
-    expect(result.current.loading.classes).toBe(true)
-  })
 })

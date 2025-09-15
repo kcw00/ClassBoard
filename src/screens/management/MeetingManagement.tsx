@@ -4,15 +4,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useAppData } from "@/context/AppDataContext"
+import { useAppData } from "@/context/AppDataMigrationContext"
 import { CalendarDays, Clock, MapPin, Users, Edit, Check, X, Plus, FileText } from "lucide-react"
-import { toast } from "sonner"
+
 
 export default function MeetingManagement() {
   const { data, actions } = useAppData()
@@ -112,7 +110,7 @@ export default function MeetingManagement() {
     e.preventDefault()
 
     if (!newMeeting.title || !newMeeting.date || !newMeeting.startTime || !newMeeting.endTime || !newMeeting.location) {
-      toast.error("Please fill in all required fields")
+      console.error("❌ Please fill in all required fields")
       return
     }
 
@@ -135,7 +133,7 @@ export default function MeetingManagement() {
       meetingType: 'in-person',
       notes: ''
     })
-    toast.success("Meeting scheduled successfully")
+    console.log("✅ Meeting scheduled successfully")
   }
 
   // Handle edit meeting
@@ -161,27 +159,27 @@ export default function MeetingManagement() {
     e.preventDefault()
 
     if (!editForm.title || !editForm.date || !editForm.startTime || !editForm.endTime || !editForm.location) {
-      toast.error("Please fill in all required fields")
+      console.error("❌ Please fill in all required fields")
       return
     }
 
     actions.updateMeeting(editingMeeting.id, editForm)
     setIsEditDialogOpen(false)
     setEditingMeeting(null)
-    toast.success("Meeting updated successfully")
+    console.log("✅ Meeting updated successfully")
   }
 
   // Handle mark complete
   const handleMarkComplete = (meetingId: string) => {
     actions.updateMeeting(meetingId, { status: 'completed' })
-    toast.success("Meeting marked as completed")
+    console.log("✅ Meeting marked as completed")
   }
 
   // Handle delete meeting
   const handleDeleteMeeting = (meetingId: string, meetingTitle: string) => {
     if (window.confirm(`Are you sure you want to delete "${meetingTitle}"?`)) {
       actions.deleteMeeting(meetingId)
-      toast.success("Meeting deleted successfully")
+      console.log("✅ Meeting deleted successfully")
     }
   }
 

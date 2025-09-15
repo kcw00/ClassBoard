@@ -168,7 +168,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Mobile Sidebar */}
       <Sheet open={sidebarOpen && !isDesktop} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-64 p-0" aria-describedby={undefined}>
+        <SheetContent side="left" className="w-64 p-0" >
           <VisuallyHidden>
             <SheetTitle>Navigation Menu</SheetTitle>
           </VisuallyHidden>

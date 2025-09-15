@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, AlertCircle, XCircle, Info, X } from 'lucide-react'
@@ -52,10 +53,10 @@ export function ToastProvider({ children }: ToastProviderProps) {
     setToasts(prev => [...prev, newToast])
 
     // Auto-remove toast after duration
-    if (newToast.duration > 0) {
+    if ((newToast.duration ?? 5000) > 0) {
       setTimeout(() => {
         removeToast(id)
-      }, newToast.duration)
+      }, newToast.duration ?? 5000)
     }
 
     return id
@@ -83,13 +84,13 @@ interface ToastContainerProps {
 }
 
 function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
-  if (toasts.length === 0) return null
-
   return (
     <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
-      {toasts.map(toast => (
-        <ToastItem key={toast.id} toast={toast} onRemove={onRemove} />
-      ))}
+      <AnimatePresence mode="popLayout">
+        {toasts.map(toast => (
+          <ToastItem key={toast.id} toast={toast} onRemove={onRemove} />
+        ))}
+      </AnimatePresence>
     </div>
   )
 }
@@ -101,17 +102,18 @@ interface ToastItemProps {
 
 function ToastItem({ toast, onRemove }: ToastItemProps) {
   const getIcon = () => {
+    const iconClass = "h-4 w-4"
     switch (toast.type) {
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-600" />
+        return <CheckCircle className={`${iconClass} text-green-600`} />
       case 'error':
-        return <XCircle className="h-4 w-4 text-red-600" />
+        return <XCircle className={`${iconClass} text-red-600`} />
       case 'warning':
-        return <AlertCircle className="h-4 w-4 text-yellow-600" />
+        return <AlertCircle className={`${iconClass} text-yellow-600`} />
       case 'info':
-        return <Info className="h-4 w-4 text-blue-600" />
+        return <Info className={`${iconClass} text-blue-600`} />
       default:
-        return <Info className="h-4 w-4" />
+        return <Info className={iconClass} />
     }
   }
 
@@ -125,34 +127,80 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
   }
 
   return (
-    <Alert variant={getVariant()} className="relative pr-8 shadow-lg">
-      {getIcon()}
-      <div className="flex-1">
-        {toast.title && (
-          <div className="font-medium">{toast.title}</div>
-        )}
-        <AlertDescription>{toast.message}</AlertDescription>
-        {toast.action && (
-          <div className="mt-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={toast.action.onClick}
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: 300, scale: 0.9 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 300, scale: 0.9 }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30
+      }}
+      whileHover={{ scale: 1.02 }}
+    >
+      <Alert variant={getVariant()} className="relative pr-8 shadow-lg border-l-4">
+        <motion.div
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+        >
+          {getIcon()}
+        </motion.div>
+        <div className="flex-1">
+          {toast.title && (
+            <motion.div 
+              className="font-medium"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
             >
-              {toast.action.label}
-            </Button>
-          </div>
-        )}
-      </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="absolute top-2 right-2 h-6 w-6 p-0"
-        onClick={() => onRemove(toast.id)}
-      >
-        <X className="h-3 w-3" />
-      </Button>
-    </Alert>
+              {toast.title}
+            </motion.div>
+          )}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <AlertDescription>{toast.message}</AlertDescription>
+          </motion.div>
+          {toast.action && (
+            <motion.div 
+              className="mt-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={toast.action.onClick}
+                className="hover:scale-105 transition-transform"
+              >
+                {toast.action.label}
+              </Button>
+            </motion.div>
+          )}
+        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4 }}
+          whileHover={{ scale: 1.2 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-transparent hover:text-muted-foreground"
+            onClick={() => onRemove(toast.id)}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </motion.div>
+      </Alert>
+    </motion.div>
   )
 }
 

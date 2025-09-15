@@ -4,31 +4,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { toast } from "sonner@2.0.3"
+// Toast functionality removed - using console logging instead
 import { 
   CheckCircle, 
   XCircle, 
   Clock, 
   Users, 
-  Calendar,
   TrendingUp,
-  TrendingDown,
   Plus,
   Edit,
   Search,
-  Filter,
   Eye,
   BarChart3
 } from "lucide-react"
-import { useAppData } from "@/context/AppDataContext"
+import { useAppData } from "@/context/AppDataMigrationContext"
 
 export default function AttendanceManagement() {
   const { data, actions } = useAppData()
@@ -119,12 +113,12 @@ export default function AttendanceManagement() {
     e.preventDefault()
     
     if (!selectedClass || !selectedDate) {
-      toast.error("Please select class and date")
+      console.error("❌ Please select class and date")
       return
     }
 
     if (Object.keys(attendanceData).length === 0) {
-      toast.error("No attendance data to save")
+      console.error("❌ No attendance data to save")
       return
     }
 
@@ -144,7 +138,7 @@ export default function AttendanceManagement() {
     setIsAttendanceDialogOpen(false)
     setAttendanceData({})
     setSelectedClass("")
-    toast.success("Attendance recorded successfully")
+    console.log("✅ Attendance recorded successfully")
   }
 
   // Handle overview card clicks
@@ -215,7 +209,7 @@ export default function AttendanceManagement() {
     setIsEditRecordOpen(false)
     setEditingRecord(null)
     setEditAttendanceData({})
-    toast.success("Attendance record updated successfully")
+    console.log("✅ Attendance record updated successfully")
   }
 
   const stats = getAttendanceStats()

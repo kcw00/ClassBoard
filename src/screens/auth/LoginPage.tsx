@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookOpen, Eye, EyeOff, ArrowLeft } from "lucide-react"
-import { toast } from "sonner"
+// Toast functionality removed - using console logging instead
 
 interface LoginPageProps {
   onLogin: (credentials: { email: string; password: string }) => void
@@ -41,7 +41,7 @@ export default function LoginPage({ onLogin, onBack, isLoading = false }: LoginP
     e.preventDefault()
     
     if (!validateForm()) {
-      toast.error("Please fix the errors below")
+      console.error("❌ Please fix the errors below")
       return
     }
 
