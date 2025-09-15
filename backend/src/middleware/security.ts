@@ -71,8 +71,13 @@ export function enforceHTTPS(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
+  // Allow health check endpoints over HTTP for Railway deployment
+  if (req.path.startsWith('/api/health')) {
+    return next();
+  }
+
   // Check if request is secure
-  const isSecure = req.secure || 
+  const isSecure = req.secure ||
                    req.get('X-Forwarded-Proto') === 'https' ||
                    req.get('X-Forwarded-Ssl') === 'on';
 
