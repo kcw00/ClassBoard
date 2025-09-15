@@ -12,23 +12,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Variables
-variable "environment" {
-  description = "Environment name (development, staging, production)"
-  type        = string
-}
-
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "us-east-1"
-}
-
-variable "project_name" {
-  description = "Project name"
-  type        = string
-  default     = "ClassBoard"
-}
+# Variables are centralized in variables.tf
 
 # Data sources
 data "aws_availability_zones" "available" {
