@@ -12,8 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { toast } from "sonner@2.0.3"
-import { 
+import { toast } from "sonner"
+import {
   Plus,
   FileText,
   Clock,
@@ -57,8 +57,8 @@ export default function TestManagement() {
     const activeTests = data.tests.filter(test => new Date(test.testDate) > new Date()).length
     const completedTests = data.tests.filter(test => new Date(test.testDate) <= new Date()).length
     const totalResults = data.testResults.length
-    
-    const averageScore = totalResults > 0 
+
+    const averageScore = totalResults > 0
       ? data.testResults.reduce((sum, result) => sum + result.percentage, 0) / totalResults
       : 0
 
@@ -83,10 +83,10 @@ export default function TestManagement() {
       const results = data.testResults.filter(r => r.testId === test.id)
       const submissionCount = results.length
       const expectedSubmissions = classItem?.enrolledStudents.length || 0
-      const averageScore = results.length > 0 
+      const averageScore = results.length > 0
         ? results.reduce((sum, r) => sum + r.percentage, 0) / results.length
         : 0
-      
+
       const isActive = new Date(test.testDate) > new Date()
       const isPastDue = new Date(test.testDate) <= new Date()
       const hasAttachedFiles = results.some(r => r.attachedFile)
@@ -110,7 +110,7 @@ export default function TestManagement() {
   // Handle creating new test
   const handleCreateTest = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!newTest.title || !newTest.classId || !newTest.testDate) {
       toast.error("Please fill in all required fields")
       return
@@ -154,7 +154,7 @@ export default function TestManagement() {
 
   const handleUpdateTest = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!editingTest.title || !editingTest.classId || !editingTest.testDate) {
       toast.error("Please fill in all required fields")
       return
@@ -168,7 +168,7 @@ export default function TestManagement() {
       testDate: editingTest.testDate,
       testType: editingTest.testType
     })
-    
+
     setIsEditDialogOpen(false)
     setEditingTest(null)
     toast.success("Test updated successfully")
@@ -192,10 +192,10 @@ export default function TestManagement() {
   // Filter tests
   const filteredTests = getTestsWithInfo().filter(test => {
     const matchesSearch = test.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         test.className.toLowerCase().includes(searchTerm.toLowerCase())
+      test.className.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesClass = filterClass === "all" || test.classId === filterClass
     const matchesStatus = filterStatus === "all" || test.status === filterStatus
-    
+
     return matchesSearch && matchesClass && matchesStatus
   })
 
@@ -217,7 +217,7 @@ export default function TestManagement() {
                 <span className="hidden sm:inline sm:ml-2">Upload Test</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] mx-4" aria-describedby={undefined}>
+            <DialogContent className="sm:max-w-[425px] mx-4" >
               <DialogHeader>
                 <DialogTitle>Upload Test File</DialogTitle>
                 <DialogDescription>Upload a test file (PDF, DOC, etc.)</DialogDescription>
@@ -256,7 +256,7 @@ export default function TestManagement() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          
+
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button aria-label="Create Test">
@@ -264,7 +264,7 @@ export default function TestManagement() {
                 <span className="hidden sm:inline sm:ml-2">Create Test</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl mx-4" aria-describedby={undefined}>
+            <DialogContent className="max-w-2xl mx-4" >
               <DialogHeader>
                 <DialogTitle>Create New Test</DialogTitle>
                 <DialogDescription>Set up a new test for your students</DialogDescription>
@@ -276,13 +276,13 @@ export default function TestManagement() {
                     <Input
                       id="title"
                       value={newTest.title}
-                      onChange={(e) => setNewTest({...newTest, title: e.target.value})}
+                      onChange={(e) => setNewTest({ ...newTest, title: e.target.value })}
                       required
                     />
                   </div>
                   <div>
                     <Label htmlFor="class">Class *</Label>
-                    <Select value={newTest.classId} onValueChange={(value) => setNewTest({...newTest, classId: value})}>
+                    <Select value={newTest.classId} onValueChange={(value) => setNewTest({ ...newTest, classId: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select class" />
                       </SelectTrigger>
@@ -296,13 +296,13 @@ export default function TestManagement() {
                     </Select>
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
                     value={newTest.description}
-                    onChange={(e) => setNewTest({...newTest, description: e.target.value})}
+                    onChange={(e) => setNewTest({ ...newTest, description: e.target.value })}
                     rows={2}
                   />
                 </div>
@@ -314,7 +314,7 @@ export default function TestManagement() {
                       id="totalPoints"
                       type="number"
                       value={newTest.totalPoints}
-                      onChange={(e) => setNewTest({...newTest, totalPoints: parseInt(e.target.value)})}
+                      onChange={(e) => setNewTest({ ...newTest, totalPoints: parseInt(e.target.value) })}
                       min="1"
                     />
                   </div>
@@ -324,13 +324,13 @@ export default function TestManagement() {
                       id="testDate"
                       type="date"
                       value={newTest.testDate}
-                      onChange={(e) => setNewTest({...newTest, testDate: e.target.value})}
+                      onChange={(e) => setNewTest({ ...newTest, testDate: e.target.value })}
                       required
                     />
                   </div>
                   <div>
                     <Label htmlFor="testType">Test Type</Label>
-                    <Select value={newTest.testType} onValueChange={(value: any) => setNewTest({...newTest, testType: value})}>
+                    <Select value={newTest.testType} onValueChange={(value: any) => setNewTest({ ...newTest, testType: value })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -373,13 +373,13 @@ export default function TestManagement() {
                       <Input
                         id="edit-title"
                         value={editingTest.title}
-                        onChange={(e) => setEditingTest({...editingTest, title: e.target.value})}
+                        onChange={(e) => setEditingTest({ ...editingTest, title: e.target.value })}
                         required
                       />
                     </div>
                     <div>
                       <Label htmlFor="edit-class">Class *</Label>
-                      <Select value={editingTest.classId} onValueChange={(value) => setEditingTest({...editingTest, classId: value})}>
+                      <Select value={editingTest.classId} onValueChange={(value) => setEditingTest({ ...editingTest, classId: value })}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select class" />
                         </SelectTrigger>
@@ -393,13 +393,13 @@ export default function TestManagement() {
                       </Select>
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="edit-description">Description</Label>
                     <Textarea
                       id="edit-description"
                       value={editingTest.description}
-                      onChange={(e) => setEditingTest({...editingTest, description: e.target.value})}
+                      onChange={(e) => setEditingTest({ ...editingTest, description: e.target.value })}
                       rows={2}
                     />
                   </div>
@@ -411,7 +411,7 @@ export default function TestManagement() {
                         id="edit-totalPoints"
                         type="number"
                         value={editingTest.totalPoints}
-                        onChange={(e) => setEditingTest({...editingTest, totalPoints: parseInt(e.target.value)})}
+                        onChange={(e) => setEditingTest({ ...editingTest, totalPoints: parseInt(e.target.value) })}
                         min="1"
                       />
                     </div>
@@ -421,13 +421,13 @@ export default function TestManagement() {
                         id="edit-testDate"
                         type="date"
                         value={editingTest.testDate}
-                        onChange={(e) => setEditingTest({...editingTest, testDate: e.target.value})}
+                        onChange={(e) => setEditingTest({ ...editingTest, testDate: e.target.value })}
                         required
                       />
                     </div>
                     <div>
                       <Label htmlFor="edit-testType">Test Type</Label>
-                      <Select value={editingTest.testType} onValueChange={(value: any) => setEditingTest({...editingTest, testType: value})}>
+                      <Select value={editingTest.testType} onValueChange={(value: any) => setEditingTest({ ...editingTest, testType: value })}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -469,7 +469,7 @@ export default function TestManagement() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -607,8 +607,8 @@ export default function TestManagement() {
                     <TableCell className="w-32">
                       <div className="flex items-center gap-2">
                         <span className="text-sm">{test.submissionCount}/{test.expectedSubmissions}</span>
-                        <Progress 
-                          value={test.expectedSubmissions > 0 ? (test.submissionCount / test.expectedSubmissions) * 100 : 0} 
+                        <Progress
+                          value={test.expectedSubmissions > 0 ? (test.submissionCount / test.expectedSubmissions) * 100 : 0}
                           className="w-12 h-2"
                         />
                       </div>
@@ -617,10 +617,9 @@ export default function TestManagement() {
                       <div className="flex items-center gap-1">
                         <span className="text-sm">{test.averageScore}%</span>
                         {test.submissionCount > 0 && (
-                          <div className={`w-2 h-2 rounded-full ${
-                            test.averageScore >= 80 ? 'bg-green-500' : 
+                          <div className={`w-2 h-2 rounded-full ${test.averageScore >= 80 ? 'bg-green-500' :
                             test.averageScore >= 70 ? 'bg-yellow-500' : 'bg-red-500'
-                          }`} />
+                            }`} />
                         )}
                       </div>
                     </TableCell>
@@ -635,8 +634,8 @@ export default function TestManagement() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="ghost"
                           onClick={() => handleDeleteTest(test.id, test.title)}
                           className="h-8 w-8 p-0"
@@ -681,7 +680,7 @@ export default function TestManagement() {
                     {test.status}
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="text-sm">
@@ -694,10 +693,9 @@ export default function TestManagement() {
                         {test.averageScore}%
                       </span>
                       {test.submissionCount > 0 && (
-                        <div className={`w-2 h-2 rounded-full ${
-                          test.averageScore >= 80 ? 'bg-green-500' : 
+                        <div className={`w-2 h-2 rounded-full ${test.averageScore >= 80 ? 'bg-green-500' :
                           test.averageScore >= 70 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`} />
+                          }`} />
                       )}
                     </div>
                   </div>
@@ -711,8 +709,8 @@ export default function TestManagement() {
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="ghost"
                       onClick={() => handleDeleteTest(test.id, test.title)}
                       className="h-8 w-8 p-0"
@@ -722,15 +720,15 @@ export default function TestManagement() {
                     </Button>
                   </div>
                 </div>
-                
-                <Progress 
-                  value={test.expectedSubmissions > 0 ? (test.submissionCount / test.expectedSubmissions) * 100 : 0} 
+
+                <Progress
+                  value={test.expectedSubmissions > 0 ? (test.submissionCount / test.expectedSubmissions) * 100 : 0}
                   className="h-2"
                 />
               </div>
             ))}
           </div>
-            
+
           {filteredTests.length === 0 && (
             <div className="text-center py-8">
               <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

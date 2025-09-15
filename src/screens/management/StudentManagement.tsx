@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Mail, Phone, User, Users, ChevronUp, ChevronDown, Search } from "lucide-react"
 import { useAppData } from "@/context/AppDataContext"
+import { Student } from "@/data"
 
 export default function StudentManagement() {
   const navigate = useNavigate()
@@ -80,7 +81,7 @@ export default function StudentManagement() {
   }
 
   const getStudentClasses = (studentId: string) => {
-    return data.classes.filter(classItem => 
+    return data.classes.filter(classItem =>
       classItem.enrolledStudents.includes(studentId)
     )
   }
@@ -111,7 +112,7 @@ export default function StudentManagement() {
       filteredStudents = [...filteredStudents].sort((a, b) => {
         const firstNameA = a.name.split(' ')[0].toLowerCase()
         const firstNameB = b.name.split(' ')[0].toLowerCase()
-        
+
         if (sortOrder === "asc") {
           return firstNameA.localeCompare(firstNameB)
         } else {
@@ -151,7 +152,7 @@ export default function StudentManagement() {
                   <span className="hidden sm:inline sm:ml-2">Add Student</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]" aria-describedby={undefined}>
+              <DialogContent className="sm:max-w-[425px]" >
                 <DialogHeader>
                   <DialogTitle>Add New Student</DialogTitle>
                 </DialogHeader>
@@ -233,8 +234,8 @@ export default function StudentManagement() {
         {viewMode === "cards" ? (
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {getFilteredAndSortedStudents().map((student) => (
-              <Card 
-                key={student.id} 
+              <Card
+                key={student.id}
                 className="cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => navigate(`/students/${student.id}`)}
               >
@@ -283,7 +284,7 @@ export default function StudentManagement() {
               <div className="flex items-center justify-between">
                 <CardTitle>Student Roster</CardTitle>
                 <Button
-                  variant="outline" 
+                  variant="outline"
                   size="sm"
                   onClick={handleSortByFirstName}
                   className="flex items-center gap-2"
@@ -314,7 +315,7 @@ export default function StudentManagement() {
                 </TableHeader>
                 <TableBody>
                   {getFilteredAndSortedStudents().map((student) => (
-                    <TableRow 
+                    <TableRow
                       key={student.id}
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => navigate(`/students/${student.id}`)}
@@ -349,7 +350,7 @@ export default function StudentManagement() {
 
       {/* Edit Student Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]" aria-describedby={undefined}>
+        <DialogContent className="sm:max-w-[425px]" >
           <DialogHeader>
             <DialogTitle>Edit Student</DialogTitle>
           </DialogHeader>

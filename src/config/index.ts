@@ -10,9 +10,10 @@ export const config = {
     defaultTTL: 5 * 60 * 1000, // 5 minutes
   },
   features: {
-    useApiService: import.meta.env.VITE_USE_API_SERVICE === 'true' || false,
+    useApiService: (import.meta as any)?.env?.VITE_USE_API_SERVICE === 'true' || false,
     enableOptimisticUpdates: true,
     enableCaching: true,
+    enableToastNotifications: true,
   }
 }
 

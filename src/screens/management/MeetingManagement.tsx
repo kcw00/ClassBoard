@@ -12,17 +12,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAppData } from "@/context/AppDataContext"
 import { CalendarDays, Clock, MapPin, Users, Edit, Check, X, Plus, FileText } from "lucide-react"
-import { toast } from "sonner@2.0.3"
+import { toast } from "sonner"
 
 export default function MeetingManagement() {
   const { data, actions } = useAppData()
-  
+
   // State for dialogs and forms
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingMeeting, setEditingMeeting] = useState<any>(null)
   const [activeTab, setActiveTab] = useState("all")
-  
+
   // Form state for new meeting
   const [newMeeting, setNewMeeting] = useState({
     title: '',
@@ -56,7 +56,7 @@ export default function MeetingManagement() {
 
   // Filter meetings
   const upcomingMeetings = useMemo(() => {
-    return data.meetings.filter(meeting => 
+    return data.meetings.filter(meeting =>
       meeting.date >= today && meeting.status === 'scheduled'
     ).sort((a, b) => new Date(a.date + ' ' + a.startTime).getTime() - new Date(b.date + ' ' + b.startTime).getTime())
   }, [data.meetings, today])
@@ -82,8 +82,8 @@ export default function MeetingManagement() {
   // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric',
       year: 'numeric'
     })
@@ -94,10 +94,10 @@ export default function MeetingManagement() {
     const [hours, minutes] = timeString.split(':')
     const date = new Date()
     date.setHours(parseInt(hours), parseInt(minutes))
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     })
   }
 
@@ -110,7 +110,7 @@ export default function MeetingManagement() {
   // Handle schedule meeting
   const handleScheduleMeeting = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!newMeeting.title || !newMeeting.date || !newMeeting.startTime || !newMeeting.endTime || !newMeeting.location) {
       toast.error("Please fill in all required fields")
       return
@@ -159,7 +159,7 @@ export default function MeetingManagement() {
   // Handle update meeting
   const handleUpdateMeeting = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!editForm.title || !editForm.date || !editForm.startTime || !editForm.endTime || !editForm.location) {
       toast.error("Please fill in all required fields")
       return
@@ -193,7 +193,7 @@ export default function MeetingManagement() {
           <h1 className="text-3xl font-bold tracking-tight">Meetings</h1>
           <p className="text-muted-foreground">Schedule and manage meetings with students, parents, and colleagues</p>
         </div>
-        
+
         <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
           <DialogTrigger asChild>
             <Button aria-label="Schedule Meeting">
@@ -201,7 +201,7 @@ export default function MeetingManagement() {
               <span className="hidden sm:inline sm:ml-2">Schedule Meeting</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto" >
             <DialogHeader>
               <DialogTitle>Schedule New Meeting</DialogTitle>
             </DialogHeader>
@@ -212,13 +212,13 @@ export default function MeetingManagement() {
                   <Input
                     id="title"
                     value={newMeeting.title}
-                    onChange={(e) => setNewMeeting({...newMeeting, title: e.target.value})}
+                    onChange={(e) => setNewMeeting({ ...newMeeting, title: e.target.value })}
                     required
                   />
                 </div>
                 <div>
                   <Label htmlFor="participantType">Participant Type *</Label>
-                  <Select value={newMeeting.participantType} onValueChange={(value: any) => setNewMeeting({...newMeeting, participantType: value, participants: []})}>
+                  <Select value={newMeeting.participantType} onValueChange={(value: any) => setNewMeeting({ ...newMeeting, participantType: value, participants: [] })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -230,13 +230,13 @@ export default function MeetingManagement() {
                   </Select>
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
                   value={newMeeting.description}
-                  onChange={(e) => setNewMeeting({...newMeeting, description: e.target.value})}
+                  onChange={(e) => setNewMeeting({ ...newMeeting, description: e.target.value })}
                   rows={2}
                 />
               </div>
@@ -248,7 +248,7 @@ export default function MeetingManagement() {
                     id="date"
                     type="date"
                     value={newMeeting.date}
-                    onChange={(e) => setNewMeeting({...newMeeting, date: e.target.value})}
+                    onChange={(e) => setNewMeeting({ ...newMeeting, date: e.target.value })}
                     required
                   />
                 </div>
@@ -258,7 +258,7 @@ export default function MeetingManagement() {
                     id="startTime"
                     type="time"
                     value={newMeeting.startTime}
-                    onChange={(e) => setNewMeeting({...newMeeting, startTime: e.target.value})}
+                    onChange={(e) => setNewMeeting({ ...newMeeting, startTime: e.target.value })}
                     required
                   />
                 </div>
@@ -268,7 +268,7 @@ export default function MeetingManagement() {
                     id="endTime"
                     type="time"
                     value={newMeeting.endTime}
-                    onChange={(e) => setNewMeeting({...newMeeting, endTime: e.target.value})}
+                    onChange={(e) => setNewMeeting({ ...newMeeting, endTime: e.target.value })}
                     required
                   />
                 </div>
@@ -280,14 +280,14 @@ export default function MeetingManagement() {
                   <Input
                     id="location"
                     value={newMeeting.location}
-                    onChange={(e) => setNewMeeting({...newMeeting, location: e.target.value})}
+                    onChange={(e) => setNewMeeting({ ...newMeeting, location: e.target.value })}
                     placeholder="e.g., Conference Room A, Virtual Meeting"
                     required
                   />
                 </div>
                 <div>
                   <Label htmlFor="meetingType">Meeting Type</Label>
-                  <Select value={newMeeting.meetingType} onValueChange={(value: any) => setNewMeeting({...newMeeting, meetingType: value})}>
+                  <Select value={newMeeting.meetingType} onValueChange={(value: any) => setNewMeeting({ ...newMeeting, meetingType: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -304,7 +304,7 @@ export default function MeetingManagement() {
                 <Textarea
                   id="notes"
                   value={newMeeting.notes}
-                  onChange={(e) => setNewMeeting({...newMeeting, notes: e.target.value})}
+                  onChange={(e) => setNewMeeting({ ...newMeeting, notes: e.target.value })}
                   rows={2}
                   placeholder="Additional notes or agenda items..."
                 />
@@ -415,12 +415,12 @@ export default function MeetingManagement() {
                             </Badge>
                           </div>
                         </div>
-                        
+
                         {meeting.description && (
                           <p className="text-sm text-muted-foreground leading-relaxed">{meeting.description}</p>
                         )}
                       </div>
-                      
+
                       {/* Meeting details */}
                       <div className="space-y-3">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
@@ -442,7 +442,7 @@ export default function MeetingManagement() {
                           <div className="text-sm">
                             <span className="font-medium text-foreground">Participants: </span>
                             <span className="text-muted-foreground">
-                              {meeting.participantType === 'students' 
+                              {meeting.participantType === 'students'
                                 ? meeting.participants.map(id => getStudentName(id)).join(', ')
                                 : meeting.participants.join(', ')
                               }
@@ -469,7 +469,7 @@ export default function MeetingManagement() {
                           <Edit className="h-4 w-4 sm:mr-2" />
                           <span className="hidden sm:inline">Edit</span>
                         </Button>
-                        
+
                         {meeting.status === 'scheduled' && (
                           <Button
                             size="sm"
@@ -482,7 +482,7 @@ export default function MeetingManagement() {
                             <span className="hidden sm:inline">Mark Complete</span>
                           </Button>
                         )}
-                        
+
                         <Button
                           size="sm"
                           variant="ghost"
@@ -517,13 +517,13 @@ export default function MeetingManagement() {
                   <Input
                     id="edit-title"
                     value={editForm.title}
-                    onChange={(e) => setEditForm({...editForm, title: e.target.value})}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                     required
                   />
                 </div>
                 <div>
                   <Label htmlFor="edit-participantType">Participant Type *</Label>
-                  <Select value={editForm.participantType} onValueChange={(value: any) => setEditForm({...editForm, participantType: value, participants: []})}>
+                  <Select value={editForm.participantType} onValueChange={(value: any) => setEditForm({ ...editForm, participantType: value, participants: [] })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -535,13 +535,13 @@ export default function MeetingManagement() {
                   </Select>
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="edit-description">Description</Label>
                 <Textarea
                   id="edit-description"
                   value={editForm.description}
-                  onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   rows={2}
                 />
               </div>
@@ -553,7 +553,7 @@ export default function MeetingManagement() {
                     id="edit-date"
                     type="date"
                     value={editForm.date}
-                    onChange={(e) => setEditForm({...editForm, date: e.target.value})}
+                    onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
                     required
                   />
                 </div>
@@ -563,7 +563,7 @@ export default function MeetingManagement() {
                     id="edit-startTime"
                     type="time"
                     value={editForm.startTime}
-                    onChange={(e) => setEditForm({...editForm, startTime: e.target.value})}
+                    onChange={(e) => setEditForm({ ...editForm, startTime: e.target.value })}
                     required
                   />
                 </div>
@@ -573,7 +573,7 @@ export default function MeetingManagement() {
                     id="edit-endTime"
                     type="time"
                     value={editForm.endTime}
-                    onChange={(e) => setEditForm({...editForm, endTime: e.target.value})}
+                    onChange={(e) => setEditForm({ ...editForm, endTime: e.target.value })}
                     required
                   />
                 </div>
@@ -585,13 +585,13 @@ export default function MeetingManagement() {
                   <Input
                     id="edit-location"
                     value={editForm.location}
-                    onChange={(e) => setEditForm({...editForm, location: e.target.value})}
+                    onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                     required
                   />
                 </div>
                 <div>
                   <Label htmlFor="edit-meetingType">Meeting Type</Label>
-                  <Select value={editForm.meetingType} onValueChange={(value: any) => setEditForm({...editForm, meetingType: value})}>
+                  <Select value={editForm.meetingType} onValueChange={(value: any) => setEditForm({ ...editForm, meetingType: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -608,7 +608,7 @@ export default function MeetingManagement() {
                 <Textarea
                   id="edit-notes"
                   value={editForm.notes}
-                  onChange={(e) => setEditForm({...editForm, notes: e.target.value})}
+                  onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
                   rows={2}
                 />
               </div>

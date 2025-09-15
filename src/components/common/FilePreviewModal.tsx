@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
 import { Button } from "@/components/ui/button"
 import { Download, FileText, X } from "lucide-react"
-import { toast } from "sonner@2.0.3"
+import { toast } from "sonner"
 
 interface FileAttachment {
   name: string
@@ -82,8 +82,8 @@ export default function FilePreviewModal({ isOpen, onClose, file, title }: FileP
           <div className="border rounded-lg overflow-hidden bg-muted/30">
             {isImageFile(file) && (
               <div className="flex items-center justify-center min-h-[400px] p-4">
-                <img 
-                  src={file.url} 
+                <img
+                  src={file.url}
                   alt={file.name}
                   className="max-w-full max-h-[60vh] object-contain rounded border bg-white shadow-sm"
                   onError={() => toast.error("Failed to load image")}

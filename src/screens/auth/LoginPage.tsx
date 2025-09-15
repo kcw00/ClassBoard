@@ -1,11 +1,10 @@
 import { useState } from "react"
-import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookOpen, Eye, EyeOff, ArrowLeft } from "lucide-react"
-import { toast } from "sonner@2.0.3"
+import { toast } from "sonner"
 
 interface LoginPageProps {
   onLogin: (credentials: { email: string; password: string }) => void
@@ -60,12 +59,7 @@ export default function LoginPage({ onLogin, onBack, isLoading = false }: LoginP
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Back Button */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mb-6"
-        >
+        <div className="mb-6">
           <Button
             variant="ghost"
             onClick={onBack}
@@ -74,28 +68,19 @@ export default function LoginPage({ onLogin, onBack, isLoading = false }: LoginP
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-        </motion.div>
+        </div>
 
         {/* Logo */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-8"
-        >
+        <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-xl mb-4">
             <BookOpen className="w-8 h-8 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold text-primary mb-2">Welcome Back</h1>
           <p className="text-muted-foreground">Sign in to your Classboard account</p>
-        </motion.div>
+        </div>
 
         {/* Login Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
+        <div>
           <Card>
             <CardHeader>
               <CardTitle>Sign In</CardTitle>
@@ -189,22 +174,17 @@ export default function LoginPage({ onLogin, onBack, isLoading = false }: LoginP
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Footer */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="text-center mt-8"
-        >
+        <div className="text-center mt-8">
           <p className="text-sm text-muted-foreground">
             New to Classboard?{" "}
             <Button variant="link" className="p-0 h-auto font-normal">
               Contact your administrator
             </Button>
           </p>
-        </motion.div>
+        </div>
       </div>
     </div>
   )

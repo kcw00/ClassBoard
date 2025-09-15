@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Users, MapPin, Clock, Calendar, FileText, Plus, Edit2, Trash2, UserPlus, UserMinus, BarChart3, TrendingUp } from "lucide-react"
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { useAppData } from "@/context/AppDataContext"
+import { ClassNote, Schedule, Student } from "@/data/mockData"
 
 export default function ClassDetails() {
   const { id: classId } = useParams()
@@ -50,7 +51,7 @@ export default function ClassDetails() {
   })
 
   const classData = (data.classes || []).find(c => c.id === classId)
-  
+
   if (!classData) {
     return (
       <div className="space-y-6">
@@ -66,19 +67,19 @@ export default function ClassDetails() {
     )
   }
 
-  const enrolledStudents = (data.students || []).filter(student => 
+  const enrolledStudents = (data.students || []).filter(student =>
     (classData?.enrolledStudents || []).includes(student.id)
   )
 
-  const classSchedules = (data.schedules || []).filter(schedule => 
+  const classSchedules = (data.schedules || []).filter(schedule =>
     schedule.classId === classId
   )
 
-  const classNotes = (data.classNotes || []).filter(note => 
+  const classNotes = (data.classNotes || []).filter(note =>
     note.classId === classId
   ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-  const attendanceRecords = (data.attendanceRecords || []).filter(record => 
+  const attendanceRecords = (data.attendanceRecords || []).filter(record =>
     record.classId === classId
   ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
@@ -90,13 +91,14 @@ export default function ClassDetails() {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'long',
-      year: 'numeric', 
+      year: 'numeric',
       month: 'long',
       day: 'numeric'
     })
   }
 
   const handleAddNote = () => {
+    if (!classId) return
     setSelectedNote(null)
     setNoteFormData({
       content: "",
@@ -121,7 +123,7 @@ export default function ClassDetails() {
   }
 
   const handleSaveNote = () => {
-    if (!noteFormData.content.trim() || !selectedDate) return
+    if (!noteFormData.content.trim() || !selectedDate || !classId) return
 
     const noteData = {
       classId: classId,
@@ -157,12 +159,13 @@ export default function ClassDetails() {
   }
 
   const getAvailableStudents = () => {
-    return (data.students || []).filter(student => 
+    return (data.students || []).filter(student =>
       !(classData?.enrolledStudents || []).includes(student.id)
     )
   }
 
   const handleEnrollStudent = (studentId: string, enrolled: boolean) => {
+    if (!classId) return
     if (enrolled) {
       actions.enrollStudent(classId, studentId)
     } else {
@@ -187,7 +190,7 @@ export default function ClassDetails() {
   }
 
   const handleSaveSchedule = () => {
-    if (!scheduleFormData.dayOfWeek || !scheduleFormData.startTime || !scheduleFormData.endTime) return
+    if (!scheduleFormData.dayOfWeek || !scheduleFormData.startTime || !scheduleFormData.endTime || !classId) return
 
     if (selectedSchedule) {
       actions.updateSchedule(selectedSchedule.id, {
@@ -287,7 +290,7 @@ export default function ClassDetails() {
         parentContact: studentFormData.parentContact
       })
       // Auto-enroll the new student in this class
-      actions.enrollStudent(classId!, newStudent.id)
+      if (classId) actions.enrollStudent(classId, newStudent.id)
     }
 
     setIsStudentDialogOpen(false)
@@ -308,8 +311,8 @@ export default function ClassDetails() {
   }
 
   const handleUnenrollStudent = (studentId: string) => {
-    if (window.confirm('Are you sure you want to unenroll this student from the class?')) {
-      actions.unenrollStudent(classId!, studentId)
+    if (classId && window.confirm('Are you sure you want to unenroll this student from the class?')) {
+      actions.unenrollStudent(classId, studentId)
     }
   }
 
@@ -321,13 +324,13 @@ export default function ClassDetails() {
     const totalRecords = attendanceRecords.length
     if (totalRecords === 0) return { rate: 0, totalClasses: 0 }
 
-    const totalStudentEntries = attendanceRecords.reduce((sum, record) => 
+    const totalStudentEntries = attendanceRecords.reduce((sum, record) =>
       sum + (record.attendanceData || []).length, 0
     )
-    const presentCount = attendanceRecords.reduce((sum, record) => 
+    const presentCount = attendanceRecords.reduce((sum, record) =>
       sum + (record.attendanceData || []).filter(entry => entry.status === 'present').length, 0
     )
-    
+
     return {
       rate: totalStudentEntries > 0 ? Math.round((presentCount / totalStudentEntries) * 100) : 0,
       totalClasses: totalRecords
@@ -341,7 +344,7 @@ export default function ClassDetails() {
       const presentCount = (record.attendanceData || []).filter(entry => entry.status === 'present').length
       const totalCount = (record.attendanceData || []).length
       const attendanceRate = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0
-      
+
       return {
         date: new Date(record.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         fullDate: record.date,
@@ -364,7 +367,7 @@ export default function ClassDetails() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex items-center gap-3">
-          <div 
+          <div
             className="w-4 h-4 rounded-full"
             style={{ backgroundColor: classData.color }}
           />
@@ -377,7 +380,7 @@ export default function ClassDetails() {
 
       {/* Class Overview Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => setIsStudentManagementDialogOpen(true)}
         >
@@ -393,7 +396,7 @@ export default function ClassDetails() {
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => setIsScheduleDialogOpen(true)}
         >
@@ -409,7 +412,7 @@ export default function ClassDetails() {
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => setIsNotesListDialogOpen(true)}
         >
@@ -425,7 +428,7 @@ export default function ClassDetails() {
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => setIsAttendanceStatsDialogOpen(true)}
         >
@@ -682,7 +685,7 @@ export default function ClassDetails() {
                 const presentCount = (record.attendanceData || []).filter(entry => entry.status === 'present').length
                 const totalCount = (record.attendanceData || []).length
                 const attendanceRate = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0
-                
+
                 return (
                   <Card key={record.id}>
                     <CardHeader>
@@ -704,10 +707,9 @@ export default function ClassDetails() {
                           const student = (data.students || []).find(s => s.id === entry.studentId)
                           return (
                             <div key={entry.studentId} className="flex items-center gap-2 p-2 border rounded">
-                              <div className={`w-2 h-2 rounded-full ${
-                                entry.status === 'present' ? 'bg-green-500' : 
-                                entry.status === 'absent' ? 'bg-red-500' : 'bg-yellow-500'
-                              }`} />
+                              <div className={`w-2 h-2 rounded-full ${entry.status === 'present' ? 'bg-green-500' :
+                                  entry.status === 'absent' ? 'bg-red-500' : 'bg-yellow-500'
+                                }`} />
                               <span className="text-sm">{student?.name || 'Unknown Student'}</span>
                               <Badge variant="outline" className="ml-auto text-xs">
                                 {entry.status}
@@ -817,7 +819,7 @@ export default function ClassDetails() {
               View, add, edit, and delete class notes
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-6">
             {/* Header with Add Button */}
             <div className="flex items-center justify-between">
@@ -839,9 +841,9 @@ export default function ClassDetails() {
                       <div className="flex items-center gap-2">
                         <h5 className="font-medium">{formatDate(note.date)}</h5>
                         <Badge variant="outline" className="text-xs">
-                          {new Date(note.date).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric' 
+                          {new Date(note.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric'
                           })}
                         </Badge>
                       </div>
@@ -918,7 +920,7 @@ export default function ClassDetails() {
               View, add, edit, and manage student enrollment
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-6">
             {/* Header with Action Buttons */}
             <div className="flex items-center justify-between">
@@ -1161,7 +1163,7 @@ export default function ClassDetails() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Day of Week</Label>
-                  <Select value={scheduleFormData.dayOfWeek} onValueChange={(value) => setScheduleFormData(prev => ({ ...prev, dayOfWeek: value }))}>
+                  <Select value={scheduleFormData.dayOfWeek} onValueChange={(value: string) => setScheduleFormData(prev => ({ ...prev, dayOfWeek: value }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select day" />
                     </SelectTrigger>
@@ -1268,7 +1270,7 @@ export default function ClassDetails() {
               Track attendance rates and patterns over time
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-6">
             {/* Overview Stats */}
             <div className="grid gap-4 md:grid-cols-4">
@@ -1311,7 +1313,7 @@ export default function ClassDetails() {
                     <BarChart3 className="h-4 w-4 text-orange-500" />
                     <div>
                       <div className="text-2xl font-bold">
-                        {attendanceRecords.reduce((sum, record) => 
+                        {attendanceRecords.reduce((sum, record) =>
                           sum + (record.attendanceData || []).length, 0
                         )}
                       </div>
@@ -1336,29 +1338,29 @@ export default function ClassDetails() {
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={getAttendanceChartData()}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="date" 
+                        <XAxis
+                          dataKey="date"
                           tick={{ fontSize: 12 }}
                         />
-                        <YAxis 
+                        <YAxis
                           domain={[0, 100]}
                           tick={{ fontSize: 12 }}
                           label={{ value: 'Attendance Rate (%)', angle: -90, position: 'insideLeft' }}
                         />
-                        <Tooltip 
-                          formatter={(value, name) => [`${value}%`, 'Attendance Rate']}
+                        <Tooltip
+                          formatter={(value) => [`${value}%`, 'Attendance Rate']}
                           labelFormatter={(label, payload) => {
-                            if (payload && payload[0]) {
-                              const data = payload[0].payload
+                            if (payload && payload[0] && payload[0].payload) {
+                              const data = payload[0].payload as any
                               return `${label} - ${data.present}/${data.total} present`
                             }
                             return label
                           }}
                         />
-                        <Line 
-                          type="monotone" 
-                          dataKey="attendanceRate" 
-                          stroke="hsl(var(--chart-1))" 
+                        <Line
+                          type="monotone"
+                          dataKey="attendanceRate"
+                          stroke="hsl(var(--chart-1))"
                           strokeWidth={2}
                           dot={{ fill: 'hsl(var(--chart-1))', strokeWidth: 2, r: 4 }}
                         />

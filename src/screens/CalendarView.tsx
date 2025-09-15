@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Clock, MapPin, Users, Plus, ChevronLeft, ChevronRight, ExternalLink, GripVertical } from "lucide-react"
 import { useAppData } from "@/context/AppDataContext"
-import { toast } from "sonner@2.0.3"
+import { toast } from "sonner"
 
 interface CalendarEvent {
   id: string
@@ -38,7 +38,7 @@ export default function CalendarView() {
   const [isEventDetailDialogOpen, setIsEventDetailDialogOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [draggedEvent, setDraggedEvent] = useState<CalendarEvent | null>(null)
-  const [pendingDrop, setPendingDrop] = useState<{event: CalendarEvent, date: string, time: string} | null>(null)
+  const [pendingDrop, setPendingDrop] = useState<{ event: CalendarEvent, date: string, time: string } | null>(null)
   const [isClassChangeDialogOpen, setIsClassChangeDialogOpen] = useState(false)
   const [scrollTop, setScrollTop] = useState(0)
   const [newEvent, setNewEvent] = useState({
@@ -88,26 +88,26 @@ export default function CalendarView() {
   // Generate calendar events from schedules, meetings, and tests
   const getCalendarEvents = (): CalendarEvent[] => {
     const events: CalendarEvent[] = []
-    
+
     // Add class schedules as recurring events for the current week
     const startOfWeek = new Date(currentDate)
     startOfWeek.setDate(currentDate.getDate() - currentDate.getDay())
-    
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek)
       date.setDate(startOfWeek.getDate() + i)
       const dateStr = date.toISOString().split('T')[0]
-      
+
       // Add scheduled classes, checking for exceptions first
       data.schedules.forEach(schedule => {
         if (schedule.dayOfWeek === date.getDay()) {
           const classItem = data.classes.find(c => c.id === schedule.classId)
           if (classItem) {
             // Check if there's an exception for this specific date
-            const exception = data.scheduleExceptions.find(ex => 
+            const exception = data.scheduleExceptions.find(ex =>
               ex.scheduleId === schedule.id && ex.date === dateStr
             )
-            
+
             if (exception) {
               // If cancelled, don't add the event
               if (exception.cancelled) {
@@ -143,7 +143,7 @@ export default function CalendarView() {
           }
         }
       })
-      
+
       // Add schedule exceptions that move classes TO this date (regardless of original day)
       data.scheduleExceptions.forEach(exception => {
         if (exception.date === dateStr && !exception.cancelled) {
@@ -152,7 +152,7 @@ export default function CalendarView() {
             const classItem = data.classes.find(c => c.id === schedule.classId)
             if (classItem) {
               // Make sure we haven't already added this exception in the regular schedule loop
-              const alreadyAdded = events.some(event => 
+              const alreadyAdded = events.some(event =>
                 event.id === `schedule-${schedule.id}-${dateStr}`
               )
               if (!alreadyAdded) {
@@ -160,9 +160,8 @@ export default function CalendarView() {
                 events.push({
                   id: `schedule-${schedule.id}-${dateStr}`,
                   title: classItem.name,
-                  description: `${classItem.subject} class with ${classItem.enrolledStudents.length} students (Moved from ${
-                    ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][schedule.dayOfWeek]
-                  })`,
+                  description: `${classItem.subject} class with ${classItem.enrolledStudents.length} students (Moved from ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][schedule.dayOfWeek]
+                    })`,
                   date: dateStr,
                   time: exception.startTime,
                   duration: duration,
@@ -200,7 +199,7 @@ export default function CalendarView() {
       const weekStart = new Date(startOfWeek)
       const weekEnd = new Date(startOfWeek)
       weekEnd.setDate(weekStart.getDate() + 6)
-      
+
       if (testDate >= weekStart && testDate <= weekEnd) {
         const classItem = data.classes.find(c => c.id === test.classId)
         events.push({
@@ -233,17 +232,17 @@ export default function CalendarView() {
     const today = new Date()
     const todayStr = today.toISOString().split('T')[0]
     const todayDayOfWeek = today.getDay()
-    
+
     // Add scheduled classes for today, checking for exceptions
     data.schedules.forEach(schedule => {
       if (schedule.dayOfWeek === todayDayOfWeek) {
         const classItem = data.classes.find(c => c.id === schedule.classId)
         if (classItem) {
           // Check if there's an exception for today
-          const exception = data.scheduleExceptions.find(ex => 
+          const exception = data.scheduleExceptions.find(ex =>
             ex.scheduleId === schedule.id && ex.date === todayStr
           )
-          
+
           if (exception) {
             // If cancelled, don't add the event
             if (exception.cancelled) {
@@ -288,7 +287,7 @@ export default function CalendarView() {
           const classItem = data.classes.find(c => c.id === schedule.classId)
           if (classItem) {
             // Make sure we haven't already added this exception in the regular schedule loop
-            const alreadyAdded = todayEvents.some(event => 
+            const alreadyAdded = todayEvents.some(event =>
               event.id === `schedule-${schedule.id}-${todayStr}`
             )
             if (!alreadyAdded) {
@@ -296,9 +295,8 @@ export default function CalendarView() {
               todayEvents.push({
                 id: `schedule-${schedule.id}-${todayStr}`,
                 title: classItem.name,
-                description: `${classItem.subject} class with ${classItem.enrolledStudents.length} students (Moved from ${
-                  ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][schedule.dayOfWeek]
-                })`,
+                description: `${classItem.subject} class with ${classItem.enrolledStudents.length} students (Moved from ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][schedule.dayOfWeek]
+                  })`,
                 date: todayStr,
                 time: exception.startTime,
                 duration: duration,
@@ -363,7 +361,7 @@ export default function CalendarView() {
   const getWeekDates = () => {
     const startOfWeek = new Date(currentDate)
     startOfWeek.setDate(currentDate.getDate() - currentDate.getDay())
-    
+
     const dates = []
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek)
@@ -422,17 +420,17 @@ export default function CalendarView() {
     if (draggedEvent.type === 'meeting' && draggedEvent.meetingId) {
       const newStartTime = time
       const originalMeeting = data.meetings.find(m => m.id === draggedEvent.meetingId)
-      
+
       if (originalMeeting) {
         // Calculate end time based on original duration
         const originalStart = originalMeeting.startTime
         const originalEnd = originalMeeting.endTime
         const startHour = parseInt(originalStart.split(':')[0])
         const startMinute = parseInt(originalStart.split(':')[1])
-        const endHour = parseInt(originalEnd.split(':')[0]) 
+        const endHour = parseInt(originalEnd.split(':')[0])
         const endMinute = parseInt(originalEnd.split(':')[1])
         const durationMinutes = (endHour * 60 + endMinute) - (startHour * 60 + startMinute)
-        
+
         const newStartHour = parseInt(newStartTime.split(':')[0])
         const newStartMinute = parseInt(newStartTime.split(':')[1] || '0')
         const newEndTotalMinutes = (newStartHour * 60 + newStartMinute) + durationMinutes
@@ -454,7 +452,7 @@ export default function CalendarView() {
     // For other event types, apply changes if applicable
     if (draggedEvent.type === 'test' && draggedEvent.testId) {
       actions.updateTest(draggedEvent.testId, {
-        dueDate: date
+        testDate: date
       })
       const dateFormatted = new Date(date).toLocaleDateString()
       toast.success(`Test "${draggedEvent.title}" moved to ${dateFormatted}`)
@@ -474,13 +472,13 @@ export default function CalendarView() {
       if (event.type === 'class') {
         const scheduleId = event.id.replace('schedule-', '').split('-')[0]
         const endTime = calculateEndTime(time, event.duration)
-        
+
         try {
           // Check if there's already an exception for this date
-          const existingException = data.scheduleExceptions.find(ex => 
+          const existingException = data.scheduleExceptions.find(ex =>
             ex.scheduleId === scheduleId && ex.date === date
           )
-          
+
           if (existingException) {
             // Update existing exception
             actions.updateScheduleException(existingException.id, {
@@ -511,7 +509,7 @@ export default function CalendarView() {
         const targetDate = new Date(date)
         const dayOfWeek = targetDate.getDay()
         const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-        
+
         try {
           actions.updateSchedule(scheduleId, {
             dayOfWeek: dayOfWeek,
@@ -519,7 +517,7 @@ export default function CalendarView() {
             // Keep the same duration by calculating end time
             endTime: calculateEndTime(time, event.duration)
           })
-          
+
           toast.success(`Class "${event.title}" schedule updated to ${dayNames[dayOfWeek]}s at ${time}`)
         } catch (error) {
           toast.error('Failed to update class schedule')
@@ -544,11 +542,11 @@ export default function CalendarView() {
   const getEventStyle = (event: CalendarEvent) => {
     const startHour = parseInt(event.time.split(':')[0])
     const startMinute = parseInt(event.time.split(':')[1] || '0')
-    
+
     // Calculate position from 7 AM
     const topOffset = ((startHour - 7) * 40) + (startMinute * 40 / 60)
     const height = Math.max((event.duration * 40) / 60, 20) // Minimum 20px height
-    
+
     return {
       top: `${topOffset}px`,
       height: `${height}px`,
@@ -573,10 +571,10 @@ export default function CalendarView() {
     const slotHeight = 40 // Height of each time slot
     const scrollOffset = Math.floor(scrollTop / slotHeight)
     const visibleSlotCount = Math.ceil(containerHeight / slotHeight) + 1
-    
+
     const startIndex = Math.max(0, scrollOffset)
     const endIndex = Math.min(timeSlots.length, startIndex + visibleSlotCount)
-    
+
     return timeSlots.slice(startIndex, endIndex).map((slot, index) => ({
       ...slot,
       position: (startIndex + index) * slotHeight - scrollTop
@@ -587,7 +585,7 @@ export default function CalendarView() {
   const isTodayInCurrentWeek = () => {
     const today = new Date()
     const todayStr = today.toDateString()
-    
+
     return weekDates.some(date => date.toDateString() === todayStr)
   }
 
@@ -626,7 +624,7 @@ export default function CalendarView() {
           const b = parseInt(hex.slice(5, 7), 16)
           return `rgba(${r}, ${g}, ${b}, ${alpha})`
         }
-        
+
         return {
           backgroundColor: hexToRgba(classItem.color, 0.1),
           borderColor: hexToRgba(classItem.color, 0.3),
@@ -646,7 +644,7 @@ export default function CalendarView() {
   // Handle view details navigation
   const handleViewDetails = () => {
     if (!selectedEvent) return
-    
+
     switch (selectedEvent.type) {
       case 'class':
         navigate(`/classes/${selectedEvent.classId}`)
@@ -706,7 +704,7 @@ export default function CalendarView() {
                 <Input
                   id="title"
                   value={newEvent.title}
-                  onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                   required
                 />
               </div>
@@ -715,7 +713,7 @@ export default function CalendarView() {
                 <Textarea
                   id="description"
                   value={newEvent.description}
-                  onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+                  onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -725,7 +723,7 @@ export default function CalendarView() {
                     id="date"
                     type="date"
                     value={newEvent.date}
-                    onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
+                    onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
                     required
                   />
                 </div>
@@ -735,7 +733,7 @@ export default function CalendarView() {
                     id="time"
                     type="time"
                     value={newEvent.time}
-                    onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
+                    onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
                     required
                   />
                 </div>
@@ -743,7 +741,7 @@ export default function CalendarView() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="type">Type</Label>
-                  <Select value={newEvent.type} onValueChange={(value: any) => setNewEvent({...newEvent, type: value})}>
+                  <Select value={newEvent.type} onValueChange={(value: any) => setNewEvent({ ...newEvent, type: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -760,7 +758,7 @@ export default function CalendarView() {
                     id="duration"
                     type="number"
                     value={newEvent.duration}
-                    onChange={(e) => setNewEvent({...newEvent, duration: parseInt(e.target.value)})}
+                    onChange={(e) => setNewEvent({ ...newEvent, duration: parseInt(e.target.value) })}
                     min="15"
                     max="480"
                   />
@@ -771,7 +769,7 @@ export default function CalendarView() {
                 <Input
                   id="location"
                   value={newEvent.location}
-                  onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+                  onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
                 />
               </div>
               <DialogFooter>
@@ -790,10 +788,10 @@ export default function CalendarView() {
         <CardHeader>
           <CardTitle>Today's Schedule</CardTitle>
           <CardDescription>
-            {new Date().toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              month: 'long', 
-              day: 'numeric' 
+            {new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric'
             })}
           </CardDescription>
         </CardHeader>
@@ -801,8 +799,8 @@ export default function CalendarView() {
           {todayEvents.length > 0 ? (
             <div className="space-y-3">
               {todayEvents.map((event) => (
-                <div 
-                  key={event.id} 
+                <div
+                  key={event.id}
                   className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => handleEventClick(event)}
                 >
@@ -810,8 +808,8 @@ export default function CalendarView() {
                     <div className="text-sm text-muted-foreground min-w-[60px]">
                       {event.time}
                     </div>
-                    <Badge 
-                      variant="secondary" 
+                    <Badge
+                      variant="secondary"
                       className={`md:hidden ${getEventTypeColor(event)}`}
                       style={getClassColorStyle(event)}
                     >
@@ -828,8 +826,8 @@ export default function CalendarView() {
                       </div>
                     )}
                   </div>
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className={`hidden md:block ${getEventTypeColor(event)}`}
                     style={getClassColorStyle(event)}
                   >
@@ -853,7 +851,7 @@ export default function CalendarView() {
           <div>
             <CardTitle>Weekly Schedule</CardTitle>
             <CardDescription className="hidden sm:block">
-              {weekDates[0].toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} 
+              {weekDates[0].toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               {' - '}
               Week of {weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </CardDescription>
@@ -874,15 +872,15 @@ export default function CalendarView() {
             <div className="w-12 md:w-16 border-r bg-gray-50/50 flex flex-col flex-shrink-0">
               {/* Empty space for day headers */}
               <div className="h-12 bg-gray-50/30 border-b"></div>
-              
+
               {/* Dynamic time slots that update based on scroll */}
               <div className="relative overflow-hidden" style={{ height: '336px' }}>
                 {/* Time labels that correspond to scroll position */}
                 {getVisibleTimeSlots().map((slot, index) => (
-                  <div 
+                  <div
                     key={`${slot.time}-${index}`}
                     className="absolute w-full flex justify-center text-xs text-muted-foreground"
-                    style={{ 
+                    style={{
                       top: `${slot.position + 14}px`, // Position based on scroll
                       height: '12px'
                     }}
@@ -900,7 +898,7 @@ export default function CalendarView() {
                   const dayEvents = getEventsForDate(date)
                   const isToday = date.toDateString() === new Date().toDateString()
                   const dateStr = date.toISOString().split('T')[0]
-                  
+
                   return (
                     <div key={dayIndex} className="border-r last:border-r-0 flex flex-col min-w-[100px] md:min-w-[120px]">
                       {/* Fixed Day Header */}
@@ -908,9 +906,8 @@ export default function CalendarView() {
                         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                           {dayNames[dayIndex].substring(0, 3)}
                         </div>
-                        <div className={`text-sm font-semibold ${
-                          isToday ? 'bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs' : ''
-                        }`}>
+                        <div className={`text-sm font-semibold ${isToday ? 'bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs' : ''
+                          }`}>
                           {date.getDate()}
                         </div>
                       </div>
@@ -919,46 +916,45 @@ export default function CalendarView() {
                       <div className="relative" style={{ height: '640px' }}>
                         {/* Time slot backgrounds */}
                         {timeSlots.map((_, timeIndex) => (
-                          <div 
+                          <div
                             key={timeIndex}
                             className="absolute left-0 right-0 border-b hover:bg-blue-50/30 transition-colors"
-                            style={{ 
+                            style={{
                               top: `${timeIndex * 40}px`,
-                              height: '40px' 
+                              height: '40px'
                             }}
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, dateStr, timeSlots[timeIndex].time)}
                           />
                         ))}
-                        
+
                         {/* Events positioned absolutely */}
                         {dayEvents.map((event) => {
                           const startHour = parseInt(event.time.split(':')[0])
                           const startMinute = parseInt(event.time.split(':')[1] || '0')
                           const topOffset = ((startHour - 7) * 40) + (startMinute * 40 / 60)
                           const height = Math.max((event.duration * 40) / 60, 20)
-                          
+
                           return (
                             <div
                               key={event.id}
                               draggable
                               onDragStart={(e) => handleDragStart(e, event)}
-                              className={`absolute left-1 right-1 rounded-sm p-1 text-xs cursor-pointer border-l-4 shadow-sm hover:shadow-md transition-all ${
-                                draggedEvent?.id === event.id ? 'opacity-50' : ''
-                              }`}
+                              className={`absolute left-1 right-1 rounded-sm p-1 text-xs cursor-pointer border-l-4 shadow-sm hover:shadow-md transition-all ${draggedEvent?.id === event.id ? 'opacity-50' : ''
+                                }`}
                               style={{
                                 top: `${topOffset}px`,
                                 height: `${height}px`,
                                 zIndex: 10,
                                 ...getClassColorStyle(event),
-                                backgroundColor: event.type === 'class' ? 
-                                  (data.classes.find(c => c.id === event.classId)?.color + '20' || '#3b82f620') : 
-                                  event.type === 'meeting' ? '#6b728020' : 
-                                  event.type === 'test' ? '#dc262620' : '#8b5cf620',
-                                borderLeftColor: event.type === 'class' ? 
-                                  (data.classes.find(c => c.id === event.classId)?.color || '#3b82f6') : 
-                                  event.type === 'meeting' ? '#6b7280' : 
-                                  event.type === 'test' ? '#dc2626' : '#8b5cf6'
+                                backgroundColor: event.type === 'class' ?
+                                  (data.classes.find(c => c.id === event.classId)?.color + '20' || '#3b82f620') :
+                                  event.type === 'meeting' ? '#6b728020' :
+                                    event.type === 'test' ? '#dc262620' : '#8b5cf620',
+                                borderLeftColor: event.type === 'class' ?
+                                  (data.classes.find(c => c.id === event.classId)?.color || '#3b82f6') :
+                                  event.type === 'meeting' ? '#6b7280' :
+                                    event.type === 'test' ? '#dc2626' : '#8b5cf6'
                               }}
                               onClick={() => handleEventClick(event)}
                             >
@@ -993,7 +989,7 @@ export default function CalendarView() {
               {selectedEvent?.description || 'View event information and details'}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedEvent && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -1006,7 +1002,7 @@ export default function CalendarView() {
                   <p className="font-medium">{selectedEvent.time}</p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Duration:</span>
@@ -1014,7 +1010,7 @@ export default function CalendarView() {
                 </div>
                 <div>
                   <span className="text-muted-foreground">Type:</span>
-                  <Badge 
+                  <Badge
                     className={getEventTypeColor(selectedEvent)}
                     style={getClassColorStyle(selectedEvent)}
                   >
@@ -1091,7 +1087,7 @@ export default function CalendarView() {
             <AlertDialogTitle>Change Class Schedule</AlertDialogTitle>
             <AlertDialogDescription>
               You're moving "{pendingDrop?.event.title}" to {pendingDrop && new Date(pendingDrop.date).toLocaleDateString()} at {pendingDrop?.time}.
-              <br/><br/>
+              <br /><br />
               How would you like to apply this change?
             </AlertDialogDescription>
           </AlertDialogHeader>
