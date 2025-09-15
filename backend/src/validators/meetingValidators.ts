@@ -52,8 +52,7 @@ export const updateMeetingSchema = Joi.object({
     'string.min': 'Title is required',
     'string.max': 'Title must be less than 200 characters'
   }),
-  description: Joi.string().min(1).max(1000).optional().messages({
-    'string.min': 'Description is required',
+  description: Joi.string().max(1000).allow('').optional().messages({
     'string.max': 'Description must be less than 1000 characters'
   }),
   date: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).optional().messages({
@@ -69,8 +68,7 @@ export const updateMeetingSchema = Joi.object({
     'array.min': 'At least one participant is required'
   }),
   participantType: Joi.string().valid('students', 'parents', 'teachers').optional(),
-  location: Joi.string().min(1).max(200).optional().messages({
-    'string.min': 'Location is required',
+  location: Joi.string().max(200).allow('').optional().messages({
     'string.max': 'Location must be less than 200 characters'
   }),
   meetingType: Joi.string().valid('in_person', 'virtual').optional(),

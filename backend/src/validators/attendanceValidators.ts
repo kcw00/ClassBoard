@@ -6,7 +6,7 @@ export const attendanceEntrySchema = Joi.object({
     'string.guid': 'Student ID must be a valid UUID'
   }),
   status: Joi.string().valid('present', 'absent', 'late', 'excused').required(),
-  notes: Joi.string().optional()
+  notes: Joi.string().allow('').optional()
 })
 
 // Create attendance record validation

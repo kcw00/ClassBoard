@@ -22,10 +22,10 @@ const createTestSchema = Joi.object({
     }),
   description: Joi.string()
     .max(1000)
-    .required()
+    .optional()
+    .allow('')
     .messages({
       'string.max': 'Test description cannot exceed 1000 characters',
-      'any.required': 'Test description is required',
     }),
   testDate: Joi.string()
     .pattern(/^\d{4}-\d{2}-\d{2}$/)
@@ -248,10 +248,10 @@ const createHomeworkSchema = Joi.object({
     }),
   description: Joi.string()
     .max(1000)
-    .required()
+    .optional()
+    .allow('')
     .messages({
       'string.max': 'Homework description cannot exceed 1000 characters',
-      'any.required': 'Homework description is required',
     }),
   assignedDate: Joi.string()
     .pattern(/^\d{4}-\d{2}-\d{2}$/)

@@ -17,7 +17,11 @@ router.use(authenticateToken)
 // Create attendance record
 router.post('/', async (req, res, next) => {
   try {
-    const { error, value: validatedData } = createAttendanceRecordSchema.validate(req.body)
+    const { error, value: validatedData } = createAttendanceRecordSchema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+      allowUnknown: false
+    })
     if (error) {
       throw new ValidationError(error.details[0].message)
     }
@@ -88,7 +92,11 @@ router.put('/:id', async (req, res, next) => {
       throw new ValidationError('Invalid attendance record ID format')
     }
     
-    const { error, value: validatedData } = updateAttendanceRecordSchema.validate(req.body)
+    const { error, value: validatedData } = updateAttendanceRecordSchema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+      allowUnknown: false
+    })
     if (error) {
       throw new ValidationError(error.details[0].message)
     }
