@@ -1,16 +1,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
 import { Button } from "@/components/ui/button"
-import { Download, FileText, X } from "lucide-react"
-<<<<<<< Updated upstream
-import { toast } from "sonner"
-=======
-<<<<<<< Updated upstream
-import { toast } from "sonner@2.0.3"
-=======
-// Toast functionality removed - using console logging instead
->>>>>>> Stashed changes
->>>>>>> Stashed changes
+import { Download, FileText } from "lucide-react"
 
 interface FileAttachment {
   name: string
