@@ -115,3 +115,7 @@ aws/terraform/production.tfplan
 
 # AWS environment export scripts
 export-env-vars-*.sh
+
+# backups
+*.bak
+backups/
