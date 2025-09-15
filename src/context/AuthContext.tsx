@@ -47,9 +47,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const userData = JSON.parse(savedUser)
         setUser(userData)
         setShowLaunchScreen(false) // Skip launch screen if already logged in
+        
+        // Ensure auth token exists for existing users
+        if (!localStorage.getItem("authToken")) {
+          localStorage.setItem("authToken", "demo-token-" + Date.now())
+        }
       } catch (error) {
         console.error("Failed to parse saved user data:", error)
         localStorage.removeItem("classboard_user")
+        localStorage.removeItem("authToken")
       }
     } else if (hasSeenLaunch) {
       setShowLaunchScreen(false)
@@ -75,6 +81,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(userData)
         localStorage.setItem("classboard_user", JSON.stringify(userData))
         localStorage.setItem("classboard_seen_launch", "true")
+        // Generate a mock auth token for API calls
+        localStorage.setItem("authToken", "demo-token-" + Date.now())
         setShowLaunchScreen(false)
 
         console.log(`Welcome back, ${userData.name}!`)
@@ -91,6 +99,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(userData)
         localStorage.setItem("classboard_user", JSON.stringify(userData))
         localStorage.setItem("classboard_seen_launch", "true")
+        // Generate a mock auth token for API calls
+        localStorage.setItem("authToken", "demo-token-" + Date.now())
         setShowLaunchScreen(false)
 
         console.log(`Welcome, ${userData.name}!`)
@@ -106,6 +116,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = () => {
     setUser(null)
     localStorage.removeItem("classboard_user")
+    localStorage.removeItem("authToken")
     console.log("You've been logged out successfully")
   }
 

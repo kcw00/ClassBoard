@@ -9,13 +9,6 @@ const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 
 // Validation schemas
 const createScheduleSchema = Joi.object({
-  classId: Joi.string()
-    .uuid()
-    .required()
-    .messages({
-      'string.guid': 'Class ID must be a valid UUID',
-      'any.required': 'Class ID is required',
-    }),
   dayOfWeek: Joi.number()
     .integer()
     .min(0)
@@ -295,7 +288,7 @@ const getSchedulesQuerySchema = Joi.object({
 });
 
 const createSchedulesBulkSchema = Joi.array()
-  .items(createScheduleSchema.fork('classId', (schema) => schema.optional()))
+  .items(createScheduleSchema)
   .min(1)
   .max(20)
   .required()

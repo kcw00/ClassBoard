@@ -241,8 +241,23 @@ export function useAppDataService(): UseAppDataServiceReturn {
   const fetchSchedules = useCallback(async () => {
     setLoadingState('schedules', true)
     try {
-      const data = await appDataService.getSchedules()
-      setSchedules(data)
+      // Since backend doesn't have "get all schedules", we need to get schedules for each class
+      const allSchedules: Schedule[] = []
+      
+      // Get current classes first
+      const currentClasses = classes.length > 0 ? classes : await appDataService.getClasses()
+      
+      // Fetch schedules for each class
+      for (const classItem of currentClasses) {
+        try {
+          const classSchedules = await appDataService.getSchedulesByClass(classItem.id)
+          allSchedules.push(...classSchedules)
+        } catch (error) {
+          console.warn(`Failed to fetch schedules for class ${classItem.id}:`, error)
+        }
+      }
+      
+      setSchedules(allSchedules)
       setErrors(prev => {
         const newErrors = { ...prev }
         delete newErrors.schedules
@@ -253,7 +268,7 @@ export function useAppDataService(): UseAppDataServiceReturn {
     } finally {
       setLoadingState('schedules', false)
     }
-  }, [setLoadingState, handleError])
+  }, [classes, setLoadingState, handleError])
 
   const fetchScheduleExceptions = useCallback(async () => {
     setLoadingState('scheduleExceptions', true)

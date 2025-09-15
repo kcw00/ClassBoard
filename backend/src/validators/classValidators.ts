@@ -23,10 +23,10 @@ const createClassSchema = Joi.object({
     }),
   description: Joi.string()
     .max(500)
-    .required()
+    .allow('')
+    .optional()
     .messages({
       'string.max': 'Description cannot exceed 500 characters',
-      'any.required': 'Description is required',
     }),
   room: Joi.string()
     .min(1)

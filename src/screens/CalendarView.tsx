@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Clock, MapPin, Users, Plus, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react"
-import { useAppData } from "@/context/AppDataContext"
+import { useAppData } from "@/context/AppDataMigrationContext"
 
 interface CalendarEvent {
   id: string

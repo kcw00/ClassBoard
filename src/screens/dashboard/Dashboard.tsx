@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Users, GraduationCap, Calendar, MapPin, CalendarCheck, UserCheck, RefreshCw, AlertCircle } from "lucide-react"
 import { classColors } from "@/types"
 import { useAppData } from "@/context/AppDataMigrationContext"
-import { ApiServiceTest } from "@/components/common/ApiServiceTest"
+
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -69,64 +69,80 @@ export default function Dashboard() {
 
   const recentClasses = data.classes.slice(0, 4)
 
-  const handleClassSubmit = (e: React.FormEvent) => {
+  const handleClassSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    actions.addClass({
-      name: classFormData.name,
-      subject: classFormData.subject,
-      description: classFormData.description,
-      room: classFormData.room,
-      capacity: parseInt(classFormData.capacity) || 0,
-      color: classFormData.color
-    })
-    setClassFormData({ name: "", subject: "", description: "", room: "", capacity: "", color: "#3b82f6" })
-    setActiveModal(null)
+    try {
+      await actions.addClass({
+        name: classFormData.name,
+        subject: classFormData.subject,
+        description: classFormData.description,
+        room: classFormData.room,
+        capacity: parseInt(classFormData.capacity) || 0,
+        color: classFormData.color
+      })
+      setClassFormData({ name: "", subject: "", description: "", room: "", capacity: "", color: "#3b82f6" })
+      setActiveModal(null)
+    } catch (error) {
+      console.error('Failed to add class:', error)
+    }
   }
 
-  const handleStudentSubmit = (e: React.FormEvent) => {
+  const handleStudentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    actions.addStudent({
-      name: studentFormData.name,
-      email: studentFormData.email,
-      phone: studentFormData.phone,
-      grade: studentFormData.grade,
-      parentContact: studentFormData.parentContact
-    })
-    setStudentFormData({ name: "", email: "", phone: "", grade: "", parentContact: "" })
-    setActiveModal(null)
+    try {
+      await actions.addStudent({
+        name: studentFormData.name,
+        email: studentFormData.email,
+        phone: studentFormData.phone,
+        grade: studentFormData.grade,
+        parentContact: studentFormData.parentContact
+      })
+      setStudentFormData({ name: "", email: "", phone: "", grade: "", parentContact: "" })
+      setActiveModal(null)
+    } catch (error) {
+      console.error('Failed to add student:', error)
+    }
   }
 
-  const handleScheduleSubmit = (e: React.FormEvent) => {
+  const handleScheduleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    actions.addSchedule({
-      classId: scheduleFormData.classId,
-      dayOfWeek: parseInt(scheduleFormData.dayOfWeek) || 0,
-      startTime: scheduleFormData.startTime,
-      endTime: scheduleFormData.endTime
-    })
-    setScheduleFormData({ classId: "", dayOfWeek: "", startTime: "", endTime: "" })
-    setActiveModal(null)
+    try {
+      await actions.addSchedule({
+        classId: scheduleFormData.classId,
+        dayOfWeek: parseInt(scheduleFormData.dayOfWeek) || 0,
+        startTime: scheduleFormData.startTime,
+        endTime: scheduleFormData.endTime
+      })
+      setScheduleFormData({ classId: "", dayOfWeek: "", startTime: "", endTime: "" })
+      setActiveModal(null)
+    } catch (error) {
+      console.error('Failed to add schedule:', error)
+    }
   }
 
-  const handleMeetingSubmit = (e: React.FormEvent) => {
+  const handleMeetingSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    actions.addMeeting({
-      title: meetingFormData.title,
-      description: meetingFormData.description,
-      date: meetingFormData.date,
-      startTime: meetingFormData.startTime,
-      endTime: meetingFormData.endTime,
-      participants: meetingFormData.participants,
-      participantType: meetingFormData.participantType,
-      location: meetingFormData.location,
-      meetingType: meetingFormData.meetingType,
-      status: "scheduled"
-    })
-    setMeetingFormData({
-      title: "", description: "", date: "", startTime: "", endTime: "",
-      participants: [], participantType: "students", location: "", meetingType: "in-person"
-    })
-    setActiveModal(null)
+    try {
+      await actions.addMeeting({
+        title: meetingFormData.title,
+        description: meetingFormData.description,
+        date: meetingFormData.date,
+        startTime: meetingFormData.startTime,
+        endTime: meetingFormData.endTime,
+        participants: meetingFormData.participants,
+        participantType: meetingFormData.participantType,
+        location: meetingFormData.location,
+        meetingType: meetingFormData.meetingType,
+        status: "scheduled"
+      })
+      setMeetingFormData({
+        title: "", description: "", date: "", startTime: "", endTime: "",
+        participants: [], participantType: "students", location: "", meetingType: "in-person"
+      })
+      setActiveModal(null)
+    } catch (error) {
+      console.error('Failed to add meeting:', error)
+    }
   }
 
   const getDayName = (dayOfWeek: number) => {
@@ -432,9 +448,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        
-        {/* API Service Integration Test */}
-        <ApiServiceTest />
+
       </div>
 
       {/* Modals */}

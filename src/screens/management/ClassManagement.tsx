@@ -133,8 +133,12 @@ export default function ClassManagement() {
     setScheduleFormData({ dayOfWeek: "", startTime: "", endTime: "" })
   }
 
-  const handleDeleteSchedule = (scheduleId: string) => {
-    actions.deleteSchedule(scheduleId)
+  const handleDeleteSchedule = async (scheduleId: string) => {
+    try {
+      await actions.deleteSchedule(scheduleId)
+    } catch (error) {
+      console.error('Failed to delete schedule:', error)
+    }
   }
 
   const getScheduleForClass = (classId: string) => {
