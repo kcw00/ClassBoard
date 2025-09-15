@@ -11,6 +11,11 @@ import {
   requestLoggingMiddleware, 
   performanceMonitoringMiddleware 
 } from './middleware/logging';
+import { 
+  trackPerformance, 
+  trackDatabasePerformance, 
+  trackMemoryUsage 
+} from './middleware/performanceMonitoring';
 import { addServiceStatusHeaders } from './middleware/serviceAvailability';
 import { 
   apiMonitoringMiddleware,
@@ -67,6 +72,11 @@ app.use(compression());
 // Enhanced logging middleware
 app.use(requestLoggingMiddleware);
 app.use(performanceMonitoringMiddleware);
+
+// Performance tracking middleware
+app.use(trackPerformance());
+app.use(trackDatabasePerformance());
+app.use(trackMemoryUsage());
 
 // Monitoring middleware
 app.use(apiMonitoringMiddleware);
