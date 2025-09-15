@@ -6,6 +6,34 @@ import { PrismaClient } from '@prisma/client';
 // Set test timeout
 jest.setTimeout(30000);
 
+// Mock AWS SDK for tests
+jest.mock('@aws-sdk/client-cognito-identity-provider', () => ({
+  CognitoIdentityProviderClient: jest.fn().mockImplementation(() => ({
+    send: jest.fn(),
+  })),
+  InitiateAuthCommand: jest.fn(),
+  GetUserCommand: jest.fn(),
+  GlobalSignOutCommand: jest.fn(),
+  SignUpCommand: jest.fn(),
+  ConfirmSignUpCommand: jest.fn(),
+  ResendConfirmationCodeCommand: jest.fn(),
+  ForgotPasswordCommand: jest.fn(),
+  ConfirmForgotPasswordCommand: jest.fn(),
+}));
+
+jest.mock('@aws-sdk/client-s3', () => ({
+  S3Client: jest.fn().mockImplementation(() => ({
+    send: jest.fn(),
+  })),
+  PutObjectCommand: jest.fn(),
+  GetObjectCommand: jest.fn(),
+  DeleteObjectCommand: jest.fn(),
+}));
+
+jest.mock('@aws-sdk/s3-request-presigner', () => ({
+  getSignedUrl: jest.fn().mockResolvedValue('https://mock-signed-url.com'),
+}));
+
 // Test database setup
 let testDb: PrismaClient;
 
@@ -152,6 +180,41 @@ global.console = {
   warn: jest.fn(),
   error: originalConsole.error, // Keep error logs for debugging
 };
+
+// Mock AuthService for all tests
+jest.mock('../services/authService', () => {
+  const originalModule = jest.requireActual('../services/authService');
+  
+  return {
+    ...originalModule,
+    authService: {
+      ...originalModule.authService,
+      getUserFromToken: jest.fn().mockImplementation(async (token: string) => {
+        // For test environment, decode JWT without Cognito validation
+        if (process.env.NODE_ENV === 'test') {
+          try {
+            const jwt = require('jsonwebtoken');
+            const secret = process.env.JWT_SECRET || 'test-secret-key';
+            const decoded = jwt.verify(token, secret) as any;
+            
+            return {
+              id: decoded.sub,
+              email: decoded.email,
+              name: decoded.name || 'Test User',
+              role: decoded['custom:role'] || 'teacher',
+              emailVerified: decoded.email_verified !== false,
+            };
+          } catch (error) {
+            throw new Error('Invalid Access Token');
+          }
+        }
+        
+        // For non-test environments, use original implementation
+        return originalModule.authService.getUserFromToken(token);
+      }),
+    },
+  };
+});
 
 // Global test environment setup
 beforeAll(async () => {
