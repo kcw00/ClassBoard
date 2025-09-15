@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import ClassManagement from '../ClassManagement'
 import { AppDataMigrationProvider } from '@/context/AppDataMigrationContext'
-import { appDataService } from '@/services/AppDataService'
 import * as impactCalculation from '@/utils/impactCalculation'
 import * as errorHandling from '@/utils/errorHandling'
 
@@ -19,7 +18,7 @@ jest.mock('@/hooks/useNetworkStatus', () => ({
   useNetworkStatus: () => ({ status: 'online' })
 }))
 
-const mockAppDataService = appDataService as jest.Mocked<typeof appDataService>
+
 const mockImpactCalculation = impactCalculation as jest.Mocked<typeof impactCalculation>
 const mockErrorHandling = errorHandling as jest.Mocked<typeof errorHandling>
 

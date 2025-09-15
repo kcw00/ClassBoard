@@ -40,18 +40,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Check for existing session on mount
   useEffect(() => {
     const savedUser = localStorage.getItem("classboard_user")
+    const savedToken = localStorage.getItem("authToken")
     const hasSeenLaunch = localStorage.getItem("classboard_seen_launch")
 
-    if (savedUser) {
+    if (savedUser && savedToken) {
       try {
         const userData = JSON.parse(savedUser)
         setUser(userData)
         setShowLaunchScreen(false) // Skip launch screen if already logged in
-        
-        // Ensure auth token exists for existing users
-        if (!localStorage.getItem("authToken")) {
-          localStorage.setItem("authToken", "demo-token-" + Date.now())
-        }
       } catch (error) {
         console.error("Failed to parse saved user data:", error)
         localStorage.removeItem("classboard_user")
@@ -66,47 +62,49 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      // Demo credentials check
-      if (credentials.email === "teacher@classboard.com" && credentials.password === "demo123") {
-        const userData: User = {
-          id: "demo-user-1",
-          email: credentials.email,
-          name: "Demo Teacher",
-          role: "teacher"
+      // Get API base URL from environment or fallback to localhost
+      const getApiUrl = () => {
+        if (import.meta.env.VITE_API_URL) {
+          return import.meta.env.VITE_API_URL
         }
+        if (import.meta.env.VITE_API_URL_DEV) {
+          return import.meta.env.VITE_API_URL_DEV
+        }
+        return 'http://localhost:3001'
+      }
+      const apiBaseUrl = getApiUrl()
 
-        setUser(userData)
-        localStorage.setItem("classboard_user", JSON.stringify(userData))
+      // Make real API call to login endpoint
+      const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Login failed' }))
+        throw new Error(errorData.message || 'Login failed')
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.data) {
+        const { user, token } = data.data
+
+        setUser(user)
+        localStorage.setItem("classboard_user", JSON.stringify(user))
         localStorage.setItem("classboard_seen_launch", "true")
-        // Generate a mock auth token for API calls
-        localStorage.setItem("authToken", "demo-token-" + Date.now())
+        localStorage.setItem("authToken", token)
         setShowLaunchScreen(false)
 
-        console.log(`Welcome back, ${userData.name}!`)
+        console.log(`Welcome back, ${user.name}!`)
       } else {
-        // For demo purposes, we'll accept any email/password combination
-        // In a real app, this would make an actual API call
-        const userData: User = {
-          id: "user-" + Date.now(),
-          email: credentials.email,
-          name: credentials.email.split("@")[0].replace(/[._]/g, " "),
-          role: "teacher"
-        }
-
-        setUser(userData)
-        localStorage.setItem("classboard_user", JSON.stringify(userData))
-        localStorage.setItem("classboard_seen_launch", "true")
-        // Generate a mock auth token for API calls
-        localStorage.setItem("authToken", "demo-token-" + Date.now())
-        setShowLaunchScreen(false)
-
-        console.log(`Welcome, ${userData.name}!`)
+        throw new Error(data.message || 'Login failed')
       }
     } catch (error) {
-      console.error("Login failed. Please try again.")
+      console.error("Login failed:", error)
       throw error
     } finally {
       setIsLoading(false)

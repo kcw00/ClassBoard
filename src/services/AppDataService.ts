@@ -43,11 +43,26 @@ export interface QueryOptions {
 // Configuration
 const getApiBaseUrl = () => {
   // Handle both Vite (import.meta.env) and Jest (process.env) environments
-  if (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.VITE_API_BASE_URL) {
-    return (import.meta as any).env.VITE_API_BASE_URL
+  // Check for production API URL first, then dev URL, then fallback
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    const env = import.meta.env
+    if (env.VITE_API_URL) {
+      return `${env.VITE_API_URL}/api`
+    }
+    if (env.VITE_API_URL_DEV) {
+      return `${env.VITE_API_URL_DEV}/api`
+    }
+    if (env.VITE_API_BASE_URL) {
+      return env.VITE_API_BASE_URL
+    }
   }
-  if (typeof process !== 'undefined' && process.env?.VITE_API_BASE_URL) {
-    return process.env.VITE_API_BASE_URL
+  if (typeof process !== 'undefined' && process.env) {
+    if (process.env.VITE_API_URL) {
+      return `${process.env.VITE_API_URL}/api`
+    }
+    if (process.env.VITE_API_BASE_URL) {
+      return process.env.VITE_API_BASE_URL
+    }
   }
   return 'http://localhost:3001/api'
 }
