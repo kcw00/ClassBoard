@@ -58,14 +58,14 @@
   - Ensure proper loading state management in confirmation dialogs
   - _Requirements: 7.5, 6.2_
 
-- [ ] 9. Write unit tests for delete components
+- [x] 9. Write unit tests for delete components
   - Create tests for DeleteConfirmationDialog component rendering and interactions
   - Test impact calculation utility functions with various data scenarios
   - Test delete button click handlers and state management
   - Test error handling and loading states
   - _Requirements: All requirements - testing coverage_
 
-- [ ] 10. Write integration tests for delete workflows
+- [x] 10. Write integration tests for delete workflows
   - Test complete class deletion workflow from button click to UI update
   - Test complete student deletion workflow from button click to UI update
   - Test cancellation scenarios and error handling

@@ -92,7 +92,15 @@ describe('DeleteConfirmationDialog', () => {
   });
 
   it('calls onConfirm when delete button is clicked', () => {
-    render(<DeleteConfirmationDialog {...defaultProps} />);
+    const propsWithImpact = {
+      ...defaultProps,
+      impactInfo: {
+        hasAssociatedData: false,
+        affectedItems: []
+      }
+    };
+    
+    render(<DeleteConfirmationDialog {...propsWithImpact} />);
     
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
     
