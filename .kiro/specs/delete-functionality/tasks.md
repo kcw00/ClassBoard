@@ -7,7 +7,7 @@
   - Include proper accessibility attributes and keyboard navigation
   - _Requirements: 3.1, 3.2, 3.3, 6.1, 6.4_
 
-- [ ] 2. Create impact calculation utility functions
+- [x] 2. Create impact calculation utility functions
   - Implement calculateClassDeletionImpact function to count related records
   - Implement calculateStudentDeletionImpact function to count related records
   - Create helper functions to format impact information for display
