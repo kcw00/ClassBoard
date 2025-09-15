@@ -85,7 +85,7 @@ export const createTestData = async (context: TestContext): Promise<TestDataClea
  */
 export const cleanupTestData = async (context: TestContext, cleanup: TestDataCleanup): Promise<void> => {
   // Delete in reverse order of dependencies
-  
+
   // Delete test results first (they depend on tests and students)
   for (const testId of cleanup.testIds) {
     try {
@@ -212,7 +212,7 @@ export const createTestMeetings = async (
         meetingDate: new Date().toISOString().split('T')[0],
         startTime: '10:00',
         endTime: '11:00',
-        meetingType: 'in-person',
+        meetingType: 'in_person',
         location: 'Test Room',
       });
 
@@ -228,7 +228,7 @@ export const createTestMeetings = async (
 export const validateApiResponse = (response: any, expectedData?: any) => {
   expect(response.body).toHaveProperty('success');
   expect(response.body.success).toBe(true);
-  
+
   if (expectedData) {
     expect(response.body).toHaveProperty('data');
     if (Array.isArray(expectedData)) {
@@ -248,7 +248,7 @@ export const validateErrorResponse = (response: any, expectedCode?: string) => {
   expect(response.body).toHaveProperty('error');
   expect(response.body.error).toHaveProperty('code');
   expect(response.body.error).toHaveProperty('message');
-  
+
   if (expectedCode) {
     expect(response.body.error.code).toBe(expectedCode);
   }
@@ -383,7 +383,7 @@ export const mockDataGenerators = {
     meetingDate: new Date(),
     startTime: '10:00',
     endTime: '11:00',
-    meetingType: 'in-person',
+    meetingType: 'in_person',
     location: 'Test Room',
     createdDate: new Date(),
     updatedDate: new Date(),

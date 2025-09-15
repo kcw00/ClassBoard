@@ -341,6 +341,7 @@ export default function TestDetails() {
       classId: test.classId,
       totalPoints: test.totalPoints,
       testDate: test.testDate,
+      testTime: test.testTime,
       testType: test.testType
     })
     setIsEditTestDialogOpen(true)
@@ -350,7 +351,7 @@ export default function TestDetails() {
   const handleUpdateTest = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!editingTest.title || !editingTest.classId || !editingTest.testDate) {
+    if (!editingTest.title || !editingTest.classId || !editingTest.testDate || !editingTest.testTime) {
       console.error("❌ Please fill in all required fields")
       return
     }
@@ -361,6 +362,7 @@ export default function TestDetails() {
       classId: editingTest.classId,
       totalPoints: editingTest.totalPoints,
       testDate: editingTest.testDate,
+      testTime: editingTest.testTime,
       testType: editingTest.testType
     })
 
@@ -389,7 +391,7 @@ export default function TestDetails() {
           <div className="min-w-0 flex-1">
             <h1 className="text-3xl font-bold tracking-tight">{test.title}</h1>
             <p className="text-muted-foreground">
-              {classItem?.name} • {new Date(test.testDate).toLocaleDateString()} • {test.totalPoints} points
+              {classItem?.name} • {new Date(test.testDate).toLocaleDateString()} • {test.testTime} • {test.totalPoints} points
             </p>
           </div>
         </div>
@@ -652,7 +654,7 @@ export default function TestDetails() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <Label htmlFor="edit-totalPoints">Total Points</Label>
                       <Input
@@ -670,6 +672,16 @@ export default function TestDetails() {
                         type="date"
                         value={editingTest.testDate}
                         onChange={(e) => setEditingTest({ ...editingTest, testDate: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-testTime">Test Time *</Label>
+                      <Input
+                        id="edit-testTime"
+                        type="time"
+                        value={editingTest.testTime}
+                        onChange={(e) => setEditingTest({ ...editingTest, testTime: e.target.value })}
                         required
                       />
                     </div>
@@ -711,7 +723,7 @@ export default function TestDetails() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             <div>
               <p className="text-sm text-muted-foreground">Type</p>
               <Badge variant="outline" className="mt-1">
@@ -721,6 +733,10 @@ export default function TestDetails() {
             <div>
               <p className="text-sm text-muted-foreground">Date</p>
               <p className="font-medium">{new Date(test.testDate).toLocaleDateString()}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Time</p>
+              <p className="font-medium">{test.testTime}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Points</p>

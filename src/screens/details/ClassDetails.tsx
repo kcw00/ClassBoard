@@ -122,36 +122,41 @@ export default function ClassDetails() {
     setIsNoteDialogOpen(true)
   }
 
-  const handleSaveNote = () => {
+  const handleSaveNote = async () => {
     if (!noteFormData.content.trim() || !selectedDate || !classId) return
 
-    const noteData = {
-      classId: classId,
-      date: selectedDate,
-      content: noteFormData.content,
-      topics: noteFormData.topics ? noteFormData.topics.split(",").map(t => t.trim()) : undefined,
-      homework: noteFormData.homework || undefined,
-      objectives: noteFormData.objectives || undefined
-    }
+    try {
+      const noteData = {
+        classId: classId,
+        date: selectedDate,
+        content: noteFormData.content,
+        topics: noteFormData.topics ? noteFormData.topics.split(",").map(t => t.trim()) : undefined,
+        homework: noteFormData.homework || undefined,
+        objectives: noteFormData.objectives || undefined
+      }
 
-    if (selectedNote) {
-      actions.updateClassNote(selectedNote.id, {
-        ...noteData,
-        updatedDate: new Date().toISOString().split('T')[0]
+      if (selectedNote) {
+        await actions.updateClassNote(selectedNote.id, {
+          ...noteData,
+          updatedDate: new Date().toISOString().split('T')[0]
+        })
+      } else {
+        await actions.addClassNote(noteData)
+      }
+
+      setIsNoteDialogOpen(false)
+      setSelectedNote(null)
+      setNoteFormData({
+        content: "",
+        topics: "",
+        homework: "",
+        objectives: ""
       })
-    } else {
-      actions.addClassNote(noteData)
+      setSelectedDate("")
+    } catch (error) {
+      console.error('Failed to save note:', error)
+      // You could add a toast notification here
     }
-
-    setIsNoteDialogOpen(false)
-    setSelectedNote(null)
-    setNoteFormData({
-      content: "",
-      topics: "",
-      homework: "",
-      objectives: ""
-    })
-    setSelectedDate("")
   }
 
   const getStudentInitials = (name: string) => {
@@ -164,12 +169,16 @@ export default function ClassDetails() {
     )
   }
 
-  const handleEnrollStudent = (studentId: string, enrolled: boolean) => {
+  const handleEnrollStudent = async (studentId: string, enrolled: boolean) => {
     if (!classId) return
-    if (enrolled) {
-      actions.enrollStudent(classId, studentId)
-    } else {
-      actions.unenrollStudent(classId, studentId)
+    try {
+      if (enrolled) {
+        await actions.enrollStudent(classId, studentId)
+      } else {
+        await actions.unenrollStudent(classId, studentId)
+      }
+    } catch (error) {
+      console.error('Failed to update student enrollment:', error)
     }
   }
 
@@ -189,31 +198,39 @@ export default function ClassDetails() {
     setIsScheduleDialogOpen(true)
   }
 
-  const handleSaveSchedule = () => {
+  const handleSaveSchedule = async () => {
     if (!scheduleFormData.dayOfWeek || !scheduleFormData.startTime || !scheduleFormData.endTime || !classId) return
 
-    if (selectedSchedule) {
-      actions.updateSchedule(selectedSchedule.id, {
-        dayOfWeek: parseInt(scheduleFormData.dayOfWeek),
-        startTime: scheduleFormData.startTime,
-        endTime: scheduleFormData.endTime
-      })
-    } else {
-      actions.addSchedule({
-        classId: classId,
-        dayOfWeek: parseInt(scheduleFormData.dayOfWeek),
-        startTime: scheduleFormData.startTime,
-        endTime: scheduleFormData.endTime
-      })
-    }
+    try {
+      if (selectedSchedule) {
+        await actions.updateSchedule(selectedSchedule.id, {
+          dayOfWeek: parseInt(scheduleFormData.dayOfWeek),
+          startTime: scheduleFormData.startTime,
+          endTime: scheduleFormData.endTime
+        })
+      } else {
+        await actions.addSchedule({
+          classId: classId,
+          dayOfWeek: parseInt(scheduleFormData.dayOfWeek),
+          startTime: scheduleFormData.startTime,
+          endTime: scheduleFormData.endTime
+        })
+      }
 
-    setIsScheduleDialogOpen(false)
-    setSelectedSchedule(null)
-    setScheduleFormData({ dayOfWeek: "", startTime: "", endTime: "" })
+      setIsScheduleDialogOpen(false)
+      setSelectedSchedule(null)
+      setScheduleFormData({ dayOfWeek: "", startTime: "", endTime: "" })
+    } catch (error) {
+      console.error('Failed to save schedule:', error)
+    }
   }
 
-  const handleDeleteSchedule = (scheduleId: string) => {
-    actions.deleteSchedule(scheduleId)
+  const handleDeleteSchedule = async (scheduleId: string) => {
+    try {
+      await actions.deleteSchedule(scheduleId)
+    } catch (error) {
+      console.error('Failed to delete schedule:', error)
+    }
   }
 
   const handleAddNoteFromList = () => {
@@ -242,8 +259,12 @@ export default function ClassDetails() {
     setIsNoteDialogOpen(true)
   }
 
-  const handleDeleteNote = (noteId: string) => {
-    actions.deleteClassNote(noteId)
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      await actions.deleteClassNote(noteId)
+    } catch (error) {
+      console.error('Failed to delete note:', error)
+    }
   }
 
   const handleAddStudent = () => {
@@ -273,46 +294,58 @@ export default function ClassDetails() {
   const handleSaveStudent = async () => {
     if (!studentFormData.name.trim() || !studentFormData.email.trim()) return
 
-    if (selectedStudent) {
-      actions.updateStudent(selectedStudent.id, {
-        name: studentFormData.name,
-        email: studentFormData.email,
-        phone: studentFormData.phone,
-        grade: studentFormData.grade,
-        parentContact: studentFormData.parentContact
-      })
-    } else {
-      const newStudent = await actions.addStudent({
-        name: studentFormData.name,
-        email: studentFormData.email,
-        phone: studentFormData.phone,
-        grade: studentFormData.grade,
-        parentContact: studentFormData.parentContact
-      })
-      // Auto-enroll the new student in this class
-      if (classId) actions.enrollStudent(classId, newStudent.id)
-    }
+    try {
+      if (selectedStudent) {
+        await actions.updateStudent(selectedStudent.id, {
+          name: studentFormData.name,
+          email: studentFormData.email,
+          phone: studentFormData.phone,
+          grade: studentFormData.grade,
+          parentContact: studentFormData.parentContact
+        })
+      } else {
+        const newStudent = await actions.addStudent({
+          name: studentFormData.name,
+          email: studentFormData.email,
+          phone: studentFormData.phone,
+          grade: studentFormData.grade,
+          parentContact: studentFormData.parentContact
+        })
+        // Auto-enroll the new student in this class
+        if (classId) await actions.enrollStudent(classId, newStudent.id)
+      }
 
-    setIsStudentDialogOpen(false)
-    setSelectedStudent(null)
-    setStudentFormData({
-      name: "",
-      email: "",
-      phone: "",
-      grade: "",
-      parentContact: ""
-    })
+      setIsStudentDialogOpen(false)
+      setSelectedStudent(null)
+      setStudentFormData({
+        name: "",
+        email: "",
+        phone: "",
+        grade: "",
+        parentContact: ""
+      })
+    } catch (error) {
+      console.error('Failed to save student:', error)
+    }
   }
 
-  const handleDeleteStudent = (studentId: string) => {
+  const handleDeleteStudent = async (studentId: string) => {
     if (window.confirm('Are you sure you want to delete this student? This will remove them from all classes and attendance records.')) {
-      actions.deleteStudent(studentId)
+      try {
+        await actions.deleteStudent(studentId)
+      } catch (error) {
+        console.error('Failed to delete student:', error)
+      }
     }
   }
 
-  const handleUnenrollStudent = (studentId: string) => {
+  const handleUnenrollStudent = async (studentId: string) => {
     if (classId && window.confirm('Are you sure you want to unenroll this student from the class?')) {
-      actions.unenrollStudent(classId, studentId)
+      try {
+        await actions.unenrollStudent(classId, studentId)
+      } catch (error) {
+        console.error('Failed to unenroll student:', error)
+      }
     }
   }
 

@@ -249,4 +249,67 @@ router.get('/:id/students',
   }
 });
 
+/**
+ * GET /api/classes/:id/notes
+ * Get all notes for a specific class
+ */
+router.get('/:id/notes', 
+  validateClassIdParam,
+  async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id: classId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    
+    const { noteService } = await import('../services/noteService');
+    const result = await noteService.getNotesByClass(classId, {
+      page: parseInt(page as string),
+      limit: parseInt(limit as string)
+    });
+
+    res.json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination,
+      message: 'Class notes retrieved successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/classes/:id/notes/date-range
+ * Get notes for a class within a date range
+ */
+router.get('/:id/notes/date-range', 
+  validateClassIdParam,
+  async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id: classId } = req.params;
+    const { startDate, endDate } = req.query;
+    
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Start date and end date are required'
+      });
+    }
+
+    const { noteService } = await import('../services/noteService');
+    const notes = await noteService.getNotesByDateRange(
+      classId,
+      startDate as string,
+      endDate as string
+    );
+
+    res.json({
+      success: true,
+      data: notes,
+      message: 'Notes retrieved successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

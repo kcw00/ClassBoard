@@ -59,7 +59,7 @@ const mockTestData = {
       participants: ["test-student-1"],
       participantType: "students" as const,
       location: "Room 101",
-      meetingType: "in-person" as const,
+      meetingType: "in_person" as const,
       status: "scheduled" as const,
       createdDate: "2024-12-01",
       notes: "Test notes"
@@ -202,7 +202,7 @@ describe('DataMigrationService', () => {
 
   beforeEach(async () => {
     migrationService = new DataMigrationService()
-    
+
     // Clean up database before each test
     await prisma.homeworkSubmission.deleteMany()
     await prisma.homeworkAssignment.deleteMany()
@@ -278,11 +278,11 @@ describe('DataMigrationService', () => {
     it('should create and use backup during migration', async () => {
       // First migration to create some data
       await migrationService.migrateAllData(mockTestData)
-      
+
       // Verify backup directory exists and contains backup files
       const backupDir = path.join(process.cwd(), 'backups')
       const backupFiles = await fs.readdir(backupDir).catch(() => [])
-      
+
       expect(backupFiles.length).toBeGreaterThan(0)
       expect(backupFiles.some(file => file.startsWith('backup-'))).toBe(true)
     })
@@ -309,7 +309,7 @@ describe('DataMigrationService', () => {
 
       expect(testResult.results).toBeDefined()
       expect(testResult.results.length).toBeGreaterThan(0)
-      
+
       // Check that we have tests for both valid and invalid scenarios
       const testNames = testResult.results.map(r => r.test)
       expect(testNames).toContain('Empty data migration')
@@ -322,7 +322,7 @@ describe('DataMigrationService', () => {
       // Create initial data
       await migrationService.migrateAllData(mockTestData)
       const initialStudentCount = await prisma.student.count()
-      
+
       // Get the backup ID from the backup directory
       const backupDir = path.join(process.cwd(), 'backups')
       const backupFiles = await fs.readdir(backupDir)
@@ -330,17 +330,17 @@ describe('DataMigrationService', () => {
         .filter(file => file.startsWith('backup-'))
         .sort()
         .pop()
-      
+
       if (latestBackup) {
         const backupId = latestBackup.replace('.json', '')
-        
+
         // Clear database
         await prisma.student.deleteMany()
         expect(await prisma.student.count()).toBe(0)
-        
+
         // Rollback
         await migrationService.rollback(backupId)
-        
+
         // Verify data was restored
         const restoredStudentCount = await prisma.student.count()
         expect(restoredStudentCount).toBe(initialStudentCount)
@@ -352,7 +352,7 @@ describe('DataMigrationService', () => {
     it('should detect referential integrity issues', async () => {
       // Migrate valid data first
       await migrationService.migrateAllData(mockTestData)
-      
+
       // Manually create invalid reference (this would normally be prevented by foreign keys)
       // We'll test the validation logic by checking the validation method
       const isValid = await migrationService.validateMigration()
@@ -421,12 +421,12 @@ describe('DataMigrationService', () => {
   describe('logging functionality', () => {
     it('should create log files during migration', async () => {
       await migrationService.migrateAllData(mockTestData)
-      
+
       const logFile = path.join(process.cwd(), 'logs', 'migration.log')
       const logExists = await fs.access(logFile).then(() => true).catch(() => false)
-      
+
       expect(logExists).toBe(true)
-      
+
       if (logExists) {
         const logContent = await fs.readFile(logFile, 'utf-8')
         expect(logContent).toContain('Starting complete data migration')
@@ -440,14 +440,14 @@ describe('DataMigrationService', () => {
       const startTime = Date.now()
       await migrationService.migrateAllData(mockTestData)
       const duration = Date.now() - startTime
-      
+
       // Migration should complete within 10 seconds for test data
       expect(duration).toBeLessThan(10000)
     })
 
     it('should provide detailed migration summary', async () => {
       const result = await migrationService.migrateAllData(mockTestData)
-      
+
       expect(result.summary).toBeDefined()
       expect(result.summary).toHaveProperty('students')
       expect(result.summary).toHaveProperty('classes')

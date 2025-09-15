@@ -199,6 +199,9 @@ export class AppDataService {
 
       let lastError: Error = new Error('Request failed')
 
+      // Debug logging
+      console.log(`[AppDataService] ${options.method || 'GET'} ${url} (attempt ${1}/${MAX_RETRIES})`)
+
       // Retry logic
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
@@ -213,8 +216,12 @@ export class AppDataService {
 
           clearTimeout(timeoutId)
 
+          // Debug logging for response
+          console.log(`[AppDataService] Response: ${response.status} ${response.statusText}`)
+
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}))
+            console.error(`[AppDataService] Error ${response.status}:`, errorData)
             throw new ApiError(
               errorData.message || `HTTP ${response.status}`,
               response.status,
@@ -247,18 +254,22 @@ export class AppDataService {
 
         } catch (error) {
           lastError = error as Error
+          console.error(`[AppDataService] Attempt ${attempt} failed:`, error)
 
           // Don't retry on client errors (4xx) except 408, 429
           if (error instanceof ApiError && error.status) {
             if (error.status >= 400 && error.status < 500 &&
               error.status !== 408 && error.status !== 429) {
+              console.log(`[AppDataService] Not retrying client error ${error.status}`)
               break
             }
           }
 
           // Wait before retry (exponential backoff)
           if (attempt < MAX_RETRIES) {
-            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt))
+            const delay = RETRY_DELAY * attempt
+            console.log(`[AppDataService] Retrying in ${delay}ms...`)
+            await new Promise(resolve => setTimeout(resolve, delay))
           }
         }
       }
@@ -300,7 +311,12 @@ export class AppDataService {
 
   // Classes API methods
   async getClasses(): Promise<Class[]> {
-    return this.makeRequest<Class[]>('/classes')
+    try {
+      return this.makeRequest<Class[]>('/classes')
+    } catch (error) {
+      console.warn('No classes found, returning empty array')
+      return []
+    }
   }
 
   async getClass(id: string): Promise<Class> {
@@ -342,7 +358,12 @@ export class AppDataService {
 
   // Students API methods
   async getStudents(): Promise<Student[]> {
-    return this.makeRequest<Student[]>('/students')
+    try {
+      return this.makeRequest<Student[]>('/students')
+    } catch (error) {
+      console.warn('No students found, returning empty array')
+      return []
+    }
   }
 
   async getStudent(id: string): Promise<Student> {
@@ -350,9 +371,15 @@ export class AppDataService {
   }
 
   async addStudent(studentData: Omit<Student, 'id' | 'enrollmentDate'>): Promise<Student> {
+    // Add current date as enrollmentDate since it's required by the backend
+    const studentDataWithEnrollmentDate = {
+      ...studentData,
+      enrollmentDate: new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+    }
+
     return this.makeRequest<Student>('/students', {
       method: 'POST',
-      body: JSON.stringify(studentData)
+      body: JSON.stringify(studentDataWithEnrollmentDate)
     }, false)
   }
 
@@ -371,17 +398,44 @@ export class AppDataService {
 
   // Schedules API methods
   async getSchedules(): Promise<Schedule[]> {
-    return this.makeRequest<Schedule[]>('/schedules')
+    // Get all schedules by fetching schedules for each class
+    const allSchedules: Schedule[] = []
+
+    try {
+      // First get all classes
+      const classes = await this.getClasses()
+
+      // Then get schedules for each class
+      for (const classItem of classes) {
+        try {
+          const classSchedules = await this.getSchedulesByClass(classItem.id)
+          allSchedules.push(...classSchedules)
+        } catch (error) {
+          console.warn(`Failed to fetch schedules for class ${classItem.id}:`, error)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch classes for schedule loading:', error)
+    }
+
+    return allSchedules
   }
 
   async getSchedulesByClass(classId: string): Promise<Schedule[]> {
-    return this.makeRequest<Schedule[]>(`/schedules?classId=${classId}`)
+    try {
+      const response = await this.makeRequest<Schedule[]>(`/classes/${classId}/schedules`)
+      return response
+    } catch (error) {
+      console.warn(`No schedules found for class ${classId}, returning empty array`)
+      return []
+    }
   }
 
   async addSchedule(scheduleData: Omit<Schedule, 'id'>): Promise<Schedule> {
-    return this.makeRequest<Schedule>('/schedules', {
+    const { classId, ...scheduleDataWithoutClassId } = scheduleData
+    return this.makeRequest<Schedule>(`/classes/${classId}/schedules`, {
       method: 'POST',
-      body: JSON.stringify(scheduleData)
+      body: JSON.stringify(scheduleDataWithoutClassId)
     }, false)
   }
 
@@ -400,32 +454,62 @@ export class AppDataService {
 
   // Schedule Exceptions API methods
   async getScheduleExceptions(): Promise<ScheduleException[]> {
-    return this.makeRequest<ScheduleException[]>('/schedule-exceptions')
+    // Get all schedule exceptions by fetching exceptions for each schedule
+    const allExceptions: ScheduleException[] = []
+
+    try {
+      // First get all schedules
+      const schedules = await this.getSchedules()
+
+      // Then get exceptions for each schedule
+      for (const schedule of schedules) {
+        try {
+          const scheduleExceptions = await this.getScheduleExceptionsBySchedule(schedule.id)
+          allExceptions.push(...scheduleExceptions)
+        } catch (error) {
+          console.warn(`Failed to fetch exceptions for schedule ${schedule.id}:`, error)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch schedules for exception loading:', error)
+    }
+
+    return allExceptions
+  }
+
+  async getScheduleExceptionsBySchedule(scheduleId: string): Promise<ScheduleException[]> {
+    return this.makeRequest<ScheduleException[]>(`/schedules/${scheduleId}/exceptions`)
   }
 
   async addScheduleException(exceptionData: Omit<ScheduleException, 'id' | 'createdDate'>): Promise<ScheduleException> {
-    return this.makeRequest<ScheduleException>('/schedule-exceptions', {
+    const { scheduleId, ...exceptionDataWithoutScheduleId } = exceptionData
+    return this.makeRequest<ScheduleException>(`/schedules/${scheduleId}/exceptions`, {
       method: 'POST',
-      body: JSON.stringify(exceptionData)
+      body: JSON.stringify(exceptionDataWithoutScheduleId)
     }, false)
   }
 
   async updateScheduleException(id: string, updates: Partial<ScheduleException>): Promise<ScheduleException> {
-    return this.makeRequest<ScheduleException>(`/schedule-exceptions/${id}`, {
+    return this.makeRequest<ScheduleException>(`/exceptions/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates)
     }, false)
   }
 
   async deleteScheduleException(id: string): Promise<void> {
-    await this.makeRequest<void>(`/schedule-exceptions/${id}`, {
+    await this.makeRequest<void>(`/exceptions/${id}`, {
       method: 'DELETE'
     }, false)
   }
 
   // Meetings API methods
   async getMeetings(): Promise<Meeting[]> {
-    return this.makeRequest<Meeting[]>('/meetings')
+    try {
+      return this.makeRequest<Meeting[]>('/meetings')
+    } catch (error) {
+      console.warn('No meetings found, returning empty array')
+      return []
+    }
   }
 
   async addMeeting(meetingData: Omit<Meeting, 'id' | 'createdDate'>): Promise<Meeting> {
@@ -450,11 +534,21 @@ export class AppDataService {
 
   // Attendance API methods
   async getAttendanceRecords(): Promise<AttendanceRecord[]> {
-    return this.makeRequest<AttendanceRecord[]>('/attendance')
+    try {
+      return this.makeRequest<AttendanceRecord[]>('/attendance')
+    } catch (error) {
+      console.warn('No attendance records found, returning empty array')
+      return []
+    }
   }
 
   async getAttendanceByClass(classId: string): Promise<AttendanceRecord[]> {
-    return this.makeRequest<AttendanceRecord[]>(`/attendance?classId=${classId}`)
+    try {
+      return this.makeRequest<AttendanceRecord[]>(`/attendance?classId=${classId}`)
+    } catch (error) {
+      console.warn(`No attendance records found for class ${classId}, returning empty array`)
+      return []
+    }
   }
 
   async addAttendanceRecord(attendanceData: Omit<AttendanceRecord, 'id' | 'createdDate'>): Promise<AttendanceRecord> {
@@ -473,11 +567,21 @@ export class AppDataService {
 
   // Class Notes API methods
   async getClassNotes(): Promise<ClassNote[]> {
-    return this.makeRequest<ClassNote[]>('/class-notes')
+    try {
+      return this.makeRequest<ClassNote[]>('/class-notes')
+    } catch (error) {
+      console.warn('No class notes found, returning empty array')
+      return []
+    }
   }
 
   async getClassNotesByClass(classId: string): Promise<ClassNote[]> {
-    return this.makeRequest<ClassNote[]>(`/class-notes?classId=${classId}`)
+    try {
+      return this.makeRequest<ClassNote[]>(`/class-notes?classId=${classId}`)
+    } catch (error) {
+      console.warn(`No class notes found for class ${classId}, returning empty array`)
+      return []
+    }
   }
 
   async addClassNote(noteData: Omit<ClassNote, 'id' | 'createdDate' | 'updatedDate'>): Promise<ClassNote> {
@@ -502,11 +606,21 @@ export class AppDataService {
 
   // Tests API methods
   async getTests(): Promise<Test[]> {
-    return this.makeRequest<Test[]>('/tests')
+    try {
+      return this.makeRequest<Test[]>('/tests')
+    } catch (error) {
+      console.warn('No tests found, returning empty array')
+      return []
+    }
   }
 
   async getTestsByClass(classId: string): Promise<Test[]> {
-    return this.makeRequest<Test[]>(`/tests?classId=${classId}`)
+    try {
+      return this.makeRequest<Test[]>(`/tests?classId=${classId}`)
+    } catch (error) {
+      console.warn(`No tests found for class ${classId}, returning empty array`)
+      return []
+    }
   }
 
   async addTest(testData: Omit<Test, 'id' | 'createdDate' | 'updatedDate'>): Promise<Test> {
@@ -531,11 +645,21 @@ export class AppDataService {
 
   // Test Results API methods
   async getTestResults(): Promise<TestResult[]> {
-    return this.makeRequest<TestResult[]>('/test-results')
+    try {
+      return this.makeRequest<TestResult[]>('/test-results')
+    } catch (error) {
+      console.warn('No test results found, returning empty array')
+      return []
+    }
   }
 
   async getTestResultsByTest(testId: string): Promise<TestResult[]> {
-    return this.makeRequest<TestResult[]>(`/test-results?testId=${testId}`)
+    try {
+      return this.makeRequest<TestResult[]>(`/test-results?testId=${testId}`)
+    } catch (error) {
+      console.warn(`No test results found for test ${testId}, returning empty array`)
+      return []
+    }
   }
 
   async addTestResult(resultData: Omit<TestResult, 'id' | 'createdDate' | 'updatedDate'>): Promise<TestResult> {
@@ -560,11 +684,21 @@ export class AppDataService {
 
   // Homework Assignments API methods
   async getHomeworkAssignments(): Promise<HomeworkAssignment[]> {
-    return this.makeRequest<HomeworkAssignment[]>('/homework-assignments')
+    try {
+      return this.makeRequest<HomeworkAssignment[]>('/homework-assignments')
+    } catch (error) {
+      console.warn('No homework assignments found, returning empty array')
+      return []
+    }
   }
 
   async getHomeworkAssignmentsByClass(classId: string): Promise<HomeworkAssignment[]> {
-    return this.makeRequest<HomeworkAssignment[]>(`/homework-assignments?classId=${classId}`)
+    try {
+      return this.makeRequest<HomeworkAssignment[]>(`/homework-assignments?classId=${classId}`)
+    } catch (error) {
+      console.warn(`No homework assignments found for class ${classId}, returning empty array`)
+      return []
+    }
   }
 
   async addHomeworkAssignment(assignmentData: Omit<HomeworkAssignment, 'id' | 'createdDate' | 'updatedDate'>): Promise<HomeworkAssignment> {

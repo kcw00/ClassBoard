@@ -50,7 +50,7 @@ export interface Meeting {
   participants: string[] // Student IDs or names
   participantType: "students" | "parents" | "teachers"
   location: string
-  meetingType: "in-person" | "virtual"
+  meetingType: "in_person" | "virtual"
   status: "scheduled" | "completed" | "cancelled"
   createdDate: string
   notes?: string
@@ -87,6 +87,7 @@ export interface Test {
   title: string
   description: string
   testDate: string // YYYY-MM-DD format
+  testTime: string // HH:MM format
   totalPoints: number
   testType: 'quiz' | 'exam' | 'assignment' | 'project'
   fileName?: string

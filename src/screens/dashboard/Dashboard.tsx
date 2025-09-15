@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Users, GraduationCap, Calendar, MapPin, CalendarCheck, UserCheck, RefreshCw, AlertCircle } from "lucide-react"
 import { classColors } from "@/types"
 import { useAppData } from "@/context/AppDataMigrationContext"
-import { ApiServiceTest } from "@/components/common/ApiServiceTest"
+
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -49,7 +49,7 @@ export default function Dashboard() {
     participants: [] as string[],
     participantType: "students" as "students" | "parents" | "teachers",
     location: "",
-    meetingType: "in-person" as "in-person" | "virtual"
+    meetingType: "in_person" as "in_person" | "virtual"
   })
 
   const totalStudents = data.students.length
@@ -61,7 +61,7 @@ export default function Dashboard() {
 
 
   const totalMeetings = data.meetings.length
-  const upcomingMeetings = data.meetings.filter(meeting => 
+  const upcomingMeetings = data.meetings.filter(meeting =>
     meeting.status === "scheduled" && new Date(meeting.date) >= new Date()
   ).length
 
@@ -69,64 +69,80 @@ export default function Dashboard() {
 
   const recentClasses = data.classes.slice(0, 4)
 
-  const handleClassSubmit = (e: React.FormEvent) => {
+  const handleClassSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    actions.addClass({
-      name: classFormData.name,
-      subject: classFormData.subject,
-      description: classFormData.description,
-      room: classFormData.room,
-      capacity: parseInt(classFormData.capacity) || 0,
-      color: classFormData.color
-    })
-    setClassFormData({ name: "", subject: "", description: "", room: "", capacity: "", color: "#3b82f6" })
-    setActiveModal(null)
+    try {
+      await actions.addClass({
+        name: classFormData.name,
+        subject: classFormData.subject,
+        description: classFormData.description,
+        room: classFormData.room,
+        capacity: parseInt(classFormData.capacity) || 0,
+        color: classFormData.color
+      })
+      setClassFormData({ name: "", subject: "", description: "", room: "", capacity: "", color: "#3b82f6" })
+      setActiveModal(null)
+    } catch (error) {
+      console.error('Failed to add class:', error)
+    }
   }
 
-  const handleStudentSubmit = (e: React.FormEvent) => {
+  const handleStudentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    actions.addStudent({
-      name: studentFormData.name,
-      email: studentFormData.email,
-      phone: studentFormData.phone,
-      grade: studentFormData.grade,
-      parentContact: studentFormData.parentContact
-    })
-    setStudentFormData({ name: "", email: "", phone: "", grade: "", parentContact: "" })
-    setActiveModal(null)
+    try {
+      await actions.addStudent({
+        name: studentFormData.name,
+        email: studentFormData.email,
+        phone: studentFormData.phone,
+        grade: studentFormData.grade,
+        parentContact: studentFormData.parentContact
+      })
+      setStudentFormData({ name: "", email: "", phone: "", grade: "", parentContact: "" })
+      setActiveModal(null)
+    } catch (error) {
+      console.error('Failed to add student:', error)
+    }
   }
 
-  const handleScheduleSubmit = (e: React.FormEvent) => {
+  const handleScheduleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    actions.addSchedule({
-      classId: scheduleFormData.classId,
-      dayOfWeek: parseInt(scheduleFormData.dayOfWeek) || 0,
-      startTime: scheduleFormData.startTime,
-      endTime: scheduleFormData.endTime
-    })
-    setScheduleFormData({ classId: "", dayOfWeek: "", startTime: "", endTime: "" })
-    setActiveModal(null)
+    try {
+      await actions.addSchedule({
+        classId: scheduleFormData.classId,
+        dayOfWeek: parseInt(scheduleFormData.dayOfWeek) || 0,
+        startTime: scheduleFormData.startTime,
+        endTime: scheduleFormData.endTime
+      })
+      setScheduleFormData({ classId: "", dayOfWeek: "", startTime: "", endTime: "" })
+      setActiveModal(null)
+    } catch (error) {
+      console.error('Failed to add schedule:', error)
+    }
   }
 
-  const handleMeetingSubmit = (e: React.FormEvent) => {
+  const handleMeetingSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    actions.addMeeting({
-      title: meetingFormData.title,
-      description: meetingFormData.description,
-      date: meetingFormData.date,
-      startTime: meetingFormData.startTime,
-      endTime: meetingFormData.endTime,
-      participants: meetingFormData.participants,
-      participantType: meetingFormData.participantType,
-      location: meetingFormData.location,
-      meetingType: meetingFormData.meetingType,
-      status: "scheduled"
-    })
-    setMeetingFormData({
-      title: "", description: "", date: "", startTime: "", endTime: "",
-      participants: [], participantType: "students", location: "", meetingType: "in-person"
-    })
-    setActiveModal(null)
+    try {
+      await actions.addMeeting({
+        title: meetingFormData.title,
+        description: meetingFormData.description,
+        date: meetingFormData.date,
+        startTime: meetingFormData.startTime,
+        endTime: meetingFormData.endTime,
+        participants: meetingFormData.participants,
+        participantType: meetingFormData.participantType,
+        location: meetingFormData.location,
+        meetingType: meetingFormData.meetingType,
+        status: "scheduled"
+      })
+      setMeetingFormData({
+        title: "", description: "", date: "", startTime: "", endTime: "",
+        participants: [], participantType: "students", location: "", meetingType: "in_person"
+      })
+      setActiveModal(null)
+    } catch (error) {
+      console.error('Failed to add meeting:', error)
+    }
   }
 
   const getDayName = (dayOfWeek: number) => {
@@ -150,7 +166,7 @@ export default function Dashboard() {
     },
     {
       icon: Users,
-      label: "Add new student", 
+      label: "Add new student",
       action: () => setActiveModal("add-student")
     },
     {
@@ -181,7 +197,7 @@ export default function Dashboard() {
           </div>
           <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-        
+
         {/* Loading skeleton for statistics cards */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
@@ -197,7 +213,7 @@ export default function Dashboard() {
             </Card>
           ))}
         </div>
-        
+
         {/* Loading skeleton for content cards */}
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
           {[...Array(2)].map((_, i) => (
@@ -240,14 +256,14 @@ export default function Dashboard() {
             <p className="text-muted-foreground">Overview of your classroom management system</p>
           </div>
         </div>
-        
+
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             There was an error loading your data. Please try refreshing the page.
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="ml-2"
               onClick={() => window.location.reload()}
             >
@@ -275,7 +291,7 @@ export default function Dashboard() {
 
       {/* Statistics Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => navigate('/students')}
         >
@@ -295,7 +311,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => navigate('/classes')}
         >
@@ -315,7 +331,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => navigate('/calendar')}
         >
@@ -335,7 +351,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => navigate('/meetings')}
         >
@@ -382,13 +398,13 @@ export default function Dashboard() {
                 ))
               ) : (
                 recentClasses.map((classItem) => (
-                  <div 
-                    key={classItem.id} 
+                  <div
+                    key={classItem.id}
                     className="flex items-center justify-between cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-colors"
                     onClick={() => navigate(`/classes/${classItem.id}`)}
                   >
                     <div className="flex items-center gap-3">
-                      <div 
+                      <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: classItem.color }}
                       />
@@ -432,9 +448,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        
-        {/* API Service Integration Test */}
-        <ApiServiceTest />
+
       </div>
 
       {/* Modals */}
@@ -510,9 +524,8 @@ export default function Dashboard() {
                   <button
                     key={colorOption.value}
                     type="button"
-                    className={`w-8 h-8 rounded-lg border-2 ${
-                      classFormData.color === colorOption.value ? 'border-foreground' : 'border-border'
-                    }`}
+                    className={`w-8 h-8 rounded-lg border-2 ${classFormData.color === colorOption.value ? 'border-foreground' : 'border-border'
+                      }`}
                     style={{ backgroundColor: colorOption.value }}
                     onClick={() => setClassFormData({ ...classFormData, color: colorOption.value })}
                     title={colorOption.name}
@@ -784,12 +797,12 @@ export default function Dashboard() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="meeting-type">Meeting Type</Label>
-              <Select value={meetingFormData.meetingType} onValueChange={(value: "in-person" | "virtual") => setMeetingFormData({ ...meetingFormData, meetingType: value })}>
+              <Select value={meetingFormData.meetingType} onValueChange={(value: "in_person" | "virtual") => setMeetingFormData({ ...meetingFormData, meetingType: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="in-person">In-Person</SelectItem>
+                  <SelectItem value="in_person">in_person</SelectItem>
                   <SelectItem value="virtual">Virtual</SelectItem>
                 </SelectContent>
               </Select>

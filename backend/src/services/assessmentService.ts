@@ -17,6 +17,7 @@ export interface CreateTestData {
   title: string;
   description: string;
   testDate: string;
+  testTime: string;
   totalPoints: number;
   testType: TestType;
   fileName?: string;
@@ -27,6 +28,7 @@ export interface UpdateTestData {
   title?: string;
   description?: string;
   testDate?: string;
+  testTime?: string;
   totalPoints?: number;
   testType?: TestType;
   fileName?: string;
@@ -1072,6 +1074,260 @@ export class AssessmentService {
         throw error;
       }
       throw new DatabaseError('Failed to fetch student submissions', error);
+    }
+  }
+
+  /**
+   * Get all tests across all classes with pagination
+   */
+  async getAllTests(query: GetTestsQuery = {}): Promise<PaginatedResponse<TestWithResults>> {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        testType,
+        search,
+      } = query;
+
+      const currentPage = Math.max(1, page);
+      const pageSize = Math.min(Math.max(1, limit), 100);
+      const skip = (currentPage - 1) * pageSize;
+
+      // Build where condition
+      const whereCondition: any = {};
+
+      if (testType) {
+        whereCondition.testType = testType;
+      }
+
+      if (search) {
+        whereCondition.OR = [
+          {
+            title: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            description: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+        ];
+      }
+
+      const total = await this.prisma.test.count({
+        where: whereCondition,
+      });
+
+      const tests = await this.prisma.test.findMany({
+        where: whereCondition,
+        include: {
+          results: {
+            include: {
+              student: true,
+            },
+          },
+          _count: {
+            select: {
+              results: true,
+            },
+          },
+        },
+        orderBy: {
+          testDate: 'desc',
+        },
+        skip,
+        take: pageSize,
+      });
+
+      const totalPages = Math.ceil(total / pageSize);
+
+      return {
+        data: tests as TestWithResults[],
+        pagination: {
+          page: currentPage,
+          limit: pageSize,
+          total,
+          totalPages,
+          hasNextPage: currentPage < totalPages,
+          hasPreviousPage: currentPage > 1,
+        },
+      };
+    } catch (error) {
+      throw new DatabaseError('Failed to fetch all tests', error);
+    }
+  }
+
+  /**
+   * Get all test results across all tests with pagination
+   */
+  async getAllTestResults(query: any = {}): Promise<PaginatedResponse<any>> {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+      } = query;
+
+      const currentPage = Math.max(1, page);
+      const pageSize = Math.min(Math.max(1, limit), 100);
+      const skip = (currentPage - 1) * pageSize;
+
+      const total = await this.prisma.testResult.count();
+
+      const results = await this.prisma.testResult.findMany({
+        include: {
+          test: true,
+          student: true,
+        },
+        orderBy: {
+          submittedDate: 'desc',
+        },
+        skip,
+        take: pageSize,
+      });
+
+      const totalPages = Math.ceil(total / pageSize);
+
+      return {
+        data: results,
+        pagination: {
+          page: currentPage,
+          limit: pageSize,
+          total,
+          totalPages,
+          hasNextPage: currentPage < totalPages,
+          hasPreviousPage: currentPage > 1,
+        },
+      };
+    } catch (error) {
+      throw new DatabaseError('Failed to fetch all test results', error);
+    }
+  }
+
+  /**
+   * Get all homework assignments across all classes with pagination
+   */
+  async getAllHomework(query: GetHomeworkQuery = {}): Promise<PaginatedResponse<HomeworkWithSubmissions>> {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        search,
+        status,
+      } = query;
+
+      const currentPage = Math.max(1, page);
+      const pageSize = Math.min(Math.max(1, limit), 100);
+      const skip = (currentPage - 1) * pageSize;
+
+      // Build where condition
+      const whereCondition: any = {};
+
+      if (search) {
+        whereCondition.OR = [
+          {
+            title: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            description: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+        ];
+      }
+
+      const total = await this.prisma.homeworkAssignment.count({
+        where: whereCondition,
+      });
+
+      const homework = await this.prisma.homeworkAssignment.findMany({
+        where: whereCondition,
+        include: {
+          submissions: {
+            include: {
+              student: true,
+            },
+          },
+          _count: {
+            select: {
+              submissions: true,
+            },
+          },
+        },
+        orderBy: {
+          dueDate: 'desc',
+        },
+        skip,
+        take: pageSize,
+      });
+
+      const totalPages = Math.ceil(total / pageSize);
+
+      return {
+        data: homework as HomeworkWithSubmissions[],
+        pagination: {
+          page: currentPage,
+          limit: pageSize,
+          total,
+          totalPages,
+          hasNextPage: currentPage < totalPages,
+          hasPreviousPage: currentPage > 1,
+        },
+      };
+    } catch (error) {
+      throw new DatabaseError('Failed to fetch all homework assignments', error);
+    }
+  }
+
+  /**
+   * Get all homework submissions across all assignments with pagination
+   */
+  async getAllHomeworkSubmissions(query: any = {}): Promise<PaginatedResponse<any>> {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+      } = query;
+
+      const currentPage = Math.max(1, page);
+      const pageSize = Math.min(Math.max(1, limit), 100);
+      const skip = (currentPage - 1) * pageSize;
+
+      const total = await this.prisma.homeworkSubmission.count();
+
+      const submissions = await this.prisma.homeworkSubmission.findMany({
+        include: {
+          assignment: true,
+          student: true,
+        },
+        orderBy: {
+          submittedDate: 'desc',
+        },
+        skip,
+        take: pageSize,
+      });
+
+      const totalPages = Math.ceil(total / pageSize);
+
+      return {
+        data: submissions,
+        pagination: {
+          page: currentPage,
+          limit: pageSize,
+          total,
+          totalPages,
+          hasNextPage: currentPage < totalPages,
+          hasPreviousPage: currentPage > 1,
+        },
+      };
+    } catch (error) {
+      throw new DatabaseError('Failed to fetch all homework submissions', error);
     }
   }
 }

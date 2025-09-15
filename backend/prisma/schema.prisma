@@ -36,9 +36,9 @@ model Student {
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   // Relations
-  enrollments        ClassEnrollment[]
-  attendanceRecords  AttendanceEntry[]
-  testResults        TestResult[]
+  enrollments         ClassEnrollment[]
+  attendanceRecords   AttendanceEntry[]
+  testResults         TestResult[]
   homeworkSubmissions HomeworkSubmission[]
 
   // Indexes for performance optimization
@@ -51,16 +51,16 @@ model Student {
 
 // Class model
 model Class {
-  id              String   @id @default(uuid())
-  name            String
-  subject         String
-  description     String
-  room            String
-  capacity        Int
-  color           String
-  createdDate     String   @map("created_date") // Keeping as string to match existing format
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
+  name        String
+  subject     String
+  description String
+  room        String
+  capacity    Int
+  color       String
+  createdDate String   @map("created_date") // Keeping as string to match existing format
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
   enrollments         ClassEnrollment[]
@@ -113,7 +113,7 @@ model Schedule {
 model ScheduleException {
   id          String   @id @default(uuid())
   scheduleId  String   @map("schedule_id")
-  date        String   // YYYY-MM-DD format
+  date        String // YYYY-MM-DD format
   startTime   String   @map("start_time")
   endTime     String   @map("end_time")
   cancelled   Boolean? @default(false)
@@ -128,38 +128,38 @@ model ScheduleException {
 
 // Meeting model
 model Meeting {
-  id              String        @id @default(uuid())
+  id              String          @id @default(uuid())
   title           String
   description     String
-  date            String        // YYYY-MM-DD format
-  startTime       String        @map("start_time")
-  endTime         String        @map("end_time")
-  participants    String[]      // Array of participant IDs or names
+  date            String // YYYY-MM-DD format
+  startTime       String          @map("start_time")
+  endTime         String          @map("end_time")
+  participants    String[] // Array of participant IDs or names
   participantType ParticipantType @map("participant_type")
   location        String
-  meetingType     MeetingType   @map("meeting_type")
+  meetingType     MeetingType     @map("meeting_type")
   status          MeetingStatus
-  createdDate     String        @map("created_date")
+  createdDate     String          @map("created_date")
   notes           String?
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
 
   @@map("meetings")
 }
 
 // Attendance record model
 model AttendanceRecord {
-  id            String   @id @default(uuid())
-  classId       String   @map("class_id")
-  date          String   // YYYY-MM-DD format
-  createdDate   String   @map("created_date")
-  updatedDate   String?  @map("updated_date")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
+  classId     String   @map("class_id")
+  date        String // YYYY-MM-DD format
+  createdDate String   @map("created_date")
+  updatedDate String?  @map("updated_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
-  class           Class             @relation(fields: [classId], references: [id], onDelete: Cascade)
-  attendanceData  AttendanceEntry[]
+  class          Class             @relation(fields: [classId], references: [id], onDelete: Cascade)
+  attendanceData AttendanceEntry[]
 
   // Indexes for performance optimization
   @@index([classId])
@@ -188,7 +188,7 @@ model AttendanceEntry {
 model ClassNote {
   id          String   @id @default(uuid())
   classId     String   @map("class_id")
-  date        String   // YYYY-MM-DD format
+  date        String // YYYY-MM-DD format
   content     String
   topics      String[] // Array of topics
   homework    String?
@@ -211,6 +211,7 @@ model Test {
   title       String
   description String
   testDate    String   @map("test_date") // YYYY-MM-DD format
+  testTime    String   @map("test_time") // HH:MM format
   totalPoints Int      @map("total_points")
   testType    TestType @map("test_type")
   fileName    String?  @map("file_name")
@@ -243,7 +244,7 @@ model TestResult {
   grade         String
   feedback      String?
   submittedDate String?  @map("submitted_date") // YYYY-MM-DD format
-  gradedDate    String   @map("graded_date")    // YYYY-MM-DD format
+  gradedDate    String   @map("graded_date") // YYYY-MM-DD format
   createdDate   String   @map("created_date")
   updatedDate   String   @map("updated_date")
   createdAt     DateTime @default(now()) @map("created_at")
@@ -268,7 +269,7 @@ model HomeworkAssignment {
   title        String
   description  String
   assignedDate String   @map("assigned_date") // YYYY-MM-DD format
-  dueDate      String   @map("due_date")      // YYYY-MM-DD format
+  dueDate      String   @map("due_date") // YYYY-MM-DD format
   totalPoints  Int      @map("total_points")
   instructions String?
   resources    String[] // Array of resources
@@ -317,20 +318,20 @@ model HomeworkSubmission {
 
 // File model for managing uploaded files
 model File {
-  id                   String               @id @default(uuid())
-  originalName         String               @map("original_name")
-  fileName             String               @map("file_name") // S3 key/filename
-  mimeType             String               @map("mime_type")
-  size                 Int                  // File size in bytes
-  s3Key                String               @map("s3_key") // S3 object key
-  s3Bucket             String               @map("s3_bucket")
-  cloudFrontUrl        String?              @map("cloudfront_url")
-  uploadedBy           String?              @map("uploaded_by") // User ID who uploaded
-  entityType           FileEntityType       @map("entity_type") // What this file is attached to
-  entityId             String?              @map("entity_id") // ID of the entity it's attached to
-  isPublic             Boolean              @default(false) @map("is_public")
-  createdAt            DateTime             @default(now()) @map("created_at")
-  updatedAt            DateTime             @updatedAt @map("updated_at")
+  id            String         @id @default(uuid())
+  originalName  String         @map("original_name")
+  fileName      String         @map("file_name") // S3 key/filename
+  mimeType      String         @map("mime_type")
+  size          Int // File size in bytes
+  s3Key         String         @map("s3_key") // S3 object key
+  s3Bucket      String         @map("s3_bucket")
+  cloudFrontUrl String?        @map("cloudfront_url")
+  uploadedBy    String?        @map("uploaded_by") // User ID who uploaded
+  entityType    FileEntityType @map("entity_type") // What this file is attached to
+  entityId      String?        @map("entity_id") // ID of the entity it's attached to
+  isPublic      Boolean        @default(false) @map("is_public")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
 
   @@map("files")
 }
@@ -348,7 +349,7 @@ enum ParticipantType {
 }
 
 enum MeetingType {
-  in_person @map("in-person")
+  in_person @map("in_person")
   virtual
 }
 

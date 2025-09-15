@@ -66,7 +66,7 @@ interface MockMeeting {
   participants: string[]
   participantType: "students" | "parents" | "teachers"
   location: string
-  meetingType: "in-person" | "virtual"
+  meetingType: "in_person" | "virtual"
   status: "scheduled" | "completed" | "cancelled"
   createdDate: string
   notes?: string
@@ -210,7 +210,7 @@ export class DataMigrationService {
     await this.log('🚀 Starting complete data migration...')
 
     let backupId: string | null = null
-    
+
     try {
       // Validate input data first
       const validationErrors = await this.validateInputData(mockData)
@@ -240,41 +240,41 @@ export class DataMigrationService {
         // Migrate core entities first
         await this.migrateStudents(mockData.students)
         await this.log(`✅ Migrated ${mockData.students.length} students`)
-        
+
         await this.migrateClasses(mockData.classes)
         await this.log(`✅ Migrated ${mockData.classes.length} classes`)
-        
+
         // Migrate class enrollments
         const enrollmentCount = await this.migrateClassEnrollments(mockData.classes)
         await this.log(`✅ Migrated ${enrollmentCount} class enrollments`)
-        
+
         // Migrate schedules and related data
         await this.migrateSchedules(mockData.schedules)
         await this.log(`✅ Migrated ${mockData.schedules.length} schedules`)
-        
+
         await this.migrateScheduleExceptions(mockData.scheduleExceptions)
         await this.log(`✅ Migrated ${mockData.scheduleExceptions.length} schedule exceptions`)
-        
+
         // Migrate educational content
         await this.migrateTests(mockData.tests)
         await this.log(`✅ Migrated ${mockData.tests.length} tests`)
-        
+
         await this.migrateTestResults(mockData.testResults)
         await this.log(`✅ Migrated ${mockData.testResults.length} test results`)
-        
+
         await this.migrateHomeworkAssignments(mockData.homeworkAssignments)
         await this.log(`✅ Migrated ${mockData.homeworkAssignments.length} homework assignments`)
-        
+
         await this.migrateHomeworkSubmissions(mockData.homeworkSubmissions)
         await this.log(`✅ Migrated ${mockData.homeworkSubmissions.length} homework submissions`)
-        
+
         // Migrate attendance and notes
         await this.migrateAttendanceRecords(mockData.attendanceRecords)
         await this.log(`✅ Migrated ${mockData.attendanceRecords.length} attendance records`)
-        
+
         await this.migrateClassNotes(mockData.classNotes)
         await this.log(`✅ Migrated ${mockData.classNotes.length} class notes`)
-        
+
         // Migrate meetings
         await this.migrateMeetings(mockData.meetings)
         await this.log(`✅ Migrated ${mockData.meetings.length} meetings`)
@@ -303,7 +303,7 @@ export class DataMigrationService {
 
       const duration = Date.now() - startTime
       await this.log(`✅ Data migration completed successfully in ${duration}ms`)
-      
+
       return {
         success: true,
         message: `Migration completed successfully in ${duration}ms`,
@@ -312,7 +312,7 @@ export class DataMigrationService {
 
     } catch (error) {
       await this.log(`❌ Data migration failed: ${error}`)
-      
+
       // Attempt rollback if backup exists
       if (backupId) {
         try {
@@ -336,7 +336,7 @@ export class DataMigrationService {
    */
   private async clearExistingData(): Promise<void> {
     console.log('🧹 Clearing existing data...')
-    
+
     // Delete in reverse order of dependencies
     await prisma.homeworkSubmission.deleteMany()
     await prisma.homeworkAssignment.deleteMany()
@@ -483,7 +483,7 @@ export class DataMigrationService {
           participants: meeting.participants,
           participantType: meeting.participantType,
           location: meeting.location,
-          meetingType: meeting.meetingType === 'in-person' ? 'in_person' : 'virtual',
+          meetingType: meeting.meetingType === 'in_person' ? 'in_person' : 'virtual',
           status: meeting.status,
           createdDate: meeting.createdDate,
           notes: meeting.notes
@@ -651,7 +651,7 @@ export class DataMigrationService {
   async validateMigration(): Promise<boolean> {
     try {
       await this.log('🔍 Validating migration...')
-      
+
       const counts = {
         users: await prisma.user.count(),
         students: await prisma.student.count(),
@@ -663,7 +663,7 @@ export class DataMigrationService {
       }
 
       await this.log(`📊 Migration summary: ${JSON.stringify(counts)}`)
-      
+
       // Basic validation - ensure we have data
       if (counts.students === 0 || counts.classes === 0) {
         throw new Error('Migration validation failed: Missing core data')
@@ -831,7 +831,7 @@ export class DataMigrationService {
   private async createBackup(): Promise<string> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
     const backupId = `backup-${timestamp}`
-    
+
     try {
       // Ensure backup directory exists
       await fs.mkdir(this.backupDir, { recursive: true })
@@ -890,24 +890,24 @@ export class DataMigrationService {
       // Clear current data and restore backup
       await prisma.$transaction(async (tx) => {
         await this.clearExistingData()
-        
+
         // Restore data in correct order
         for (const user of backup.data.users) {
           await prisma.user.create({ data: user })
         }
-        
+
         for (const student of backup.data.students) {
           await prisma.student.create({ data: student })
         }
-        
+
         for (const classData of backup.data.classes) {
           await prisma.class.create({ data: classData })
         }
-        
+
         for (const enrollment of backup.data.classEnrollments) {
           await prisma.classEnrollment.create({ data: enrollment })
         }
-        
+
         // Continue with other entities...
         // (Implementation would continue for all entities)
       })
@@ -937,9 +937,9 @@ export class DataMigrationService {
   private async log(message: string): Promise<void> {
     const timestamp = new Date().toISOString()
     const logEntry = `[${timestamp}] ${message}\n`
-    
+
     console.log(message)
-    
+
     try {
       await fs.appendFile(this.logFile, logEntry)
     } catch (error) {
@@ -1022,7 +1022,7 @@ export class DataMigrationService {
       })
 
       await this.log(`✅ Migration tests completed: ${testResults.length} tests run`)
-      
+
       return {
         success: testResults.every(r => r.success),
         results: testResults

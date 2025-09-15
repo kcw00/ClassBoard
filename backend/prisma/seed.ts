@@ -53,7 +53,7 @@ interface Meeting {
   participants: string[]
   participantType: "students" | "parents" | "teachers"
   location: string
-  meetingType: "in-person" | "virtual"
+  meetingType: "in_person" | "virtual"
   status: "scheduled" | "completed" | "cancelled"
   createdDate: string
   notes?: string
@@ -329,6 +329,7 @@ async function main() {
       title: "Quadratic Equations Test",
       description: "Comprehensive test covering quadratic equations, factoring, and graphing",
       testDate: "2024-12-10",
+      testTime: "09:00",
       totalPoints: 100,
       testType: "exam" as const,
       fileName: "algebra_quadratic_test.pdf",
@@ -341,6 +342,7 @@ async function main() {
       title: "Chemical Bonding Quiz",
       description: "Quiz on ionic and covalent bonding concepts",
       testDate: "2024-12-05",
+      testTime: "11:00",
       totalPoints: 50,
       testType: "quiz" as const,
       fileName: "chemistry_bonding_quiz.pdf",
@@ -357,6 +359,7 @@ async function main() {
         title: test.title,
         description: test.description,
         testDate: test.testDate,
+        testTime: test.testTime,
         totalPoints: test.totalPoints,
         testType: test.testType,
         fileName: test.fileName,

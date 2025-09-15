@@ -31,7 +31,7 @@ export default function MeetingManagement() {
     participantType: 'parents' as 'students' | 'parents' | 'teachers',
     participants: [] as string[],
     location: '',
-    meetingType: 'in-person' as 'in-person' | 'virtual',
+    meetingType: 'in_person' as 'in_person' | 'virtual',
     notes: ''
   })
 
@@ -45,7 +45,7 @@ export default function MeetingManagement() {
     participantType: 'parents' as 'students' | 'parents' | 'teachers',
     participants: [] as string[],
     location: '',
-    meetingType: 'in-person' as 'in-person' | 'virtual',
+    meetingType: 'in_person' as 'in_person' | 'virtual',
     notes: ''
   })
 
@@ -130,7 +130,7 @@ export default function MeetingManagement() {
       participantType: 'parents',
       participants: [],
       location: '',
-      meetingType: 'in-person',
+      meetingType: 'in_person',
       notes: ''
     })
     console.log("✅ Meeting scheduled successfully")
@@ -290,7 +290,7 @@ export default function MeetingManagement() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="in-person">In-Person</SelectItem>
+                      <SelectItem value="in_person">in_person</SelectItem>
                       <SelectItem value="virtual">Virtual</SelectItem>
                     </SelectContent>
                   </Select>
@@ -594,7 +594,7 @@ export default function MeetingManagement() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="in-person">In-Person</SelectItem>
+                      <SelectItem value="in_person">in_person</SelectItem>
                       <SelectItem value="virtual">Virtual</SelectItem>
                     </SelectContent>
                   </Select>

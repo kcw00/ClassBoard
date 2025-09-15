@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -38,13 +38,14 @@ export default function TestManagement() {
     classId: '',
     totalPoints: 100,
     testDate: '',
+    testTime: '',
     testType: 'exam' as const
   })
   const [editingTest, setEditingTest] = useState<any>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   // Get test statistics
-  const getTestStats = () => {
+  const testStats = useMemo(() => {
     const totalTests = data.tests.length
     const activeTests = data.tests.filter(test => new Date(test.testDate) > new Date()).length
     const completedTests = data.tests.filter(test => new Date(test.testDate) <= new Date()).length
@@ -66,10 +67,10 @@ export default function TestManagement() {
       averageScore: Math.round(averageScore),
       passRate: Math.round(passRate)
     }
-  }
+  }, [data.tests, data.testResults])
 
   // Get tests with additional info
-  const getTestsWithInfo = () => {
+  const testsWithInfo = useMemo(() => {
     return data.tests.map(test => {
       const classItem = data.classes.find(c => c.id === test.classId)
       const results = data.testResults.filter(r => r.testId === test.id)
@@ -97,13 +98,13 @@ export default function TestManagement() {
         attachedFilesCount
       }
     })
-  }
+  }, [data.tests, data.testResults, data.classes])
 
   // Handle creating new test
   const handleCreateTest = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!newTest.title || !newTest.classId || !newTest.testDate) {
+    if (!newTest.title || !newTest.classId || !newTest.testDate || !newTest.testTime) {
       console.error("❌ Please fill in all required fields")
       return
     }
@@ -114,6 +115,7 @@ export default function TestManagement() {
       classId: newTest.classId,
       totalPoints: newTest.totalPoints,
       testDate: newTest.testDate,
+      testTime: newTest.testTime,
       testType: newTest.testType
     }
 
@@ -125,6 +127,7 @@ export default function TestManagement() {
       classId: '',
       totalPoints: 100,
       testDate: '',
+      testTime: '',
       testType: 'exam'
     })
     console.log("✅ Test created successfully")
@@ -139,6 +142,7 @@ export default function TestManagement() {
       classId: test.classId,
       totalPoints: test.totalPoints,
       testDate: test.testDate,
+      testTime: test.testTime,
       testType: test.testType
     })
     setIsEditDialogOpen(true)
@@ -147,7 +151,7 @@ export default function TestManagement() {
   const handleUpdateTest = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!editingTest.title || !editingTest.classId || !editingTest.testDate) {
+    if (!editingTest.title || !editingTest.classId || !editingTest.testDate || !editingTest.testTime) {
       console.error("❌ Please fill in all required fields")
       return
     }
@@ -158,6 +162,7 @@ export default function TestManagement() {
       classId: editingTest.classId,
       totalPoints: editingTest.totalPoints,
       testDate: editingTest.testDate,
+      testTime: editingTest.testTime,
       testType: editingTest.testType
     })
 
@@ -182,16 +187,18 @@ export default function TestManagement() {
   }
 
   // Filter tests
-  const filteredTests = getTestsWithInfo().filter(test => {
-    const matchesSearch = test.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      test.className.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesClass = filterClass === "all" || test.classId === filterClass
-    const matchesStatus = filterStatus === "all" || test.status === filterStatus
+  const filteredTests = useMemo(() => {
+    return testsWithInfo.filter(test => {
+      const matchesSearch = test.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        test.className.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesClass = filterClass === "all" || test.classId === filterClass
+      const matchesStatus = filterStatus === "all" || test.status === filterStatus
 
-    return matchesSearch && matchesClass && matchesStatus
-  })
+      return matchesSearch && matchesClass && matchesStatus
+    })
+  }, [testsWithInfo, searchTerm, filterClass, filterStatus])
 
-  const stats = getTestStats()
+  const stats = testStats
 
   return (
     <div className="space-y-6 p-6">
@@ -321,6 +328,16 @@ export default function TestManagement() {
                     />
                   </div>
                   <div>
+                    <Label htmlFor="testTime">Test Time *</Label>
+                    <Input
+                      id="testTime"
+                      type="time"
+                      value={newTest.testTime}
+                      onChange={(e) => setNewTest({ ...newTest, testTime: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="testType">Test Type</Label>
                     <Select value={newTest.testType} onValueChange={(value: any) => setNewTest({ ...newTest, testType: value })}>
                       <SelectTrigger>
@@ -396,7 +413,7 @@ export default function TestManagement() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <Label htmlFor="edit-totalPoints">Total Points</Label>
                       <Input
@@ -414,6 +431,16 @@ export default function TestManagement() {
                         type="date"
                         value={editingTest.testDate}
                         onChange={(e) => setEditingTest({ ...editingTest, testDate: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-testTime">Test Time *</Label>
+                      <Input
+                        id="edit-testTime"
+                        type="time"
+                        value={editingTest.testTime}
+                        onChange={(e) => setEditingTest({ ...editingTest, testTime: e.target.value })}
                         required
                       />
                     </div>
@@ -558,6 +585,7 @@ export default function TestManagement() {
                   <TableHead className="text-foreground font-medium cursor-default">Test Name</TableHead>
                   <TableHead className="text-foreground font-medium w-24 cursor-default">Class</TableHead>
                   <TableHead className="text-foreground font-medium w-28 cursor-default">Test Date</TableHead>
+                  <TableHead className="text-foreground font-medium w-20 cursor-default">Time</TableHead>
                   <TableHead className="text-foreground font-medium w-24 cursor-default">Status</TableHead>
                   <TableHead className="text-foreground font-medium w-32 cursor-default">Submissions</TableHead>
                   <TableHead className="text-foreground font-medium w-24 cursor-default">Avg Score</TableHead>
@@ -591,6 +619,7 @@ export default function TestManagement() {
                       </span>
                     </TableCell>
                     <TableCell className="w-28">{new Date(test.testDate).toLocaleDateString()}</TableCell>
+                    <TableCell className="w-20">{test.testTime}</TableCell>
                     <TableCell className="w-24">
                       <Badge variant={test.isActive ? "default" : "secondary"}>
                         {test.status}
@@ -666,6 +695,7 @@ export default function TestManagement() {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>{test.className}</span>
                       <span>{new Date(test.testDate).toLocaleDateString()}</span>
+                      <span>{test.testTime}</span>
                     </div>
                   </div>
                   <Badge variant={test.isActive ? "default" : "secondary"} className="ml-2">

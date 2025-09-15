@@ -14,7 +14,7 @@ export interface CreateMeetingData {
   location: string
   meetingType: MeetingType
   status?: MeetingStatus
-  notes?: string
+  notes?: string[]
 }
 
 export interface UpdateMeetingData {
@@ -28,7 +28,7 @@ export interface UpdateMeetingData {
   location?: string
   meetingType?: MeetingType
   status?: MeetingStatus
-  notes?: string
+  notes?: string[]
 }
 
 export interface MeetingQueryOptions {
@@ -51,7 +51,7 @@ class MeetingService {
       const students = await prisma.student.findMany({
         where: { id: { in: data.participants } }
       })
-      
+
       if (students.length !== data.participants.length) {
         const foundIds = students.map(s => s.id)
         const notFoundIds = data.participants.filter(id => !foundIds.includes(id))
@@ -88,7 +88,7 @@ class MeetingService {
     })
 
     // Check if any participants have conflicts
-    const participantConflicts = conflictingMeetings.filter(meeting => 
+    const participantConflicts = conflictingMeetings.filter(meeting =>
       meeting.participants.some(participant => data.participants.includes(participant))
     )
 
@@ -110,7 +110,7 @@ class MeetingService {
         location: data.location,
         meetingType: data.meetingType,
         status: data.status || 'scheduled',
-        notes: data.notes,
+        notes: Array.isArray(data.notes) ? data.notes.join('\n') : (data.notes || ''),
         createdDate: currentDate
       }
     })
@@ -212,7 +212,7 @@ class MeetingService {
       const students = await prisma.student.findMany({
         where: { id: { in: data.participants } }
       })
-      
+
       if (students.length !== data.participants.length) {
         const foundIds = students.map(s => s.id)
         const notFoundIds = data.participants.filter(id => !foundIds.includes(id))
@@ -255,7 +255,7 @@ class MeetingService {
         }
       })
 
-      const participantConflicts = conflictingMeetings.filter(meeting => 
+      const participantConflicts = conflictingMeetings.filter(meeting =>
         meeting.participants.some(participant => participants.includes(participant))
       )
 
@@ -277,7 +277,7 @@ class MeetingService {
         ...(data.location && { location: data.location }),
         ...(data.meetingType && { meetingType: data.meetingType }),
         ...(data.status && { status: data.status }),
-        ...(data.notes !== undefined && { notes: data.notes })
+        ...(data.notes !== undefined && { notes: Array.isArray(data.notes) ? data.notes.join('\n') : data.notes })
       }
     })
 

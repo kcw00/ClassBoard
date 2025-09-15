@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react'
+import { createContext, useContext, useState, useMemo, ReactNode } from 'react'
 import type { Class, Student, Schedule, ScheduleException, Meeting, AttendanceRecord, ClassNote, Test, TestResult, HomeworkAssignment, HomeworkSubmission } from '@/types'
 
 interface AppData {

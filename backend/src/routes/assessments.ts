@@ -26,6 +26,25 @@ const router = Router();
 // TEST ROUTES
 
 /**
+ * GET /api/tests
+ * Get all tests across all classes with pagination
+ */
+router.get('/tests', authenticateToken, validateGetTestsQuery, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const query = req.query as any;
+    const result = await assessmentService.getAllTests(query);
+
+    res.json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * GET /api/classes/:classId/tests
  * Get all tests for a class with pagination
  */
@@ -123,6 +142,25 @@ router.delete('/tests/:id', authenticateToken, validateTestIdParam, async (req: 
 // TEST RESULT ROUTES
 
 /**
+ * GET /api/test-results
+ * Get all test results across all tests with pagination
+ */
+router.get('/test-results', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const query = req.query as any;
+    const result = await assessmentService.getAllTestResults(query);
+
+    res.json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * GET /api/tests/:testId/results
  * Get all results for a specific test
  */
@@ -198,6 +236,25 @@ router.delete('/tests/:testId/results/:studentId', authenticateToken, validateTe
 });
 
 // HOMEWORK ASSIGNMENT ROUTES
+
+/**
+ * GET /api/homework-assignments
+ * Get all homework assignments across all classes with pagination
+ */
+router.get('/homework-assignments', authenticateToken, validateGetHomeworkQuery, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const query = req.query as any;
+    const result = await assessmentService.getAllHomework(query);
+
+    res.json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * GET /api/classes/:classId/homework
@@ -295,6 +352,25 @@ router.delete('/homework/:id', authenticateToken, validateHomeworkIdParam, async
 });
 
 // HOMEWORK SUBMISSION ROUTES
+
+/**
+ * GET /api/homework-submissions
+ * Get all homework submissions across all assignments with pagination
+ */
+router.get('/homework-submissions', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const query = req.query as any;
+    const result = await assessmentService.getAllHomeworkSubmissions(query);
+
+    res.json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * GET /api/homework/:assignmentId/submissions
