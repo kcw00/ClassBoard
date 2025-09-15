@@ -1,0 +1,291 @@
+config:
+  target: 'http://localhost:3001'
+  phases:
+    # Warm-up phase
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm-up"
+    # Ramp-up phase
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 25
+      name: "Ramp-up load"
+    # Sustained load phase
+    - duration: 300
+      arrivalRate: 25
+      name: "Sustained load"
+    # Peak load phase
+    - duration: 120
+      arrivalRate: 25
+      rampTo: 50
+      name: "Peak load"
+    # Cool-down phase
+    - duration: 60
+      arrivalRate: 50
+      rampTo: 5
+      name: "Cool-down"
+  
+  # Performance thresholds
+  ensure:
+    - http.response_time.p95: 1000  # 95% of requests should complete within 1 second
+    - http.response_time.p99: 2000  # 99% of requests should complete within 2 seconds
+    - http.request_rate: 40         # Should handle at least 40 requests per second
+    - http.codes.200: 95            # At least 95% success rate
+
+  # Variables for dynamic data
+  variables:
+    testUserId: "load-test-user"
+    testEmail: "loadtest@example.com"
+
+  # Plugins for enhanced reporting
+  plugins:
+    metrics-by-endpoint: {}
+    
+scenarios:
+  # Authentication flow
+  - name: "Authentication Flow"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "TestPassword123"
+          capture:
+            - json: "$.data.accessToken"
+              as: "authToken"
+          expect:
+            - statusCode: 200
+            - hasProperty: "data.accessToken"
+
+  # Class management operations
+  - name: "Class Management"
+    weight: 30
+    flow:
+      # Get auth token first
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "TestPassword123"
+          capture:
+            - json: "$.data.accessToken"
+              as: "authToken"
+      
+      # List classes
+      - get:
+          url: "/api/classes"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "data"
+
+      # Get specific class (if any exist)
+      - get:
+          url: "/api/classes/{{ $randomString() }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: [200, 404]
+
+      # Create new class
+      - post:
+          url: "/api/classes"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "Load Test Class {{ $randomString() }}"
+            subject: "Load Testing"
+            description: "Class created during load testing"
+            room: "Room {{ $randomInt(1, 100) }}"
+            capacity: "{{ $randomInt(20, 40) }}"
+            color: "#3B82F6"
+          capture:
+            - json: "$.data.id"
+              as: "classId"
+          expect:
+            - statusCode: 201
+
+      # Update the created class
+      - put:
+          url: "/api/classes/{{ classId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "Updated Load Test Class {{ $randomString() }}"
+            description: "Updated during load testing"
+          expect:
+            - statusCode: 200
+
+      # Delete the created class
+      - delete:
+          url: "/api/classes/{{ classId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  # Student management operations
+  - name: "Student Management"
+    weight: 25
+    flow:
+      # Get auth token
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "TestPassword123"
+          capture:
+            - json: "$.data.accessToken"
+              as: "authToken"
+
+      # List students with pagination
+      - get:
+          url: "/api/students?page=1&limit=20"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "data"
+            - hasProperty: "pagination"
+
+      # Search students
+      - get:
+          url: "/api/students?search=test"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+      # Create new student
+      - post:
+          url: "/api/students"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "Load Test Student {{ $randomString() }}"
+            email: "loadtest.student{{ $randomInt(1, 10000) }}@example.com"
+            phone: "555-{{ $randomInt(1000, 9999) }}"
+            grade: "10th"
+            parentContact: "parent{{ $randomInt(1, 1000) }}@example.com"
+          capture:
+            - json: "$.data.id"
+              as: "studentId"
+          expect:
+            - statusCode: 201
+
+      # Get student details
+      - get:
+          url: "/api/students/{{ studentId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+      # Update student
+      - put:
+          url: "/api/students/{{ studentId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "Updated Load Test Student {{ $randomString() }}"
+            grade: "11th"
+          expect:
+            - statusCode: 200
+
+      # Delete student
+      - delete:
+          url: "/api/students/{{ studentId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  # Assessment operations
+  - name: "Assessment Management"
+    weight: 15
+    flow:
+      # Get auth token
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "TestPassword123"
+          capture:
+            - json: "$.data.accessToken"
+              as: "authToken"
+
+      # Create a class first
+      - post:
+          url: "/api/classes"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "Assessment Test Class {{ $randomString() }}"
+            subject: "Testing"
+            description: "Class for assessment testing"
+            room: "Room {{ $randomInt(1, 100) }}"
+            capacity: 30
+            color: "#10B981"
+          capture:
+            - json: "$.data.id"
+              as: "classId"
+
+      # Create assessment
+      - post:
+          url: "/api/classes/{{ classId }}/tests"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            title: "Load Test Assessment {{ $randomString() }}"
+            description: "Assessment created during load testing"
+            testDate: "2024-12-15"
+            totalPoints: 100
+            testType: "quiz"
+          capture:
+            - json: "$.data.id"
+              as: "testId"
+          expect:
+            - statusCode: 201
+
+      # Get test details
+      - get:
+          url: "/api/tests/{{ testId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+      # Clean up
+      - delete:
+          url: "/api/tests/{{ testId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+      - delete:
+          url: "/api/classes/{{ classId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  # Health check and monitoring
+  - name: "Health Checks"
+    weight: 10
+    flow:
+      # Health check endpoint
+      - get:
+          url: "/api/health"
+          expect:
+            - statusCode: 200
+            - hasProperty: "success"
+
+      # API info endpoint
+      - get:
+          url: "/api/"
+          expect:
+            - statusCode: 200
+            - hasProperty: "success"
