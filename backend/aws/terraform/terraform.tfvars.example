@@ -1,0 +1,17 @@
+# Example Terraform variables file
+# Copy this file to terraform.tfvars and fill in the values
+
+environment  = "development"
+aws_region   = "us-east-1"
+project_name = "classboard"
+
+# Database configuration
+db_username = "classboard_admin"
+db_password = "your-secure-password-here"
+
+# Common tags
+common_tags = {
+  Project     = "ClassBoard"
+  ManagedBy   = "Terraform"
+  Environment = "development"
+}

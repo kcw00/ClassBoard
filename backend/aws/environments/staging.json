@@ -1,0 +1,73 @@
+{
+  "environment": "staging",
+  "region": "us-east-1",
+  "aws": {
+    "rds": {
+      "host": "${RDS_HOST}",
+      "port": 5432,
+      "database": "classboard_staging",
+      "username": "${RDS_USERNAME}",
+      "password": "${RDS_PASSWORD}",
+      "ssl": true,
+      "connectionLimit": 20,
+      "acquireTimeoutMillis": 60000,
+      "timeout": 60000,
+      "idleTimeoutMillis": 600000
+    },
+    "s3": {
+      "bucketName": "classboard-staging-files",
+      "region": "us-east-1",
+      "signedUrlExpiration": 3600,
+      "maxFileSize": "10MB",
+      "allowedFileTypes": [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/plain"
+      ]
+    },
+    "cloudfront": {
+      "distributionDomain": "${CLOUDFRONT_DOMAIN}",
+      "signedUrlExpiration": 86400
+    },
+    "cognito": {
+      "userPoolId": "${COGNITO_USER_POOL_ID}",
+      "clientId": "${COGNITO_CLIENT_ID}",
+      "region": "us-east-1"
+    },
+    "lambda": {
+      "region": "us-east-1",
+      "timeout": 60,
+      "memorySize": 512
+    }
+  },
+  "api": {
+    "port": 3000,
+    "cors": {
+      "origin": ["https://staging.classboard.app"],
+      "credentials": true
+    },
+    "rateLimit": {
+      "windowMs": 900000,
+      "max": 500
+    },
+    "jwt": {
+      "expiresIn": "1h",
+      "refreshExpiresIn": "7d"
+    }
+  },
+  "logging": {
+    "level": "info",
+    "format": "combined"
+  },
+  "monitoring": {
+    "enabled": true,
+    "cloudWatch": {
+      "logGroup": "/aws/lambda/classboard-staging",
+      "logRetentionDays": 14
+    }
+  }
+}
