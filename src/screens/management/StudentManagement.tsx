@@ -19,7 +19,7 @@ export default function StudentManagement() {
   const { data, actions } = useAppData()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null)
+  const [, setEditingStudent] = useState<Student | null>(null)
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
