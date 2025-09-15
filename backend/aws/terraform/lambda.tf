@@ -2,7 +2,7 @@
 
 # IAM Role for Lambda functions
 resource "aws_iam_role" "lambda_execution_role" {
-  name = "${var.project_name}-lambda-execution-role"
+  name = "${var.project_name}-${var.environment}-lambda-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -16,11 +16,16 @@ resource "aws_iam_role" "lambda_execution_role" {
       }
     ]
   })
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-lambda-execution-role"
+    Environment = var.environment
+  })
 }
 
 # IAM Policy for Lambda functions
 resource "aws_iam_role_policy" "lambda_policy" {
-  name = "${var.project_name}-lambda-policy"
+  name = "${var.project_name}-${var.environment}-lambda-policy"
   role = aws_iam_role.lambda_execution_role.id
 
   policy = jsonencode({
@@ -52,8 +57,8 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "s3:ListBucket"
         ]
         Resource = [
-          aws_s3_bucket.file_storage.arn,
-          "${aws_s3_bucket.file_storage.arn}/*"
+          aws_s3_bucket.files.arn,
+          "${aws_s3_bucket.files.arn}/*"
         ]
       },
       {
@@ -63,15 +68,31 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "ses:SendRawEmail"
         ]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = [
+          aws_secretsmanager_secret.db_password.arn,
+          aws_secretsmanager_secret.app_config.arn
+        ]
       }
     ]
   })
 }
 
+# Attach basic execution role
+resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
+  role       = aws_iam_role.lambda_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
 # Grade Calculator Lambda Function
 resource "aws_lambda_function" "grade_calculator" {
   filename         = "../lambda/grade-calculator/grade-calculator.zip"
-  function_name    = "${var.project_name}-grade-calculator"
+  function_name    = "${var.project_name}-${var.environment}-grade-calculator"
   role            = aws_iam_role.lambda_execution_role.arn
   handler         = "dist/index.handler"
   runtime         = "nodejs18.x"
@@ -80,18 +101,25 @@ resource "aws_lambda_function" "grade_calculator" {
 
   environment {
     variables = {
-      DATABASE_URL = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.endpoint}/${var.db_name}"
+      DATABASE_URL = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.main.endpoint}/${aws_db_instance.main.db_name}"
       AWS_REGION   = var.aws_region
+      ENVIRONMENT  = var.environment
     }
   }
 
-  depends_on = [aws_db_instance.postgres]
+  depends_on = [aws_db_instance.main]
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-grade-calculator"
+    Environment = var.environment
+    Purpose     = "BackgroundProcessing"
+  })
 }
 
 # Report Generator Lambda Function
 resource "aws_lambda_function" "report_generator" {
   filename         = "../lambda/report-generator/report-generator.zip"
-  function_name    = "${var.project_name}-report-generator"
+  function_name    = "${var.project_name}-${var.environment}-report-generator"
   role            = aws_iam_role.lambda_execution_role.arn
   handler         = "dist/index.handler"
   runtime         = "nodejs18.x"
@@ -100,19 +128,26 @@ resource "aws_lambda_function" "report_generator" {
 
   environment {
     variables = {
-      DATABASE_URL    = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.endpoint}/${var.db_name}"
-      S3_BUCKET_NAME  = aws_s3_bucket.file_storage.bucket
+      DATABASE_URL    = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.main.endpoint}/${aws_db_instance.main.db_name}"
+      S3_BUCKET_NAME  = aws_s3_bucket.files.bucket
       AWS_REGION      = var.aws_region
+      ENVIRONMENT     = var.environment
     }
   }
 
-  depends_on = [aws_db_instance.postgres, aws_s3_bucket.file_storage]
+  depends_on = [aws_db_instance.main, aws_s3_bucket.files]
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-report-generator"
+    Environment = var.environment
+    Purpose     = "BackgroundProcessing"
+  })
 }
 
 # Email Notifications Lambda Function
 resource "aws_lambda_function" "email_notifications" {
   filename         = "../lambda/email-notifications/email-notifications.zip"
-  function_name    = "${var.project_name}-email-notifications"
+  function_name    = "${var.project_name}-${var.environment}-email-notifications"
   role            = aws_iam_role.lambda_execution_role.arn
   handler         = "dist/index.handler"
   runtime         = "nodejs18.x"
@@ -121,19 +156,26 @@ resource "aws_lambda_function" "email_notifications" {
 
   environment {
     variables = {
-      DATABASE_URL = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.endpoint}/${var.db_name}"
+      DATABASE_URL = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.main.endpoint}/${aws_db_instance.main.db_name}"
       FROM_EMAIL   = var.from_email
       AWS_REGION   = var.aws_region
+      ENVIRONMENT  = var.environment
     }
   }
 
-  depends_on = [aws_db_instance.postgres]
+  depends_on = [aws_db_instance.main]
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-email-notifications"
+    Environment = var.environment
+    Purpose     = "BackgroundProcessing"
+  })
 }
 
 # Data Cleanup Lambda Function
 resource "aws_lambda_function" "data_cleanup" {
   filename         = "../lambda/data-cleanup/data-cleanup.zip"
-  function_name    = "${var.project_name}-data-cleanup"
+  function_name    = "${var.project_name}-${var.environment}-data-cleanup"
   role            = aws_iam_role.lambda_execution_role.arn
   handler         = "dist/index.handler"
   runtime         = "nodejs18.x"
@@ -142,22 +184,34 @@ resource "aws_lambda_function" "data_cleanup" {
 
   environment {
     variables = {
-      DATABASE_URL    = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.endpoint}/${var.db_name}"
-      S3_BUCKET_NAME  = aws_s3_bucket.file_storage.bucket
+      DATABASE_URL    = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.main.endpoint}/${aws_db_instance.main.db_name}"
+      S3_BUCKET_NAME  = aws_s3_bucket.files.bucket
       AWS_REGION      = var.aws_region
+      ENVIRONMENT     = var.environment
     }
   }
 
-  depends_on = [aws_db_instance.postgres, aws_s3_bucket.file_storage]
+  depends_on = [aws_db_instance.main, aws_s3_bucket.files]
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-data-cleanup"
+    Environment = var.environment
+    Purpose     = "BackgroundProcessing"
+  })
 }
 
 # CloudWatch Event Rules for Scheduling
 
 # Grade Calculator - Run every hour
 resource "aws_cloudwatch_event_rule" "grade_calculator_schedule" {
-  name                = "${var.project_name}-grade-calculator-schedule"
+  name                = "${var.project_name}-${var.environment}-grade-calculator-schedule"
   description         = "Trigger grade calculator Lambda function"
   schedule_expression = "rate(1 hour)"
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-grade-calculator-schedule"
+    Environment = var.environment
+  })
 }
 
 resource "aws_cloudwatch_event_target" "grade_calculator_target" {
@@ -176,9 +230,14 @@ resource "aws_lambda_permission" "allow_cloudwatch_grade_calculator" {
 
 # Report Generator - Run daily at 2 AM
 resource "aws_cloudwatch_event_rule" "report_generator_schedule" {
-  name                = "${var.project_name}-report-generator-schedule"
+  name                = "${var.project_name}-${var.environment}-report-generator-schedule"
   description         = "Trigger report generator Lambda function"
   schedule_expression = "cron(0 2 * * ? *)"
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-report-generator-schedule"
+    Environment = var.environment
+  })
 }
 
 resource "aws_cloudwatch_event_target" "report_generator_target" {
@@ -197,9 +256,14 @@ resource "aws_lambda_permission" "allow_cloudwatch_report_generator" {
 
 # Email Notifications - Run every 6 hours
 resource "aws_cloudwatch_event_rule" "email_notifications_schedule" {
-  name                = "${var.project_name}-email-notifications-schedule"
+  name                = "${var.project_name}-${var.environment}-email-notifications-schedule"
   description         = "Trigger email notifications Lambda function"
   schedule_expression = "rate(6 hours)"
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-email-notifications-schedule"
+    Environment = var.environment
+  })
 }
 
 resource "aws_cloudwatch_event_target" "email_notifications_target" {
@@ -218,9 +282,14 @@ resource "aws_lambda_permission" "allow_cloudwatch_email_notifications" {
 
 # Data Cleanup - Run weekly on Sunday at 3 AM
 resource "aws_cloudwatch_event_rule" "data_cleanup_schedule" {
-  name                = "${var.project_name}-data-cleanup-schedule"
+  name                = "${var.project_name}-${var.environment}-data-cleanup-schedule"
   description         = "Trigger data cleanup Lambda function"
   schedule_expression = "cron(0 3 ? * SUN *)"
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-data-cleanup-schedule"
+    Environment = var.environment
+  })
 }
 
 resource "aws_cloudwatch_event_target" "data_cleanup_target" {
@@ -240,20 +309,56 @@ resource "aws_lambda_permission" "allow_cloudwatch_data_cleanup" {
 # CloudWatch Log Groups
 resource "aws_cloudwatch_log_group" "grade_calculator_logs" {
   name              = "/aws/lambda/${aws_lambda_function.grade_calculator.function_name}"
-  retention_in_days = 14
+  retention_in_days = var.environment == "production" ? 30 : 14
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-grade-calculator-logs"
+    Environment = var.environment
+  })
 }
 
 resource "aws_cloudwatch_log_group" "report_generator_logs" {
   name              = "/aws/lambda/${aws_lambda_function.report_generator.function_name}"
-  retention_in_days = 14
+  retention_in_days = var.environment == "production" ? 30 : 14
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-report-generator-logs"
+    Environment = var.environment
+  })
 }
 
 resource "aws_cloudwatch_log_group" "email_notifications_logs" {
   name              = "/aws/lambda/${aws_lambda_function.email_notifications.function_name}"
-  retention_in_days = 14
+  retention_in_days = var.environment == "production" ? 30 : 14
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-email-notifications-logs"
+    Environment = var.environment
+  })
 }
 
 resource "aws_cloudwatch_log_group" "data_cleanup_logs" {
   name              = "/aws/lambda/${aws_lambda_function.data_cleanup.function_name}"
-  retention_in_days = 14
+  retention_in_days = var.environment == "production" ? 30 : 14
+
+  tags = merge(var.common_tags, {
+    Name        = "${var.project_name}-${var.environment}-data-cleanup-logs"
+    Environment = var.environment
+  })
+}
+
+# Outputs
+output "lambda_function_names" {
+  description = "Names of all Lambda functions"
+  value = {
+    grade_calculator     = aws_lambda_function.grade_calculator.function_name
+    report_generator     = aws_lambda_function.report_generator.function_name
+    email_notifications  = aws_lambda_function.email_notifications.function_name
+    data_cleanup        = aws_lambda_function.data_cleanup.function_name
+  }
+}
+
+output "lambda_execution_role_arn" {
+  description = "ARN of the Lambda execution role"
+  value       = aws_iam_role.lambda_execution_role.arn
 }
