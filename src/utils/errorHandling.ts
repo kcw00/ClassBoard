@@ -1,4 +1,3 @@
-import { toast } from "sonner"
 import { ApiError, NetworkError } from "@/services/AppDataService"
 
 // Error types for delete operations
@@ -17,7 +16,7 @@ export function classifyDeleteError(error: unknown): DeleteErrorType {
   if (error instanceof NetworkError) {
     return DeleteErrorType.NETWORK_ERROR
   }
-  
+
   if (error instanceof ApiError) {
     switch (error.status) {
       case 401:
@@ -38,37 +37,37 @@ export function classifyDeleteError(error: unknown): DeleteErrorType {
         return DeleteErrorType.UNKNOWN_ERROR
     }
   }
-  
+
   return DeleteErrorType.UNKNOWN_ERROR
 }
 
 // Error message generation
 export function getDeleteErrorMessage(
-  errorType: DeleteErrorType, 
+  errorType: DeleteErrorType,
   itemType: 'class' | 'student',
   itemName: string
 ): string {
   const capitalizedType = itemType.charAt(0).toUpperCase() + itemType.slice(1)
-  
+
   switch (errorType) {
     case DeleteErrorType.NETWORK_ERROR:
       return `Unable to delete ${itemType} "${itemName}". Please check your internet connection and try again.`
-    
+
     case DeleteErrorType.AUTHORIZATION_ERROR:
       return `You don't have permission to delete this ${itemType}. Please contact your administrator.`
-    
+
     case DeleteErrorType.NOT_FOUND_ERROR:
       return `This ${itemType} has already been deleted or no longer exists.`
-    
+
     case DeleteErrorType.CONSTRAINT_VIOLATION:
       return `Cannot delete ${itemType} "${itemName}" because it has associated data. Please remove related records first or contact support.`
-    
+
     case DeleteErrorType.CONCURRENT_MODIFICATION:
       return `This ${itemType} was modified by another user. Please refresh the page and try again.`
-    
+
     case DeleteErrorType.SERVER_ERROR:
       return `Server error occurred while deleting ${itemType} "${itemName}". Please try again in a few moments.`
-    
+
     case DeleteErrorType.UNKNOWN_ERROR:
     default:
       return `An unexpected error occurred while deleting ${itemType} "${itemName}". Please try again.`
@@ -106,44 +105,44 @@ export async function retryOperation<T>(
   onRetry?: (attempt: number, error: unknown) => void
 ): Promise<T> {
   let lastError: unknown
-  
+
   for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
     try {
       return await operation()
     } catch (error) {
       lastError = error
-      
+
       // Don't retry on the last attempt
       if (attempt === config.maxAttempts) {
         break
       }
-      
+
       // Check if error is retryable
       const errorType = classifyDeleteError(error)
       if (!isRetryableError(errorType)) {
         break
       }
-      
+
       // Calculate delay with exponential backoff
       const delay = Math.min(
         config.baseDelay * Math.pow(config.backoffFactor, attempt - 1),
         config.maxDelay
       )
-      
+
       // Notify about retry
       if (onRetry) {
         onRetry(attempt, error)
       }
-      
+
       // Wait before retry
       await new Promise(resolve => setTimeout(resolve, delay))
     }
   }
-  
+
   throw lastError
 }
 
-// Enhanced delete error handler with toast notifications
+// Enhanced delete error handler with console notifications
 export function handleDeleteError(
   error: unknown,
   itemType: 'class' | 'student',
@@ -152,10 +151,10 @@ export function handleDeleteError(
 ): void {
   const errorType = classifyDeleteError(error)
   const message = getDeleteErrorMessage(errorType, itemType, itemName)
-  
-  // Show appropriate toast based on error type
+
+  // Show appropriate console based on error type
   if (isRetryableError(errorType) && onRetry) {
-    toast.error(message, {
+    console.error(message, {
       action: {
         label: 'Retry',
         onClick: onRetry
@@ -163,11 +162,11 @@ export function handleDeleteError(
       duration: 8000 // Longer duration for retry actions
     })
   } else {
-    toast.error(message, {
+    console.error(message, {
       duration: 6000
     })
   }
-  
+
   // Log error for debugging
   console.error(`Delete ${itemType} error:`, {
     errorType,
@@ -182,7 +181,7 @@ export function handleDeleteSuccess(
   itemName: string
 ): void {
   const capitalizedType = itemType.charAt(0).toUpperCase() + itemType.slice(1)
-  toast.success(`${capitalizedType} "${itemName}" deleted successfully!`, {
+  console.log(`${capitalizedType} "${itemName}" deleted successfully!`, {
     duration: 4000
   })
 }
@@ -195,7 +194,7 @@ export function handleImpactCalculationError(
   onRetry?: () => void
 ): void {
   const errorType = classifyDeleteError(error)
-  
+
   let message: string
   if (errorType === DeleteErrorType.NETWORK_ERROR) {
     message = `Unable to calculate deletion impact for ${itemType} "${itemName}". Please check your connection.`
@@ -204,9 +203,9 @@ export function handleImpactCalculationError(
   } else {
     message = `Failed to calculate deletion impact for ${itemType} "${itemName}". Please try again.`
   }
-  
+
   if (isRetryableError(errorType) && onRetry) {
-    toast.error(message, {
+    console.error(message, {
       action: {
         label: 'Retry',
         onClick: onRetry
@@ -214,11 +213,11 @@ export function handleImpactCalculationError(
       duration: 8000
     })
   } else {
-    toast.error(message, {
+    console.error(message, {
       duration: 6000
     })
   }
-  
+
   console.error(`Impact calculation error for ${itemType}:`, {
     errorType,
     itemName,

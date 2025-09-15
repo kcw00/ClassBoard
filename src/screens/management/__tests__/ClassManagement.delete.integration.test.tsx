@@ -2,7 +2,6 @@ import React from 'react'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
-import { toast } from 'sonner'
 import ClassManagement from '../ClassManagement'
 import { AppDataMigrationProvider } from '@/context/AppDataMigrationContext'
 import { appDataService } from '@/services/AppDataService'
@@ -10,7 +9,9 @@ import * as impactCalculation from '@/utils/impactCalculation'
 import * as errorHandling from '@/utils/errorHandling'
 
 // Mock dependencies
-jest.mock('sonner')
+jest.mock('console', () => ({
+  error: jest.fn()
+}))
 jest.mock('@/services/AppDataService')
 jest.mock('@/utils/impactCalculation')
 jest.mock('@/utils/errorHandling')
@@ -19,7 +20,6 @@ jest.mock('@/hooks/useNetworkStatus', () => ({
 }))
 
 const mockAppDataService = appDataService as jest.Mocked<typeof appDataService>
-const mockToast = toast as jest.Mocked<typeof toast>
 const mockImpactCalculation = impactCalculation as jest.Mocked<typeof impactCalculation>
 const mockErrorHandling = errorHandling as jest.Mocked<typeof errorHandling>
 
@@ -102,7 +102,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 describe('ClassManagement Delete Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     // Setup default mocks
     mockAppDataService.getClasses.mockResolvedValue(mockClasses)
     mockAppDataService.getStudents.mockResolvedValue(mockStudents)
@@ -111,7 +111,7 @@ describe('ClassManagement Delete Integration Tests', () => {
     mockAppDataService.getClassNotes.mockResolvedValue([])
     mockAppDataService.getTests.mockResolvedValue([])
     mockAppDataService.getMeetings.mockResolvedValue([])
-    
+
     mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue(mockDeletionImpact)
     mockErrorHandling.DEFAULT_RETRY_CONFIG = {
       maxAttempts: 3,
@@ -125,7 +125,7 @@ describe('ClassManagement Delete Integration Tests', () => {
     it('should complete successful class deletion from button click to UI update', async () => {
       const user = userEvent.setup()
       mockAppDataService.deleteClass.mockResolvedValue()
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -140,7 +140,7 @@ describe('ClassManagement Delete Integration Tests', () => {
       // Find and click the delete button
       const classCard = screen.getByText('Advanced Biology').closest('.relative')
       expect(classCard).toBeInTheDocument()
-      
+
       const deleteButton = within(classCard!).getByRole('button', { name: /delete/i })
       await user.click(deleteButton)
 
@@ -187,7 +187,7 @@ describe('ClassManagement Delete Integration Tests', () => {
       const user = userEvent.setup()
       mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue(mockEmptyDeletionImpact)
       mockAppDataService.deleteClass.mockResolvedValue()
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -227,7 +227,7 @@ describe('ClassManagement Delete Integration Tests', () => {
         resolveDelete = resolve
       })
       mockAppDataService.deleteClass.mockReturnValue(deletePromise)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -261,7 +261,7 @@ describe('ClassManagement Delete Integration Tests', () => {
 
       // Resolve deletion
       resolveDelete!()
-      
+
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       })
@@ -276,7 +276,7 @@ describe('ClassManagement Delete Integration Tests', () => {
         resolveImpact = resolve
       })
       mockImpactCalculation.calculateClassDeletionImpact.mockReturnValue(impactPromise)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -316,7 +316,7 @@ describe('ClassManagement Delete Integration Tests', () => {
 
     it('should handle cancellation after impact calculation', async () => {
       const user = userEvent.setup()
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -358,7 +358,7 @@ describe('ClassManagement Delete Integration Tests', () => {
         resolveDelete = resolve
       })
       mockAppDataService.deleteClass.mockReturnValue(deletePromise)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -389,7 +389,7 @@ describe('ClassManagement Delete Integration Tests', () => {
 
       // Resolve deletion
       resolveDelete!()
-      
+
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       })
@@ -401,7 +401,7 @@ describe('ClassManagement Delete Integration Tests', () => {
       const user = userEvent.setup()
       const impactError = new Error('Failed to calculate impact')
       mockImpactCalculation.calculateClassDeletionImpact.mockRejectedValue(impactError)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -437,7 +437,7 @@ describe('ClassManagement Delete Integration Tests', () => {
       const user = userEvent.setup()
       const deleteError = new Error('Network error')
       mockAppDataService.deleteClass.mockRejectedValue(deleteError)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -475,7 +475,7 @@ describe('ClassManagement Delete Integration Tests', () => {
       const user = userEvent.setup()
       const networkError = new Error('Network error')
       mockAppDataService.deleteClass.mockRejectedValue(networkError)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -539,9 +539,9 @@ describe('ClassManagement Delete Integration Tests', () => {
         hasAssociatedData: true,
         warningMessage: 'This class has extensive data (43 related records). This action cannot be undone.'
       }
-      
+
       mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue(complexImpact)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -592,9 +592,9 @@ describe('ClassManagement Delete Integration Tests', () => {
         hasAssociatedData: true,
         warningMessage: 'This action will permanently delete all related data and cannot be undone.'
       }
-      
+
       mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue(singleItemImpact)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -626,7 +626,7 @@ describe('ClassManagement Delete Integration Tests', () => {
         resolveImpact = resolve
       })
       mockImpactCalculation.calculateClassDeletionImpact.mockReturnValue(impactPromise)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -651,7 +651,7 @@ describe('ClassManagement Delete Integration Tests', () => {
 
       // Resolve impact calculation
       resolveImpact!(mockDeletionImpact)
-      
+
       // Verify impact information appears
       await waitFor(() => {
         expect(screen.queryByText(/calculating/i)).not.toBeInTheDocument()
@@ -663,7 +663,7 @@ describe('ClassManagement Delete Integration Tests', () => {
   describe('Accessibility and User Experience', () => {
     it('should have proper ARIA labels and roles', async () => {
       const user = userEvent.setup()
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -684,10 +684,10 @@ describe('ClassManagement Delete Integration Tests', () => {
         const dialog = screen.getByRole('dialog')
         expect(dialog).toBeInTheDocument()
         expect(dialog).toHaveAttribute('aria-describedby')
-        
+
         const title = screen.getByRole('heading', { name: /delete class/i })
         expect(title).toBeInTheDocument()
-        
+
         const description = screen.getByText(/are you sure you want to delete/i)
         expect(description).toBeInTheDocument()
       })
@@ -695,7 +695,7 @@ describe('ClassManagement Delete Integration Tests', () => {
 
     it('should handle keyboard navigation', async () => {
       const user = userEvent.setup()
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -709,7 +709,7 @@ describe('ClassManagement Delete Integration Tests', () => {
       // Use keyboard to navigate to delete button
       const classCard = screen.getByText('Advanced Biology').closest('.relative')
       const deleteButton = within(classCard!).getByRole('button', { name: /delete/i })
-      
+
       deleteButton.focus()
       await user.keyboard('{Enter}')
 
@@ -721,7 +721,7 @@ describe('ClassManagement Delete Integration Tests', () => {
       // Use keyboard to navigate dialog
       await user.keyboard('{Tab}') // Should focus cancel button
       await user.keyboard('{Tab}') // Should focus delete button
-      
+
       const confirmButton = screen.getByRole('button', { name: /delete/i })
       expect(confirmButton).toHaveFocus()
     })

@@ -1,7 +1,7 @@
-import { 
-  classifyDeleteError, 
-  getDeleteErrorMessage, 
-  isRetryableError, 
+import {
+  classifyDeleteError,
+  getDeleteErrorMessage,
+  isRetryableError,
   retryOperation,
   handleDeleteError,
   handleDeleteSuccess,
@@ -10,21 +10,18 @@ import {
   DEFAULT_RETRY_CONFIG
 } from '../errorHandling'
 import { ApiError, NetworkError } from '@/services/AppDataService'
-import { toast } from 'sonner'
 
-// Mock sonner toast
-jest.mock('sonner', () => ({
-  toast: {
-    error: jest.fn(),
-    success: jest.fn(),
-    loading: jest.fn()
-  }
+// Mock console
+jest.mock('console', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+  warn: jest.fn()
 }))
 
 describe('errorHandling utilities', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    jest.spyOn(console, 'error').mockImplementation(() => {})
+    jest.spyOn(console, 'error').mockImplementation(() => { })
   })
 
   afterEach(() => {
@@ -115,7 +112,7 @@ describe('errorHandling utilities', () => {
     it('should succeed on first attempt', async () => {
       const operation = jest.fn().mockResolvedValue('success')
       const result = await retryOperation(operation)
-      
+
       expect(result).toBe('success')
       expect(operation).toHaveBeenCalledTimes(1)
     })
@@ -124,10 +121,10 @@ describe('errorHandling utilities', () => {
       const operation = jest.fn()
         .mockRejectedValueOnce(new NetworkError('Network failed'))
         .mockResolvedValue('success')
-      
+
       const onRetry = jest.fn()
       const result = await retryOperation(operation, DEFAULT_RETRY_CONFIG, onRetry)
-      
+
       expect(result).toBe('success')
       expect(operation).toHaveBeenCalledTimes(2)
       expect(onRetry).toHaveBeenCalledWith(1, expect.any(NetworkError))
@@ -135,7 +132,7 @@ describe('errorHandling utilities', () => {
 
     it('should not retry non-retryable errors', async () => {
       const operation = jest.fn().mockRejectedValue(new ApiError('Unauthorized', 401))
-      
+
       await expect(retryOperation(operation)).rejects.toThrow('Unauthorized')
       expect(operation).toHaveBeenCalledTimes(1)
     })
@@ -143,7 +140,7 @@ describe('errorHandling utilities', () => {
     it('should exhaust all retries and throw last error', async () => {
       const error = new NetworkError('Network failed')
       const operation = jest.fn().mockRejectedValue(error)
-      
+
       await expect(retryOperation(operation, { ...DEFAULT_RETRY_CONFIG, maxAttempts: 2 }))
         .rejects.toThrow('Network failed')
       expect(operation).toHaveBeenCalledTimes(2)
@@ -151,13 +148,13 @@ describe('errorHandling utilities', () => {
   })
 
   describe('handleDeleteError', () => {
-    it('should show error toast with retry option for retryable errors', () => {
+    it('should show error console with retry option for retryable errors', () => {
       const onRetry = jest.fn()
       const error = new NetworkError('Network failed')
-      
+
       handleDeleteError(error, 'class', 'Math 101', onRetry)
-      
-      expect(toast.error).toHaveBeenCalledWith(
+
+      expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining('Unable to delete class "Math 101"'),
         expect.objectContaining({
           action: expect.objectContaining({
@@ -169,12 +166,12 @@ describe('errorHandling utilities', () => {
       )
     })
 
-    it('should show error toast without retry option for non-retryable errors', () => {
+    it('should show error console without retry option for non-retryable errors', () => {
       const error = new ApiError('Unauthorized', 401)
-      
+
       handleDeleteError(error, 'student', 'John Doe')
-      
-      expect(toast.error).toHaveBeenCalledWith(
+
+      expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining("You don't have permission to delete this student"),
         expect.objectContaining({
           duration: 6000
@@ -184,10 +181,10 @@ describe('errorHandling utilities', () => {
   })
 
   describe('handleDeleteSuccess', () => {
-    it('should show success toast for class deletion', () => {
+    it('should show success console for class deletion', () => {
       handleDeleteSuccess('class', 'Math 101')
-      
-      expect(toast.success).toHaveBeenCalledWith(
+
+      expect(console.success).toHaveBeenCalledWith(
         'Class "Math 101" deleted successfully!',
         expect.objectContaining({
           duration: 4000
@@ -195,10 +192,10 @@ describe('errorHandling utilities', () => {
       )
     })
 
-    it('should show success toast for student deletion', () => {
+    it('should show success console for student deletion', () => {
       handleDeleteSuccess('student', 'John Doe')
-      
-      expect(toast.success).toHaveBeenCalledWith(
+
+      expect(console.success).toHaveBeenCalledWith(
         'Student "John Doe" deleted successfully!',
         expect.objectContaining({
           duration: 4000
@@ -211,10 +208,10 @@ describe('errorHandling utilities', () => {
     it('should show appropriate error message for network errors', () => {
       const error = new NetworkError('Network failed')
       const onRetry = jest.fn()
-      
+
       handleImpactCalculationError(error, 'class', 'Math 101', onRetry)
-      
-      expect(toast.error).toHaveBeenCalledWith(
+
+      expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining('Unable to calculate deletion impact for class "Math 101"'),
         expect.objectContaining({
           action: expect.objectContaining({
@@ -227,10 +224,10 @@ describe('errorHandling utilities', () => {
 
     it('should show appropriate error message for authorization errors', () => {
       const error = new ApiError('Unauthorized', 401)
-      
+
       handleImpactCalculationError(error, 'student', 'John Doe')
-      
-      expect(toast.error).toHaveBeenCalledWith(
+
+      expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining("You don't have permission to view deletion impact for this student"),
         expect.objectContaining({
           duration: 6000

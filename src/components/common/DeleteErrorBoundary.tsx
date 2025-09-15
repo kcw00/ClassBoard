@@ -2,7 +2,6 @@ import React, { Component, ReactNode } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
-import { toast } from 'sonner'
 
 interface DeleteErrorBoundaryProps {
   children: ReactNode
@@ -45,9 +44,9 @@ export class DeleteErrorBoundary extends Component<
 
     // Log error for debugging
     console.error('Delete operation error boundary caught:', error, errorInfo)
-    
+
     // Show toast notification
-    toast.error('An unexpected error occurred during the delete operation', {
+    console.error('An unexpected error occurred during the delete operation', {
       description: 'Please try again or contact support if the problem persists',
       duration: 6000
     })
@@ -62,7 +61,7 @@ export class DeleteErrorBoundary extends Component<
       error: null,
       errorInfo: null
     })
-    
+
     this.props.onRetry?.()
   }
 
@@ -84,7 +83,7 @@ export class DeleteErrorBoundary extends Component<
                 An unexpected error occurred while processing the delete operation.
               </p>
             </div>
-            
+
             {/* Error details in development */}
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="text-xs bg-muted p-2 rounded">
@@ -95,7 +94,7 @@ export class DeleteErrorBoundary extends Component<
                 </pre>
               </details>
             )}
-            
+
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -106,7 +105,7 @@ export class DeleteErrorBoundary extends Component<
                 <RefreshCw className="h-3 w-3" />
                 Try Again
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -136,7 +135,7 @@ export function useDeleteErrorBoundary() {
   const captureError = React.useCallback((error: Error) => {
     setError(error)
     console.error('Delete operation error:', error)
-    toast.error('An error occurred during the delete operation', {
+    console.error('An error occurred during the delete operation', {
       description: error.message,
       duration: 6000
     })

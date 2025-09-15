@@ -2,7 +2,6 @@ import React from 'react'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
-import { toast } from 'sonner'
 import ClassManagement from '../ClassManagement'
 import StudentManagement from '../StudentManagement'
 import { AppDataMigrationProvider } from '@/context/AppDataMigrationContext'
@@ -11,7 +10,6 @@ import * as impactCalculation from '@/utils/impactCalculation'
 import * as errorHandling from '@/utils/errorHandling'
 
 // Mock dependencies
-jest.mock('sonner')
 jest.mock('@/services/AppDataService')
 jest.mock('@/utils/impactCalculation')
 jest.mock('@/utils/errorHandling')
@@ -59,7 +57,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 describe('Delete Workflows Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     // Setup default mocks
     mockAppDataService.getClasses.mockResolvedValue([mockClass])
     mockAppDataService.getStudents.mockResolvedValue([mockStudent])
@@ -70,16 +68,16 @@ describe('Delete Workflows Integration Tests', () => {
     mockAppDataService.getMeetings.mockResolvedValue([])
     mockAppDataService.getTestResults.mockResolvedValue([])
     mockAppDataService.getHomeworkSubmissions.mockResolvedValue([])
-    
+
     mockUseNetworkStatus.mockReturnValue({ status: 'online' })
-    
+
     mockErrorHandling.DEFAULT_RETRY_CONFIG = {
       maxAttempts: 3,
       baseDelay: 100,
       maxDelay: 1000,
       backoffFactor: 2
     }
-    
+
     mockErrorHandling.retryOperation.mockImplementation(async (operation) => {
       return await operation()
     })
@@ -89,13 +87,13 @@ describe('Delete Workflows Integration Tests', () => {
     it('should show network status indicators during offline deletion attempts', async () => {
       const user = userEvent.setup()
       mockUseNetworkStatus.mockReturnValue({ status: 'offline' })
-      
+
       const mockImpact = {
         affectedItems: [],
         hasAssociatedData: false
       }
       mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue(mockImpact)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -121,13 +119,13 @@ describe('Delete Workflows Integration Tests', () => {
     it('should show slow network indicators during slow connection', async () => {
       const user = userEvent.setup()
       mockUseNetworkStatus.mockReturnValue({ status: 'slow' })
-      
+
       const mockImpact = {
         affectedItems: [],
         hasAssociatedData: false
       }
       mockImpactCalculation.calculateStudentDeletionImpact.mockResolvedValue(mockImpact)
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -154,7 +152,7 @@ describe('Delete Workflows Integration Tests', () => {
   describe('Error Classification and Handling', () => {
     it('should handle different types of API errors correctly', async () => {
       const user = userEvent.setup()
-      
+
       const testCases = [
         {
           error: new ApiError('Unauthorized', 401),
@@ -184,7 +182,7 @@ describe('Delete Workflows Integration Tests', () => {
 
       for (const testCase of testCases) {
         jest.clearAllMocks()
-        
+
         mockAppDataService.getClasses.mockResolvedValue([mockClass])
         mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue({
           affectedItems: [],
@@ -192,7 +190,7 @@ describe('Delete Workflows Integration Tests', () => {
         })
         mockAppDataService.deleteClass.mockRejectedValue(testCase.error)
         mockErrorHandling.classifyDeleteError.mockReturnValue(testCase.expectedType)
-        
+
         render(
           <TestWrapper>
             <ClassManagement />
@@ -231,7 +229,7 @@ describe('Delete Workflows Integration Tests', () => {
     it('should handle retry operations with exponential backoff', async () => {
       const user = userEvent.setup()
       let attemptCount = 0
-      
+
       mockErrorHandling.retryOperation.mockImplementation(async (operation, config, onRetry) => {
         for (let attempt = 1; attempt <= (config?.maxAttempts || 3); attempt++) {
           try {
@@ -250,18 +248,18 @@ describe('Delete Workflows Integration Tests', () => {
         }
         throw new Error('Max attempts reached')
       })
-      
+
       const networkError = new NetworkError('Connection failed')
       mockAppDataService.deleteClass
         .mockRejectedValueOnce(networkError)
         .mockRejectedValueOnce(networkError)
         .mockResolvedValueOnce()
-      
+
       mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue({
         affectedItems: [],
         hasAssociatedData: false
       })
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -295,7 +293,7 @@ describe('Delete Workflows Integration Tests', () => {
   describe('Complex Impact Calculation Scenarios', () => {
     it('should handle impact calculation for class with extensive data', async () => {
       const user = userEvent.setup()
-      
+
       const extensiveImpact = {
         affectedItems: [
           { type: 'students', count: 25, description: '25 enrolled students will be unenrolled' },
@@ -311,9 +309,9 @@ describe('Delete Workflows Integration Tests', () => {
         hasAssociatedData: true,
         warningMessage: 'This class has extensive data (1460 related records). This action cannot be undone.'
       }
-      
+
       mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue(extensiveImpact)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -345,11 +343,11 @@ describe('Delete Workflows Integration Tests', () => {
 
     it('should handle impact calculation timeout scenarios', async () => {
       const user = userEvent.setup()
-      
+
       // Simulate timeout during impact calculation
       const timeoutError = new Error('Request timeout')
       mockImpactCalculation.calculateClassDeletionImpact.mockRejectedValue(timeoutError)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -380,17 +378,17 @@ describe('Delete Workflows Integration Tests', () => {
   describe('Concurrent Operations', () => {
     it('should handle concurrent deletion attempts gracefully', async () => {
       const user = userEvent.setup()
-      
+
       // Mock concurrent modification error
       const concurrentError = new ApiError('Precondition Failed', 412)
       mockAppDataService.deleteClass.mockRejectedValue(concurrentError)
       mockErrorHandling.classifyDeleteError.mockReturnValue(errorHandling.DeleteErrorType.CONCURRENT_MODIFICATION)
-      
+
       mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue({
         affectedItems: [],
         hasAssociatedData: false
       })
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -426,18 +424,18 @@ describe('Delete Workflows Integration Tests', () => {
 
     it('should prevent multiple simultaneous deletion attempts on same item', async () => {
       const user = userEvent.setup()
-      
+
       let resolveDelete: () => void
       const deletePromise = new Promise<void>((resolve) => {
         resolveDelete = resolve
       })
       mockAppDataService.deleteClass.mockReturnValue(deletePromise)
-      
+
       mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue({
         affectedItems: [],
         hasAssociatedData: false
       })
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -468,13 +466,13 @@ describe('Delete Workflows Integration Tests', () => {
 
       // Try to click delete button again (should be disabled)
       await user.click(deleteButton)
-      
+
       // Should not trigger another deletion
       expect(mockAppDataService.deleteClass).toHaveBeenCalledTimes(1)
 
       // Resolve the deletion
       resolveDelete!()
-      
+
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       })
@@ -484,18 +482,18 @@ describe('Delete Workflows Integration Tests', () => {
   describe('Data Consistency', () => {
     it('should maintain data consistency after successful deletion', async () => {
       const user = userEvent.setup()
-      
+
       mockAppDataService.deleteClass.mockResolvedValue()
       mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue({
         affectedItems: [],
         hasAssociatedData: false
       })
-      
+
       // Mock updated data after deletion
       mockAppDataService.getClasses
         .mockResolvedValueOnce([mockClass]) // Initial load
         .mockResolvedValueOnce([]) // After deletion
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -526,11 +524,11 @@ describe('Delete Workflows Integration Tests', () => {
 
     it('should handle partial deletion failures gracefully', async () => {
       const user = userEvent.setup()
-      
+
       // Simulate partial failure (main deletion succeeds but cleanup fails)
       const cleanupError = new Error('Failed to clean up related data')
       mockAppDataService.deleteClass.mockRejectedValue(cleanupError)
-      
+
       mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue({
         affectedItems: [
           { type: 'students', count: 2, description: '2 enrolled students will be unenrolled' }
@@ -538,7 +536,7 @@ describe('Delete Workflows Integration Tests', () => {
         hasAssociatedData: true,
         warningMessage: 'This action will permanently delete all related data and cannot be undone.'
       })
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -576,7 +574,7 @@ describe('Delete Workflows Integration Tests', () => {
   describe('Performance and Memory', () => {
     it('should handle large datasets efficiently during impact calculation', async () => {
       const user = userEvent.setup()
-      
+
       // Simulate large dataset
       const largeDatasetImpact = {
         affectedItems: Array.from({ length: 50 }, (_, i) => ({
@@ -587,9 +585,9 @@ describe('Delete Workflows Integration Tests', () => {
         hasAssociatedData: true,
         warningMessage: 'This class has extensive data (5000+ related records). This action cannot be undone.'
       }
-      
+
       mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue(largeDatasetImpact)
-      
+
       render(
         <TestWrapper>
           <ClassManagement />
@@ -618,12 +616,12 @@ describe('Delete Workflows Integration Tests', () => {
 
     it('should clean up resources properly after dialog closes', async () => {
       const user = userEvent.setup()
-      
+
       mockImpactCalculation.calculateClassDeletionImpact.mockResolvedValue({
         affectedItems: [],
         hasAssociatedData: false
       })
-      
+
       render(
         <TestWrapper>
           <ClassManagement />

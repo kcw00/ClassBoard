@@ -2,7 +2,6 @@ import React from 'react'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
-import { toast } from 'sonner'
 import StudentManagement from '../StudentManagement'
 import { AppDataMigrationProvider } from '@/context/AppDataMigrationContext'
 import { appDataService } from '@/services/AppDataService'
@@ -10,7 +9,6 @@ import * as impactCalculation from '@/utils/impactCalculation'
 import * as errorHandling from '@/utils/errorHandling'
 
 // Mock dependencies
-jest.mock('sonner')
 jest.mock('@/services/AppDataService')
 jest.mock('@/utils/impactCalculation')
 jest.mock('@/utils/errorHandling')
@@ -19,7 +17,6 @@ jest.mock('@/hooks/useNetworkStatus', () => ({
 }))
 
 const mockAppDataService = appDataService as jest.Mocked<typeof appDataService>
-const mockToast = toast as jest.Mocked<typeof toast>
 const mockImpactCalculation = impactCalculation as jest.Mocked<typeof impactCalculation>
 const mockErrorHandling = errorHandling as jest.Mocked<typeof errorHandling>
 
@@ -98,7 +95,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 describe('StudentManagement Delete Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     // Setup default mocks
     mockAppDataService.getStudents.mockResolvedValue(mockStudents)
     mockAppDataService.getClasses.mockResolvedValue(mockClasses)
@@ -106,7 +103,7 @@ describe('StudentManagement Delete Integration Tests', () => {
     mockAppDataService.getTestResults.mockResolvedValue([])
     mockAppDataService.getHomeworkSubmissions.mockResolvedValue([])
     mockAppDataService.getMeetings.mockResolvedValue([])
-    
+
     mockImpactCalculation.calculateStudentDeletionImpact.mockResolvedValue(mockDeletionImpact)
     mockErrorHandling.DEFAULT_RETRY_CONFIG = {
       maxAttempts: 3,
@@ -120,7 +117,7 @@ describe('StudentManagement Delete Integration Tests', () => {
     it('should complete successful student deletion from button click to UI update in card view', async () => {
       const user = userEvent.setup()
       mockAppDataService.deleteStudent.mockResolvedValue()
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -138,7 +135,7 @@ describe('StudentManagement Delete Integration Tests', () => {
       // Find and click the delete button in card view
       const studentCard = screen.getByText('John Doe').closest('.relative')
       expect(studentCard).toBeInTheDocument()
-      
+
       const deleteButton = within(studentCard!).getByRole('button', { name: /delete/i })
       await user.click(deleteButton)
 
@@ -186,7 +183,7 @@ describe('StudentManagement Delete Integration Tests', () => {
       const user = userEvent.setup()
       mockImpactCalculation.calculateStudentDeletionImpact.mockResolvedValue(mockEmptyDeletionImpact)
       mockAppDataService.deleteStudent.mockResolvedValue()
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -224,7 +221,7 @@ describe('StudentManagement Delete Integration Tests', () => {
     it('should complete successful student deletion from button click to UI update in table view', async () => {
       const user = userEvent.setup()
       mockAppDataService.deleteStudent.mockResolvedValue()
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -286,7 +283,7 @@ describe('StudentManagement Delete Integration Tests', () => {
         resolveDelete = resolve
       })
       mockAppDataService.deleteStudent.mockReturnValue(deletePromise)
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -334,7 +331,7 @@ describe('StudentManagement Delete Integration Tests', () => {
 
       // Resolve deletion
       resolveDelete!()
-      
+
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       })
@@ -349,7 +346,7 @@ describe('StudentManagement Delete Integration Tests', () => {
         resolveImpact = resolve
       })
       mockImpactCalculation.calculateStudentDeletionImpact.mockReturnValue(impactPromise)
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -389,7 +386,7 @@ describe('StudentManagement Delete Integration Tests', () => {
 
     it('should handle cancellation after impact calculation', async () => {
       const user = userEvent.setup()
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -431,7 +428,7 @@ describe('StudentManagement Delete Integration Tests', () => {
         resolveDelete = resolve
       })
       mockAppDataService.deleteStudent.mockReturnValue(deletePromise)
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -462,7 +459,7 @@ describe('StudentManagement Delete Integration Tests', () => {
 
       // Resolve deletion
       resolveDelete!()
-      
+
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       })
@@ -474,7 +471,7 @@ describe('StudentManagement Delete Integration Tests', () => {
       const user = userEvent.setup()
       const impactError = new Error('Failed to calculate impact')
       mockImpactCalculation.calculateStudentDeletionImpact.mockRejectedValue(impactError)
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -510,7 +507,7 @@ describe('StudentManagement Delete Integration Tests', () => {
       const user = userEvent.setup()
       const deleteError = new Error('Network error')
       mockAppDataService.deleteStudent.mockRejectedValue(deleteError)
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -548,7 +545,7 @@ describe('StudentManagement Delete Integration Tests', () => {
       const user = userEvent.setup()
       const authError = new Error('Unauthorized')
       mockAppDataService.deleteStudent.mockRejectedValue(authError)
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -617,9 +614,9 @@ describe('StudentManagement Delete Integration Tests', () => {
         hasAssociatedData: true,
         warningMessage: 'This student has extensive data (93 related records). This action cannot be undone.'
       }
-      
+
       mockImpactCalculation.calculateStudentDeletionImpact.mockResolvedValue(complexImpact)
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -672,9 +669,9 @@ describe('StudentManagement Delete Integration Tests', () => {
         hasAssociatedData: true,
         warningMessage: 'This action will permanently delete all related data and cannot be undone.'
       }
-      
+
       mockImpactCalculation.calculateStudentDeletionImpact.mockResolvedValue(singleItemImpact)
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -706,7 +703,7 @@ describe('StudentManagement Delete Integration Tests', () => {
         resolveImpact = resolve
       })
       mockImpactCalculation.calculateStudentDeletionImpact.mockReturnValue(impactPromise)
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -731,7 +728,7 @@ describe('StudentManagement Delete Integration Tests', () => {
 
       // Resolve impact calculation
       resolveImpact!(mockDeletionImpact)
-      
+
       // Verify impact information appears
       await waitFor(() => {
         expect(screen.queryByText(/calculating/i)).not.toBeInTheDocument()
@@ -754,9 +751,9 @@ describe('StudentManagement Delete Integration Tests', () => {
           enrollmentDate: '2024-01-15'
         }
       ]
-      
+
       mockAppDataService.getStudents.mockResolvedValue([mockStudent, ...additionalStudents])
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -806,7 +803,7 @@ describe('StudentManagement Delete Integration Tests', () => {
     it('should maintain view mode after deletion', async () => {
       const user = userEvent.setup()
       mockAppDataService.deleteStudent.mockResolvedValue()
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -851,7 +848,7 @@ describe('StudentManagement Delete Integration Tests', () => {
   describe('Accessibility and User Experience', () => {
     it('should have proper ARIA labels and roles', async () => {
       const user = userEvent.setup()
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -872,10 +869,10 @@ describe('StudentManagement Delete Integration Tests', () => {
         const dialog = screen.getByRole('dialog')
         expect(dialog).toBeInTheDocument()
         expect(dialog).toHaveAttribute('aria-describedby')
-        
+
         const title = screen.getByRole('heading', { name: /delete student/i })
         expect(title).toBeInTheDocument()
-        
+
         const description = screen.getByText(/are you sure you want to delete/i)
         expect(description).toBeInTheDocument()
       })
@@ -883,7 +880,7 @@ describe('StudentManagement Delete Integration Tests', () => {
 
     it('should handle keyboard navigation in both card and table views', async () => {
       const user = userEvent.setup()
-      
+
       render(
         <TestWrapper>
           <StudentManagement />
@@ -897,7 +894,7 @@ describe('StudentManagement Delete Integration Tests', () => {
       // Test keyboard navigation in card view
       const studentCard = screen.getByText('John Doe').closest('.relative')
       const deleteButton = within(studentCard!).getByRole('button', { name: /delete/i })
-      
+
       deleteButton.focus()
       await user.keyboard('{Enter}')
 
@@ -908,7 +905,7 @@ describe('StudentManagement Delete Integration Tests', () => {
 
       // Close dialog
       await user.keyboard('{Escape}')
-      
+
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       })
@@ -924,7 +921,7 @@ describe('StudentManagement Delete Integration Tests', () => {
 
       const tableRow = screen.getByRole('row', { name: /john doe/i })
       const tableDeleteButton = within(tableRow).getByRole('button', { name: /delete/i })
-      
+
       tableDeleteButton.focus()
       await user.keyboard('{Enter}')
 

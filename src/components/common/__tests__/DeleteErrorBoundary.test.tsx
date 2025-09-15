@@ -1,13 +1,9 @@
-import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { DeleteErrorBoundary, useDeleteErrorBoundary } from '../DeleteErrorBoundary'
-import { toast } from 'sonner'
 
-// Mock sonner toast
-jest.mock('sonner', () => ({
-  toast: {
-    error: jest.fn()
-  }
+// Mock console.error
+jest.mock('console', () => ({
+  error: jest.fn()
 }))
 
 // Mock console.error to avoid noise in tests
@@ -63,7 +59,7 @@ describe('DeleteErrorBoundary', () => {
       </DeleteErrorBoundary>
     )
 
-    expect(toast.error).toHaveBeenCalledWith(
+    expect(console.error).toHaveBeenCalledWith(
       'An unexpected error occurred during the delete operation',
       {
         description: 'Please try again or contact support if the problem persists',
@@ -74,7 +70,7 @@ describe('DeleteErrorBoundary', () => {
 
   it('calls onError callback when provided', () => {
     const onError = jest.fn()
-    
+
     render(
       <DeleteErrorBoundary onError={onError}>
         <ThrowError shouldThrow={true} />
@@ -91,7 +87,7 @@ describe('DeleteErrorBoundary', () => {
 
   it('calls onRetry callback when retry button is clicked', () => {
     const onRetry = jest.fn()
-    
+
     render(
       <DeleteErrorBoundary onRetry={onRetry}>
         <ThrowError shouldThrow={true} />
@@ -104,7 +100,7 @@ describe('DeleteErrorBoundary', () => {
 
   it('renders custom fallback when provided', () => {
     const customFallback = <div>Custom error message</div>
-    
+
     render(
       <DeleteErrorBoundary fallback={customFallback}>
         <ThrowError shouldThrow={true} />
