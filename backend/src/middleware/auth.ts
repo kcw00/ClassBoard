@@ -35,6 +35,9 @@ export const authenticateToken = async (
           code: 'MISSING_TOKEN',
           message: 'Access token is required',
         },
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        requestId: (req as any).requestId,
       });
       return;
     }
@@ -71,6 +74,9 @@ export const authenticateToken = async (
         code: errorCode,
         message: errorMessage,
       },
+      timestamp: new Date().toISOString(),
+      path: req.path,
+      requestId: (req as any).requestId,
     });
   }
 };
@@ -87,6 +93,9 @@ export const authorizeRoles = (...allowedRoles: string[]) => {
           code: 'UNAUTHENTICATED',
           message: 'Authentication required',
         },
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        requestId: (req as any).requestId,
       });
       return;
     }
@@ -100,6 +109,9 @@ export const authorizeRoles = (...allowedRoles: string[]) => {
           code: 'INSUFFICIENT_PERMISSIONS',
           message: `Access denied. Required roles: ${allowedRoles.join(', ')}`,
         },
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        requestId: (req as any).requestId,
       });
       return;
     }
