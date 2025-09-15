@@ -10,16 +10,6 @@ import meetingRoutes from './meetings';
 
 const router = Router();
 
-// Health check endpoint
-router.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'ClassBoard API is running',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
-  });
-});
-
 // API info endpoint (must be before root-level route mounting)
 router.get('/', (req, res) => {
   res.json({
