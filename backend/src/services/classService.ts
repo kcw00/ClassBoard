@@ -1,5 +1,7 @@
 import { PrismaClient, Class, Student, ClassEnrollment } from '@prisma/client';
 import { DatabaseError, NotFoundError, ConflictError } from '../utils/errors';
+import CacheService from './cacheService';
+import { parsePaginationQuery, createPaginationResult, generateOrderBy } from '../utils/pagination';
 
 // Use a singleton pattern for Prisma client
 let prisma: PrismaClient;
@@ -98,97 +100,111 @@ export class ClassService {
    */
   async getAllClassesPaginated(query: GetClassesQuery = {}): Promise<PaginatedClassesResponse> {
     try {
-      const {
-        page = 1,
-        limit = 10,
-        subject,
-        search,
-      } = query;
+      // Generate cache key
+      const cacheKey = CacheService.generatePaginationKey(
+        'classes',
+        query.page || 1,
+        query.limit || 10,
+        { subject: query.subject, search: query.search }
+      );
 
-      // Ensure page is at least 1
-      const currentPage = Math.max(1, page);
-      const pageSize = Math.min(Math.max(1, limit), 100); // Max 100 items per page
-      const skip = (currentPage - 1) * pageSize;
+      // Check cache first
+      const cachedResult = CacheService.get<PaginatedClassesResponse>('classes', cacheKey);
+      if (cachedResult) {
+        return cachedResult;
+      }
+
+      // Parse pagination parameters
+      const { page, limit, skip } = parsePaginationQuery(query, {
+        defaultLimit: 10,
+        maxLimit: 100
+      });
 
       // Build where condition for filtering
       const whereCondition: any = {};
 
-      if (subject) {
+      if (query.subject) {
         whereCondition.subject = {
-          contains: subject,
+          contains: query.subject,
           mode: 'insensitive',
         };
       }
 
-      if (search) {
+      if (query.search) {
         whereCondition.OR = [
           {
             name: {
-              contains: search,
+              contains: query.search,
               mode: 'insensitive',
             },
           },
           {
             subject: {
-              contains: search,
+              contains: query.search,
               mode: 'insensitive',
             },
           },
           {
             description: {
-              contains: search,
+              contains: query.search,
               mode: 'insensitive',
             },
           },
           {
             room: {
-              contains: search,
+              contains: query.search,
               mode: 'insensitive',
             },
           },
         ];
       }
 
-      // Get total count for pagination
-      const total = await this.prisma.class.count({
-        where: whereCondition,
-      });
+      // Use transaction for consistency and performance
+      const result = await this.prisma.$transaction(async (tx) => {
+        // Get total count for pagination
+        const total = await tx.class.count({
+          where: whereCondition,
+        });
 
-      // Get paginated data
-      const classes = await this.prisma.class.findMany({
-        where: whereCondition,
-        include: {
-          enrollments: {
-            include: {
-              student: true,
+        // Get paginated data with optimized query
+        const classes = await tx.class.findMany({
+          where: whereCondition,
+          include: {
+            enrollments: {
+              include: {
+                student: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    grade: true,
+                    phone: true,
+                    parentContact: true,
+                    enrollmentDate: true,
+                    createdAt: true,
+                    updatedAt: true
+                  }
+                },
+              },
+            },
+            _count: {
+              select: {
+                enrollments: true,
+              },
             },
           },
-          _count: {
-            select: {
-              enrollments: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        skip,
-        take: pageSize,
+          orderBy: generateOrderBy('createdAt', 'desc'),
+          skip,
+          take: limit,
+        });
+
+        return createPaginationResult(classes, total, page, limit);
       });
 
-      const totalPages = Math.ceil(total / pageSize);
+      // Cache the result
+      CacheService.set('classes', cacheKey, result);
 
-      return {
-        data: classes,
-        pagination: {
-          page: currentPage,
-          limit: pageSize,
-          total,
-          totalPages,
-          hasNextPage: currentPage < totalPages,
-          hasPreviousPage: currentPage > 1,
-        },
-      };
+      return result;
     } catch (error) {
       throw new DatabaseError('Failed to fetch classes', error);
     }
@@ -199,13 +215,39 @@ export class ClassService {
    */
   async getClassById(id: string): Promise<ClassWithEnrollments> {
     try {
+      // Generate cache key
+      const cacheKey = CacheService.generateEntityKey('class', id, ['enrollments', 'students']);
+
+      // Check cache first
+      const cachedResult = CacheService.get<ClassWithEnrollments>('classes', cacheKey);
+      if (cachedResult) {
+        return cachedResult;
+      }
+
       const classData = await this.prisma.class.findUnique({
         where: { id },
         include: {
           enrollments: {
             include: {
-              student: true,
+              student: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  grade: true,
+                  phone: true,
+                  parentContact: true,
+                  createdAt: true,
+                  updatedAt: true,
+                  enrollmentDate: true
+                }
+              },
             },
+            orderBy: {
+              student: {
+                name: 'asc'
+              }
+            }
           },
           _count: {
             select: {
@@ -218,6 +260,9 @@ export class ClassService {
       if (!classData) {
         throw new NotFoundError('Class not found');
       }
+
+      // Cache the result
+      CacheService.set('classes', cacheKey, classData);
 
       return classData;
     } catch (error) {
@@ -234,13 +279,16 @@ export class ClassService {
   async createClass(data: CreateClassData): Promise<Class> {
     try {
       const currentDate = new Date().toISOString().split('T')[0];
-      
+
       const newClass = await this.prisma.class.create({
         data: {
           ...data,
           createdDate: currentDate,
         },
       });
+
+      // Invalidate classes cache since we added a new class
+      CacheService.invalidateRelated('classes');
 
       return newClass;
     } catch (error) {
@@ -297,8 +345,25 @@ export class ClassService {
         include: {
           enrollments: {
             include: {
-              student: true,
+              student: {
+                select: {
+                  id: true,
+                  name: true,
+                  createdAt: true,
+                  updatedAt: true,
+                  email: true,
+                  phone: true,
+                  grade: true,
+                  parentContact: true,
+                  enrollmentDate: true
+                }
+              },
             },
+            orderBy: {
+              student: {
+                name: 'asc'
+              }
+            }
           },
           _count: {
             select: {
@@ -307,6 +372,9 @@ export class ClassService {
           },
         },
       });
+
+      // Invalidate related cache entries
+      CacheService.invalidateRelated('classes', id);
 
       return updatedClass;
     } catch (error) {
@@ -334,6 +402,9 @@ export class ClassService {
       await this.prisma.class.delete({
         where: { id },
       });
+
+      // Invalidate related cache entries
+      CacheService.invalidateRelated('classes', id);
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw error;
@@ -347,57 +418,64 @@ export class ClassService {
    */
   async enrollStudent(classId: string, studentId: string): Promise<ClassEnrollment> {
     try {
-      // Check if class exists
-      const classData = await this.prisma.class.findUnique({
-        where: { id: classId },
-        include: {
-          _count: {
-            select: {
-              enrollments: true,
+      // Use transaction for consistency
+      const enrollment = await this.prisma.$transaction(async (tx) => {
+        // Check if class exists and get current enrollment count
+        const classData = await tx.class.findUnique({
+          where: { id: classId },
+          include: {
+            _count: {
+              select: {
+                enrollments: true,
+              },
             },
           },
-        },
-      });
+        });
 
-      if (!classData) {
-        throw new NotFoundError('Class not found');
-      }
+        if (!classData) {
+          throw new NotFoundError('Class not found');
+        }
 
-      // Check if student exists
-      const student = await this.prisma.student.findUnique({
-        where: { id: studentId },
-      });
+        // Check if student exists
+        const student = await tx.student.findUnique({
+          where: { id: studentId },
+        });
 
-      if (!student) {
-        throw new NotFoundError('Student not found');
-      }
+        if (!student) {
+          throw new NotFoundError('Student not found');
+        }
 
-      // Check if class is at capacity
-      if (classData._count.enrollments >= classData.capacity) {
-        throw new ConflictError('Class is at full capacity');
-      }
+        // Check if class is at capacity
+        if (classData._count.enrollments >= classData.capacity) {
+          throw new ConflictError('Class is at full capacity');
+        }
 
-      // Check if student is already enrolled
-      const existingEnrollment = await this.prisma.classEnrollment.findUnique({
-        where: {
-          classId_studentId: {
+        // Check if student is already enrolled
+        const existingEnrollment = await tx.classEnrollment.findUnique({
+          where: {
+            classId_studentId: {
+              classId,
+              studentId,
+            },
+          },
+        });
+
+        if (existingEnrollment) {
+          throw new ConflictError('Student is already enrolled in this class');
+        }
+
+        // Create enrollment
+        return await tx.classEnrollment.create({
+          data: {
             classId,
             studentId,
           },
-        },
+        });
       });
 
-      if (existingEnrollment) {
-        throw new ConflictError('Student is already enrolled in this class');
-      }
-
-      // Create enrollment
-      const enrollment = await this.prisma.classEnrollment.create({
-        data: {
-          classId,
-          studentId,
-        },
-      });
+      // Invalidate related cache entries
+      CacheService.invalidateRelated('classes', classId);
+      CacheService.invalidateRelated('students', studentId);
 
       return enrollment;
     } catch (error) {
@@ -436,6 +514,10 @@ export class ClassService {
           },
         },
       });
+
+      // Invalidate related cache entries
+      CacheService.invalidateRelated('classes', classId);
+      CacheService.invalidateRelated('students', studentId);
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw error;

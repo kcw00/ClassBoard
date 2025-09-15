@@ -7,6 +7,7 @@ import assessmentRoutes from './assessments';
 import fileRoutes from './files';
 import attendanceRoutes from './attendance';
 import meetingRoutes from './meetings';
+import performanceRoutes from './performance';
 
 const router = Router();
 
@@ -27,6 +28,7 @@ router.get('/', (req, res) => {
       files: '/api/files',
       attendance: '/api/attendance',
       meetings: '/api/meetings',
+      performance: '/api/performance',
     },
   });
 });
@@ -40,5 +42,6 @@ router.use('/', assessmentRoutes); // Assessment routes are mounted at root leve
 router.use('/files', fileRoutes);
 router.use('/attendance', attendanceRoutes);
 router.use('/meetings', meetingRoutes);
+router.use('/performance', performanceRoutes);
 
 export default router;

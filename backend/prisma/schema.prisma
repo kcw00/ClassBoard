@@ -41,6 +41,11 @@ model Student {
   testResults        TestResult[]
   homeworkSubmissions HomeworkSubmission[]
 
+  // Indexes for performance optimization
+  @@index([email])
+  @@index([name])
+  @@index([grade])
+  @@index([createdAt])
   @@map("students")
 }
 
@@ -65,6 +70,11 @@ model Class {
   classNotes          ClassNote[]
   homeworkAssignments HomeworkAssignment[]
 
+  // Indexes for performance optimization
+  @@index([subject])
+  @@index([name])
+  @@index([createdAt])
+  @@index([room])
   @@map("classes")
 }
 
@@ -151,6 +161,10 @@ model AttendanceRecord {
   class           Class             @relation(fields: [classId], references: [id], onDelete: Cascade)
   attendanceData  AttendanceEntry[]
 
+  // Indexes for performance optimization
+  @@index([classId])
+  @@index([date])
+  @@index([createdAt])
   @@map("attendance_records")
 }
 
@@ -210,6 +224,11 @@ model Test {
   class   Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
   results TestResult[]
 
+  // Indexes for performance optimization
+  @@index([classId])
+  @@index([testDate])
+  @@index([testType])
+  @@index([createdAt])
   @@map("tests")
 }
 
@@ -235,6 +254,10 @@ model TestResult {
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([testId, studentId])
+  @@index([testId])
+  @@index([studentId])
+  @@index([grade])
+  @@index([gradedDate])
   @@map("test_results")
 }
 
@@ -258,6 +281,11 @@ model HomeworkAssignment {
   class       Class                @relation(fields: [classId], references: [id], onDelete: Cascade)
   submissions HomeworkSubmission[]
 
+  // Indexes for performance optimization
+  @@index([classId])
+  @@index([dueDate])
+  @@index([assignedDate])
+  @@index([createdAt])
   @@map("homework_assignments")
 }
 

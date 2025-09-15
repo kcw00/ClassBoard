@@ -10,6 +10,8 @@ import {
   validateGetClassesQuery,
 } from '../validators/classValidators';
 import { AppError } from '../utils/errors';
+import { cacheResponse, invalidateCacheOnModification, cacheKeyGenerators } from '../middleware/caching';
+import { validatePaginationMiddleware } from '../utils/pagination';
 
 const router = Router();
 
@@ -21,7 +23,11 @@ router.use(authenticateToken);
  * Get all classes with enrollment information (paginated)
  * Query params: page, limit, subject, search
  */
-router.get('/', validateGetClassesQuery, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', 
+  validateGetClassesQuery,
+  validatePaginationMiddleware({ maxLimit: 100 }),
+  cacheResponse('classes', cacheKeyGenerators.classesList),
+  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const query = req.query as any;
     const result = await classService.getAllClassesPaginated(query);
@@ -54,7 +60,10 @@ router.get('/', validateGetClassesQuery, async (req: Request, res: Response, nex
  * GET /api/classes/:id
  * Get a single class by ID with enrollment information
  */
-router.get('/:id', validateClassIdParam, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', 
+  validateClassIdParam,
+  cacheResponse('classes', cacheKeyGenerators.classById),
+  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const classData = await classService.getClassById(id);
@@ -87,7 +96,10 @@ router.get('/:id', validateClassIdParam, async (req: Request, res: Response, nex
  * POST /api/classes
  * Create a new class
  */
-router.post('/', validateCreateClassRequest, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', 
+  validateCreateClassRequest,
+  invalidateCacheOnModification('classes'),
+  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const classData = req.body;
     const newClass = await classService.createClass(classData);
@@ -120,7 +132,11 @@ router.post('/', validateCreateClassRequest, async (req: Request, res: Response,
  * PUT /api/classes/:id
  * Update an existing class
  */
-router.put('/:id', validateClassIdParam, validateUpdateClassRequest, async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', 
+  validateClassIdParam, 
+  validateUpdateClassRequest,
+  invalidateCacheOnModification('classes', (req) => req.params.id),
+  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -156,7 +172,10 @@ router.put('/:id', validateClassIdParam, validateUpdateClassRequest, async (req:
  * DELETE /api/classes/:id
  * Delete a class
  */
-router.delete('/:id', validateClassIdParam, async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', 
+  validateClassIdParam,
+  invalidateCacheOnModification('classes', (req) => req.params.id),
+  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     await classService.deleteClass(id);
@@ -213,7 +232,10 @@ router.delete('/:id/students/:studentId', validateClassIdParam, validateStudentI
  * GET /api/classes/:id/students
  * Get students enrolled in a class
  */
-router.get('/:id/students', validateClassIdParam, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id/students', 
+  validateClassIdParam,
+  cacheResponse('classes', cacheKeyGenerators.classStudents),
+  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const students = await classService.getClassStudents(id);
