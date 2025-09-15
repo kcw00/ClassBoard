@@ -12,10 +12,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Plus, Users, MapPin, Clock, Settings, UserPlus, CalendarPlus, Trash2, Edit, RefreshCw, AlertCircle, CheckCircle } from "lucide-react"
+import { toast } from "sonner"
 import { classColors } from "@/types"
 import type { Class } from "@/types"
 import { useAppData } from "@/context/AppDataMigrationContext"
 import { DeleteConfirmationDialog } from "@/components/common/DeleteConfirmationDialog"
+import { calculateClassDeletionImpact, type DeletionImpact } from "@/utils/impactCalculation"
 
 export default function ClassManagement() {
   const navigate = useNavigate()
@@ -28,6 +30,8 @@ export default function ClassManagement() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [classToDelete, setClassToDelete] = useState<Class | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [deletionImpact, setDeletionImpact] = useState<DeletionImpact | null>(null)
+  const [isCalculatingImpact, setIsCalculatingImpact] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
@@ -145,10 +149,23 @@ export default function ClassManagement() {
     }
   }
 
-  const handleDeleteClick = (classItem: Class, e: React.MouseEvent) => {
+  const handleDeleteClick = async (classItem: Class, e: React.MouseEvent) => {
     e.stopPropagation()
     setClassToDelete(classItem)
+    setIsCalculatingImpact(true)
     setDeleteDialogOpen(true)
+    
+    try {
+      const impact = await calculateClassDeletionImpact(classItem.id)
+      setDeletionImpact(impact)
+    } catch (error) {
+      console.error('Failed to calculate deletion impact:', error)
+      toast.error('Failed to calculate deletion impact. Please try again.')
+      setDeleteDialogOpen(false)
+      setClassToDelete(null)
+    } finally {
+      setIsCalculatingImpact(false)
+    }
   }
 
   const handleDeleteConfirm = async () => {
@@ -157,14 +174,27 @@ export default function ClassManagement() {
     setIsDeleting(true)
     try {
       await actions.deleteClass(classToDelete.id)
+      
+      // Success feedback
+      toast.success(`Class "${classToDelete.name}" deleted successfully!`)
+      
+      // Close dialog and reset state
       setDeleteDialogOpen(false)
       setClassToDelete(null)
+      setDeletionImpact(null)
+      
+      // Also show status message for consistency with existing UI
       setStatusMessage({ 
         type: 'success', 
         message: `Class "${classToDelete.name}" deleted successfully!` 
       })
       setTimeout(() => setStatusMessage(null), 3000)
     } catch (error) {
+      console.error('Failed to delete class:', error)
+      
+      // Error feedback
+      toast.error('Failed to delete class. Please try again.')
+      
       setStatusMessage({ 
         type: 'error', 
         message: 'Failed to delete class. Please try again.' 
@@ -178,6 +208,7 @@ export default function ClassManagement() {
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false)
     setClassToDelete(null)
+    setDeletionImpact(null)
   }
 
   const getScheduleForClass = (classId: string) => {
@@ -741,9 +772,14 @@ export default function ClassManagement() {
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         title="Delete Class"
-        description="Are you sure you want to delete this class? This action cannot be undone."
+        description={
+          isCalculatingImpact 
+            ? "Calculating impact of deletion..." 
+            : "Are you sure you want to delete this class? This action cannot be undone."
+        }
         itemName={classToDelete?.name || ''}
-        isLoading={isDeleting}
+        impactInfo={deletionImpact || undefined}
+        isLoading={isDeleting || isCalculatingImpact}
       />
     </div>
   )
