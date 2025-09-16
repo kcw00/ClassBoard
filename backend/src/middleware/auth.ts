@@ -59,9 +59,31 @@ export const authenticateToken = async (
       return;
     }
 
+    // TEMPORARY DEMO MODE: Handle JWT tokens directly
+    try {
+      // Try to verify as JWT token first (for demo mode)
+      const decoded = authService.verifyJWT(token);
+
+      if (decoded && decoded.sub) {
+        // Create user from JWT token data
+        req.user = {
+          id: decoded.sub,
+          email: decoded.email || 'demo@example.com',
+          name: decoded.name || 'Demo User',
+          role: decoded.role || 'TEACHER',
+          emailVerified: true
+        };
+        req.accessToken = token;
+        next();
+        return;
+      }
+    } catch (jwtError) {
+      console.log('Not a JWT token, trying Cognito validation...');
+    }
+
     // Get user details from Cognito using the access token
     const user = await authService.getUserFromToken(token);
-    
+
     // Attach user and token to request object
     req.user = user;
     req.accessToken = token;
