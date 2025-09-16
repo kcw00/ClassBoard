@@ -20,26 +20,26 @@ export default function LoginPage({ onLogin, onBack, isLoading = false }: LoginP
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {}
-    
+
     if (!email.trim()) {
       newErrors.email = "Email is required"
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "Please enter a valid email address"
     }
-    
+
     if (!password.trim()) {
       newErrors.password = "Password is required"
     } else if (password.length < 6) {
       newErrors.password = "Password must be at least 6 characters"
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       console.error("❌ Please fix the errors below")
       return
@@ -51,8 +51,8 @@ export default function LoginPage({ onLogin, onBack, isLoading = false }: LoginP
   // Demo credentials helper
   const handleDemoLogin = () => {
     setEmail("teacher@classboard.com")
-    setPassword("demo123")
-    onLogin({ email: "teacher@classboard.com", password: "demo123" })
+    setPassword("demo1234")
+    onLogin({ email: "teacher@classboard.com", password: "demo1234" })
   }
 
   return (
@@ -144,9 +144,9 @@ export default function LoginPage({ onLogin, onBack, isLoading = false }: LoginP
                   )}
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full" 
+                <Button
+                  type="submit"
+                  className="w-full"
                   disabled={isLoading}
                 >
                   {isLoading ? "Signing In..." : "Sign In"}
@@ -159,8 +159,8 @@ export default function LoginPage({ onLogin, onBack, isLoading = false }: LoginP
                   <p className="text-sm text-muted-foreground mb-3">
                     Want to try a demo?
                   </p>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={handleDemoLogin}
                     disabled={isLoading}
                     className="w-full"
@@ -168,7 +168,7 @@ export default function LoginPage({ onLogin, onBack, isLoading = false }: LoginP
                     Use Demo Account
                   </Button>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Email: teacher@classboard.com • Password: demo123
+                    Email: teacher@classboard.com • Password: demo1234
                   </p>
                 </div>
               </div>
