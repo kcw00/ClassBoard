@@ -91,12 +91,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const data = await response.json()
 
       if (data.success && data.data) {
-        const { user, token } = data.data
+        const { user, accessToken } = data.data
 
         setUser(user)
         localStorage.setItem("classboard_user", JSON.stringify(user))
         localStorage.setItem("classboard_seen_launch", "true")
-        localStorage.setItem("authToken", token)
+        localStorage.setItem("authToken", accessToken)
+        localStorage.setItem("accessToken", accessToken) // Also store as accessToken for consistency
         setShowLaunchScreen(false)
 
         console.log(`Welcome back, ${user.name}!`)
