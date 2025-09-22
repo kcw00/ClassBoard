@@ -171,9 +171,16 @@ export function validateURL(url: string): boolean {
  */
 export function preventSQLInjection(req: Request, res: Response, next: NextFunction) {
   const sqlInjectionPatterns = [
-    /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/gi,
-    /('|(\\')|(;)|(--)|(\|)|(\*)|(%)|(<)|(>)|(\{)|(\})|(\[)|(\]))/gi,
-    /((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))/gi,
+    // SQL Keywords in dangerous context (not just the word alone)
+    /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\s+(FROM|INTO|SET|WHERE|TABLE|VALUES)\b)/gi,
+    // Dangerous patterns - semicolon followed by SQL keywords
+    /(;)\s*(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|UNION)/gi,
+    // SQL injection with quotes
+    /('|(\\')).*?(SELECT|INSERT|UPDATE|DELETE|DROP|UNION)/gi,
+    // SQL comment injection patterns
+    /(\/\*.*?\*\/|--\s|#.*$)/gmi,
+    // URL encoded SQL injection patterns
+    /((\%3D)|(=))[^\n]*((\%27)|(\')|(\%3B)|(;))/gi,
     /\w*((\%27)|(\'))((\%6F)|o|(\%4F))((\%72)|r|(\%52))/gi,
     /((\%27)|(\'))union/gi
   ];
