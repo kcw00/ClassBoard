@@ -77,35 +77,6 @@ export class AuthService {
    */
   async login(loginRequest: LoginRequest): Promise<AuthResult> {
     try {
-      // TEMPORARY DEMO MODE: Bypass Cognito authentication
-      console.log('🚨 DEMO MODE: Bypassing Cognito authentication');
-
-      // Accept any login with demo credentials
-      if (loginRequest.email === 'teacher@classboard.com' && loginRequest.password === 'demo1234') {
-        const mockToken = jwt.sign(
-          {
-            sub: 'default-teacher-1',
-            email: 'teacher@classboard.com',
-            name: 'Default Teacher',
-            exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24), // 24 hours
-          },
-          process.env.JWT_SECRET || 'demo-secret'
-        );
-
-        return {
-          accessToken: mockToken,
-          refreshToken: mockToken,
-          idToken: mockToken,
-          user: {
-            id: 'default-teacher-1',
-            email: 'teacher@classboard.com',
-            name: 'Default Teacher',
-            role: 'TEACHER'
-          },
-        };
-      }
-
-      // For other credentials, still try Cognito (will fail with current config)
       const command = new InitiateAuthCommand({
         AuthFlow: AuthFlowType.USER_SRP_AUTH,
         ClientId: this.clientId,
