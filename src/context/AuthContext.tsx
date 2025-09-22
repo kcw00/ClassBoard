@@ -12,6 +12,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   login: (credentials: { email: string; password: string }) => Promise<void>
+  signup: (data: { email: string; password: string; name: string }) => Promise<void>
   logout: () => void
   showLaunchScreen: boolean
   dismissLaunchScreen: () => void
@@ -112,6 +113,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
+  const signup = async (data: { email: string; password: string; name: string }) => {
+    setIsLoading(true)
+
+    try {
+      const getApiUrl = () => {
+        if (import.meta.env.VITE_API_URL) {
+          return import.meta.env.VITE_API_URL
+        }
+        if (import.meta.env.VITE_API_URL_DEV) {
+          return import.meta.env.VITE_API_URL_DEV
+        }
+        return 'http://localhost:3001'
+      }
+      const apiBaseUrl = getApiUrl()
+
+      // Make API call to signup endpoint
+      const response = await fetch(`${apiBaseUrl}/api/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...data,
+          role: 'teacher' // Default role for new signups
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Signup failed' }))
+        throw new Error(errorData.message || 'Signup failed')
+      }
+
+      const responseData = await response.json()
+
+      if (responseData.success) {
+        // Registration successful - user needs to verify email
+        console.log('Registration successful. Please check your email for verification.')
+      } else {
+        throw new Error(responseData.message || 'Signup failed')
+      }
+    } catch (error) {
+      console.error("Signup failed:", error)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const logout = () => {
     setUser(null)
     localStorage.removeItem("classboard_user")
@@ -134,6 +183,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated: !!user,
     isLoading,
     login,
+    signup,
     logout,
     showLaunchScreen,
     dismissLaunchScreen,
